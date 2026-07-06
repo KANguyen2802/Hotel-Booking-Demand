@@ -1,0 +1,8 @@
+# Dữ liệu thô — không đẩy lên GitHub
+data/
+*.csv
+
+# Jupyter / Python
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
