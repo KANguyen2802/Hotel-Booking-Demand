@@ -41,6 +41,10 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 ## H1 — `lead_time` (Mann-Whitney U)
 
+
+
+![H1 — lead_time](figures/05/chart_01.png)
+
 **H₀:** Phân bố `lead_time` giống nhau giữa booking hủy và không hủy.  
 **H₁:** Hai phân bố khác nhau.
 
@@ -65,6 +69,10 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 ---
 
 ## H1b — `lead_time_bin` (Chi-squared)
+
+
+
+![H1b — lead_time_bin](figures/05/chart_05.png)
 
 **H₀:** Nhóm lead_time bin và `is_canceled` độc lập.  
 **H₁:** Tỷ lệ hủy khác nhau giữa các bin.
@@ -98,6 +106,10 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 ## H2 — `deposit_type` (Chi-squared)
 
+
+
+![H2 — deposit_type (crosstab)](figures/05/chart_02.png)
+
 **H₀:** `deposit_type` và `is_canceled` độc lập.  
 **H₁:** Có association giữa loại cọc và tỷ lệ hủy.
 
@@ -128,6 +140,10 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 ---
 
 ## H3 — `market_segment` (Chi-squared)
+
+
+
+![H3 — market_segment](figures/05/chart_04.png)
 
 **H₀:** `market_segment` và `is_canceled` độc lập.  
 **H₁:** Có association giữa phân khúc thị trường và tỷ lệ hủy.
@@ -166,6 +182,10 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 ## H4 — Logistic Regression đa biến
 
+
+
+![H4 — Logistic Regression](figures/05/chart_06.png)
+
 **Mô hình:** `is_canceled ~ lead_time + deposit_type + market_segment`  
 **Baseline:** `deposit_type = No Deposit`, `market_segment = Direct`
 
@@ -202,6 +222,10 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 ---
 
 ## So sánh effect size
+
+
+
+![Dashboard effect size](figures/05/chart_07.png)
 
 | Test | Biến | Metric | Giá trị | Xếp hạng tương đối |
 |---|---|---:|---:|---|

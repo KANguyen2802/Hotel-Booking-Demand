@@ -228,20 +228,35 @@ Tỷ lệ hủy **thực tế** (`is_canceled`) theo từng nhóm — đối chi
 
 ### 6.1 Confusion Matrix (@ 0,35)
 
+
+
+![Confusion Matrix & ROC Curve](figures/07/chart_01.png)
+
 - **Đánh giá:** Cho thấy chiến lược ngưỡng thấp — FN chỉ 273 nhưng FP 6.354. Phù hợp mục tiêu “bắt hầu hết booking sẽ hủy”, không phù hợp nếu mỗi cảnh báo đều tốn chi phí can thiệp.
 
 ### 6.2 ROC Curve (AUC = 0,831)
+
+
+![ROC Curve (cùng hình với Confusion Matrix)](figures/07/chart_01.png)
 
 - **Đánh giá:** Cải thiện rõ so với v1 (0,734). Mô hình **xếp hạng rủi ro tốt**; ngưỡng 0,35 là điểm cắt trên đường ROC, không làm thay đổi AUC.
 - **Gợi ý:** Kết hợp ROC với **Precision-Recall curve** nếu cần tối ưu ngưỡng theo chi phí FP/FN.
 
 ### 6.3 Prediction Probability Distribution (Histogram + KDE)
 
+
+
+![Phân phối xác suất dự đoán](figures/07/chart_02.png)
+
 - **Quy ước màu:** teal = Không hủy · orange = Hủy · đường đứt nét = **ngưỡng 0,35**.
 - **Đánh giá:** Hai phân phối **tách lớp tốt hơn v1** (AUC cao hơn). Vẫn có overlap vùng 0,25–0,55 — bình thường với dữ liệu hành vi. Median `P(hủy)` nhóm thực sự hủy cao hơn nhóm không hủy (xem notebook).
 - **Ngưỡng 0,35:** Nằm trong vùng overlap → tăng Recall nhưng kéo theo nhiều FP từ phân phối “Không hủy”.
 
 ### 6.4 Feature Importance (bar chart top 20 + bảng gom nhóm)
+
+
+
+![Feature Importance (top 20)](figures/07/chart_03.png)
 
 - **Đánh giá:** Xác nhận `lead_time` và `market_segment` là hai trục chính; hỗ trợ ưu tiên can thiệp (chính sách lead time, OTA segment, incentive special requests).
 

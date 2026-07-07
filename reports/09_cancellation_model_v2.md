@@ -239,6 +239,9 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 ### 5.2 Mean |SHAP| — Xếp hạng biến engineered
 
+
+![SHAP — mean |SHAP| engineered](figures/09/chart_04.png)
+
 | Hạng | Biến | Mean \|SHAP\| | Mean SHAP | Nhóm | Diễn giải |
 |:---:|------|------------:|----------:|------|-----------|
 | 1 | **`price_per_person`** | **0,244** | −0,012 | Financial Commitment | Đóng góp lớn nhất trong nhóm engineered |
@@ -254,6 +257,11 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 ### 5.3 Tổng hợp theo nhóm feature engineering
 
+
+
+
+![SHAP — tổng hợp theo nhóm](figures/09/chart_05.png)
+
 | Nhóm | Tổng mean \|SHAP\| | Mean SHAP | Đánh giá |
 |------|------------------:|----------:|----------|
 | **Financial Commitment** | **0,365** | −0,009 | Nhóm engineered quan trọng nhất — `price_per_person` chi phối |
@@ -267,17 +275,32 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 ### 6.1 Confusion Matrix (@ 0,35 — Tuned)
 
+
+
+![Confusion Matrix & ROC Curve](figures/09/chart_01.png)
+
 FN = 469, FP = 4.329. Cân bằng tốt hơn RF v1.2 về Precision (ít FP hơn), nhưng FN cao hơn — cần cân nhắc hạ ngưỡng xuống 0,30 nếu ưu tiên Recall tuyệt đối.
 
 ### 6.2 ROC Curve (AUC = 0,871)
+
+
+![ROC Curve (cùng hình với Confusion Matrix)](figures/09/chart_01.png)
 
 Cải thiện rõ so RF v1.2 (0,840) và baseline LGBM (0,867). Mô hình xếp hạng rủi ro tốt; phù hợp scoring / prioritization.
 
 ### 6.3 Prediction Probability Distribution
 
+
+
+![Phân phối xác suất dự đoán](figures/09/chart_02.png)
+
 Median P(hủy): Không hủy **0,23** · Hủy **0,75** — tách lớp tốt hơn v1.2. Ngưỡng 0,35 nằm trên median class Không hủy → vẫn đảm bảo Recall cao.
 
 ### 6.4 Gain importance vs SHAP
+
+
+
+![Feature Importance (gain)](figures/09/chart_03.png)
 
 | Góc nhìn | Gain (LightGBM) | SHAP |
 |----------|-----------------|------|
