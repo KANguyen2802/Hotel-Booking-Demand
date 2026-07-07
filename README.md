@@ -13,5 +13,7 @@ Hotel RevPAR Optimization
 | 05 | `notebooks/05_hypothesis_testing.ipynb` | `reports/05_hypothesis_testing_is_canceled.md` | ✓ |
 | 05b | `notebooks/05b_hypothesis_visualization.ipynb` | — | — |
 | 06–08 | `models/Cancellation Predict Model v1/06–08_*.ipynb` | `reports/06–08_*.md` | ✓ |
+| 09 | `models/Cancellation Predict Model v2/09_cancellation_model_v2.ipynb` | `reports/09_cancellation_model_v2.md` | — |
+| 10 | — | `reports/10_brd_v1_1.md` | — |
 
 Thư mục `data/` giữ nguyên tên file CSV.

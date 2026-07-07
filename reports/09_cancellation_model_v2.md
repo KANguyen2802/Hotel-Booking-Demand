@@ -2,7 +2,7 @@
 
 > **Nguồn dữ liệu:** `hotel_bookings_v5.csv`  
 > **Phạm vi:** 82.811 booking | Tỷ lệ hủy tổng thể: **28,12%** (~23.284 booking bị hủy)  
-> **Notebook tham chiếu:** `models/Canncellation Predict Model v2/09_cancellation_model_v2.ipynb`  
+> **Notebook tham chiếu:** `models/Cancellation Predict Model v2/09_cancellation_model_v2.ipynb`  
 > **Thuật toán:** `LGBMClassifier` (LightGBM) + tinh chỉnh **GridSearchCV** & **Optuna** + giải thích **SHAP** (`TreeExplainer`)  
 > **Ngưỡng phân loại:** **0,35** (`P(hủy) >= 0,35` → dự đoán Hủy)
 
@@ -320,7 +320,7 @@ Median P(hủy): Không hủy **0,23** · Hủy **0,75** — tách lớp tốt h
 
 | Tài liệu | Nội dung |
 |----------|----------|
-| `09_cancellation_model_v2.ipynb` | Notebook đầy đủ (tune + SHAP) |
+| `models/Cancellation Predict Model v2/09_cancellation_model_v2.ipynb` | Notebook đầy đủ (tune + SHAP) |
 | [08_cancellation_model_v1_2.md](08_cancellation_model_v1_2.md) | RF v1.2 — cùng feature set |
 | [07_cancellation_model_v1_1.md](07_cancellation_model_v1_1.md) | Phiên bản 9 feature |
 | [06_cancellation_model_v1.md](06_cancellation_model_v1.md) | Baseline phân loại |
