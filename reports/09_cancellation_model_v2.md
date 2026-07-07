@@ -20,12 +20,12 @@ v2 kế thừa **toàn bộ feature engineering** từ v1.2 (16 biến, 4 nhóm 
 | Tinh chỉnh HP | Không (cố định) | **GridSearchCV + Optuna (mục 3b)** |
 | Importance | Gini | **Gain** (chuẩn GBDT) |
 | Ngưỡng | 0,35 | **0,35** (so sánh công bằng) |
-| ROC-AUC (test) | 0,840 | **0,872** (tuned) |
-| Recall — Hủy @ 0,35 | 0,94 | **0,88** |
-| Precision — Hủy @ 0,35 | 0,42 | **0,51** |
-| Accuracy @ 0,35 | 0,62 | **0,72** |
+| ROC-AUC (test) | 0,840 | **0,871** (tuned) |
+| Recall — Hủy @ 0,35 | 0,94 | **0,90** |
+| Precision — Hủy @ 0,35 | 0,42 | **0,49** |
+| Accuracy @ 0,35 | 0,62 | **0,71** |
 
-**Cải thiện chính:** ROC-AUC tăng **+0,032** (~+3,8%) so RF v1.2; Precision Hủy tăng ~9 điểm phần trăm. Recall Hủy giảm nhẹ (0,88 vs 0,94) do trade-off khi mô hình calibrated tốt hơn — có thể bù bằng hạ ngưỡng nếu ưu tiên inventory protection.
+**Cải thiện chính:** ROC-AUC tăng **+0,031** (~+3,7%) so RF v1.2; Precision Hủy tăng ~7 điểm phần trăm. Recall Hủy giảm nhẹ (0,90 vs 0,94) do trade-off khi mô hình calibrated tốt hơn — có thể bù bằng hạ ngưỡng nếu ưu tiên inventory protection.
 
 ---
 
@@ -99,15 +99,15 @@ v2 kế thừa **toàn bộ feature engineering** từ v1.2 (16 biến, 4 nhóm 
 
 | Tham số | Giá trị |
 |---------|--------:|
-| `n_estimators` | 500 |
+| `n_estimators` | 250 |
 | `max_depth` | 15 |
-| `num_leaves` | 68 |
-| `min_child_samples` | 40 |
-| `learning_rate` | 0,051 |
-| `subsample` | 0,761 |
-| `colsample_bytree` | 0,657 |
-| `reg_alpha` | 0,002 |
-| `reg_lambda` | 0,053 |
+| `num_leaves` | 61 |
+| `min_child_samples` | 35 |
+| `learning_rate` | 0,063 |
+| `subsample` | 0,796 |
+| `colsample_bytree` | 0,633 |
+| `reg_alpha` | 0,008 |
+| `reg_lambda` | 3,265 |
 | `class_weight` | `balanced` |
 
 ### 2.4 Chống data leakage
@@ -133,44 +133,44 @@ Giữ ngưỡng v1.2 để so sánh công bằng: ưu tiên **Recall**, chấp n
 
 | Chỉ số | Baseline LGBM | **Tuned (Optuna)** | RF v1.2 (tham chiếu) |
 |--------|--------------:|-------------------:|---------------------:|
-| **ROC-AUC (test)** | 0,867 | **0,872** | 0,840 |
+| **ROC-AUC (test)** | 0,867 | **0,871** | 0,840 |
 | **CV ROC-AUC (5-fold)** | — | **0,867 ± 0,004** | 0,838 ± 0,004 |
-| **Accuracy** | 0,698 | **0,724** | 0,62 |
-| **Precision — Hủy** | 0,480 | **0,505** | 0,42 |
-| **Recall — Hủy** | 0,905 | **0,884** | 0,94 |
-| **F1 — Hủy** | 0,627 | **0,643** | 0,58 |
+| **Accuracy** | 0,698 | **0,710** | 0,62 |
+| **Precision — Hủy** | 0,480 | **0,492** | 0,42 |
+| **Recall — Hủy** | 0,905 | **0,899** | 0,94 |
+| **F1 — Hủy** | 0,627 | **0,636** | 0,58 |
 | **Precision — Không hủy** | 0,94 | **0,94** | 0,95 |
-| **Recall — Không hủy** | 0,62 | **0,66** | 0,49 |
+| **Recall — Không hủy** | 0,64 | **0,64** | 0,49 |
 
-**Nhận xét:** Tuned cải thiện AUC, Accuracy, Precision và F1; Recall giảm nhẹ (−2,1 điểm phần trăm) so baseline LGBM. So RF v1.2: AUC cao hơn rõ, Precision tốt hơn, Recall thấp hơn ~6 điểm phần trăm.
+**Nhận xét:** Tuned cải thiện AUC (+0,005), Accuracy, Precision và F1; Recall giảm nhẹ (−0,6 điểm phần trăm) so baseline LGBM. So RF v1.2: AUC cao hơn rõ, Precision tốt hơn, Recall thấp hơn ~4 điểm phần trăm.
 
 ### 3.2 So sánh ngưỡng 0,35 vs 0,50 (mô hình Tuned)
 
 | Metric (class Hủy) | @ 0,50 | @ **0,35** |
 |--------------------|-------:|-----------:|
-| F1 | **0,683** | 0,643 |
-| Recall | 0,79 | **0,88** |
-| FN (bỏ sót hủy) | ~960 | **~540** |
+| F1 | **0,676** | 0,636 |
+| Recall | ~0,79 | **0,90** |
+| FN (bỏ sót hủy) | ~980 | **469** |
 
-**Kết luận ngưỡng:** 0,35 giảm FN từ ~960 xuống **540** (−44%) — phù hợp inventory protection; 0,50 tốt hơn nếu ưu tiên F1 / Precision.
+**Kết luận ngưỡng:** 0,35 giảm FN so với 0,50 — phù hợp inventory protection; 0,50 tốt hơn nếu ưu tiên F1 / Precision.
 
 ### 3.3 Ma trận nhầm lẫn @ 0,35 (Tuned)
 
 |  | Dự đoán: Không hủy | Dự đoán: Hủy |
 |--|--:|--:|
-| **Thực tế: Không hủy** | TN = 7.873 | FP = 4.033 |
-| **Thực tế: Hủy** | FN = 540 | TP = 4.117 |
+| **Thực tế: Không hủy** | TN = 7.577 | FP = 4.329 |
+| **Thực tế: Hủy** | FN = 469 | TP = 4.188 |
 
-So RF v1.2: FP giảm từ 6.013 → **4.033** (−33%); FN tăng từ 289 → **540** (+87%) — trade-off rõ khi tăng Precision.
+So RF v1.2: FP giảm từ 6.013 → **4.329** (−28%); FN tăng từ 289 → **469** (+62%) — trade-off rõ khi tăng Precision.
 
 ### 3.4 Phân phối xác suất dự đoán (test — Tuned)
 
 | Nhãn thực tế | n | Mean P(hủy) | Median P(hủy) | Std |
 |--------------|--:|------------:|--------------:|----:|
-| Không hủy | 11.906 | 0,274 | 0,208 | 0,253 |
-| Hủy | 4.657 | **0,690** | **0,748** | 0,237 |
+| Không hủy | 11.906 | 0,289 | 0,231 | 0,250 |
+| Hủy | 4.657 | **0,691** | **0,745** | 0,227 |
 
-Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0,21**; median Hủy: 0,63 → **0,75**). Mô hình LightGBM calibrated tốt hơn, giảm overlap vùng 0,25–0,55.
+Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0,23**; median Hủy: 0,63 → **0,75**). Mô hình LightGBM calibrated tốt hơn, giảm overlap vùng 0,25–0,55.
 
 ---
 
@@ -180,49 +180,49 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 | Hạng | Feature | Gain | Biến gốc / nhóm |
 |:---:|---------|-----:|------------------|
-| 1 | `lead_time` | 58.491 | `lead_time` |
-| 2 | `country_PRT` | 47.967 | `country` |
-| 3 | `market_segment_Online TA` | 44.428 | `market_segment` |
-| 4 | `total_of_special_requests` | 41.526 | `total_of_special_requests` |
-| 5 | **`lead_time_per_night`** | **23.181** | **Trip Structure** |
-| 6 | **`price_per_person`** | **22.110** | **Financial Commitment** |
-| 7 | **`history_cancel_rate`** | **14.082** | **Trust & History** |
-| 8 | **`total_nights`** | **11.482** | **Trip Structure** |
-| 9 | `deposit_type_Non Refund` | 11.074 | `deposit_type` |
-| 10 | `customer_type_Transient` | 10.878 | `customer_type` |
-| 11 | **`arrival_month_mapped`** | **9.430** | **Calendar & Seasonality** |
-| 12 | `market_segment_Offline TA/TO` | 8.472 | `market_segment` |
-| 13 | `distribution_channel_TA/TO` | 7.346 | `distribution_channel` |
-| 14 | `customer_type_Transient-Party` | 6.808 | `customer_type` |
-| 15 | `market_segment_Direct` | 6.072 | `market_segment` |
-| 16 | **`total_guests`** | **4.601** | **Financial Commitment** |
-| 17 | `hotel_City Hotel` | 4.034 | `hotel` |
-| 18 | `country_GBR` | 3.185 | `country` |
-| 19 | `country_DEU` | 2.560 | `country` |
-| 20 | `country_FRA` | 2.058 | `country` |
+| 1 | `lead_time` | 57.672 | `lead_time` |
+| 2 | `country_PRT` | 38.574 | `country` |
+| 3 | `market_segment_Online TA` | 36.623 | `market_segment` |
+| 4 | `total_of_special_requests` | 26.969 | `total_of_special_requests` |
+| 5 | **`price_per_person`** | **23.828** | **Financial Commitment** |
+| 6 | **`lead_time_per_night`** | **16.923** | **Trip Structure** |
+| 7 | **`arrival_month_mapped`** | **12.350** | **Calendar & Seasonality** |
+| 8 | **`history_cancel_rate`** | **11.634** | **Trust & History** |
+| 9 | `customer_type_Transient` | 10.870 | `customer_type` |
+| 10 | **`total_nights`** | **10.556** | **Trip Structure** |
+| 11 | `deposit_type_Non Refund` | 7.327 | `deposit_type` |
+| 12 | **`total_guests`** | **5.584** | **Financial Commitment** |
+| 13 | `distribution_channel_TA/TO` | 5.440 | `distribution_channel` |
+| 14 | `market_segment_Offline TA/TO` | 4.911 | `market_segment` |
+| 15 | `market_segment_Direct` | 4.671 | `market_segment` |
+| 16 | `customer_type_Transient-Party` | 4.604 | `customer_type` |
+| 17 | `hotel_City Hotel` | 3.145 | `hotel` |
+| 18 | `deposit_type_No Deposit` | 2.671 | `deposit_type` |
+| 19 | `country_GBR` | 2.536 | `country` |
+| 20 | `country_DEU` | 2.341 | `country` |
 
-**Nhận xét:** 5 biến engineered trong top 20; thứ hạng tương tự RF v1.2 nhưng LightGBM đẩy `price_per_person` và `history_cancel_rate` lên cao hơn.
+**Nhận xét:** 5 biến engineered trong top 20; `price_per_person` vượt `lead_time_per_night` so với RF v1.2.
 
 ### 4.2 Gom nhóm theo biến gốc (tổng gain)
 
 | Hạng | Biến / nhóm | Tổng gain | Đánh giá |
 |:---:|-------------|----------:|----------|
-| 1 | `country` | 70.111 | Thị trường nguồn (PRT) |
-| 2 | `market_segment` | 61.244 | OTA / Direct |
-| 3 | `lead_time` | 58.491 | Đặt trước xa → rủi ro cao |
-| 4 | `total_of_special_requests` | 41.526 | Cam kết / nhu cầu cụ thể |
-| 5 | **`lead_time_per_night`** | **23.181** | **Biến engineered mạnh nhất** |
-| 6 | **`price_per_person`** | **22.110** | Cam kết tài chính |
-| 7 | `customer_type` | 19.707 | Transient rủi ro hơn |
-| 8 | **`history_cancel_rate`** | **14.082** | Lịch sử hủy |
-| 9 | `deposit_type` | 12.034 | Chính sách cọc |
-| 10 | **`total_nights`** | **11.482** | Cấu trúc chuyến đi |
-| 11 | **`arrival_month_mapped`** | **9.430** | Mùa vụ |
-| 12 | `distribution_channel` | 9.338 | TA/TO vs Direct |
-| 13 | **`total_guests`** | **4.601** | Quy mô nhóm |
-| 14 | `hotel` | 4.489 | City vs Resort |
-| 15 | **`is_family`** | **0.992** | Gia đình — yếu |
-| 16 | **`is_weekend_only`** | **0.287** | Cuối tuần — yếu nhất |
+| 1 | `country` | 58.645 | Thị trường nguồn (PRT) |
+| 2 | `lead_time` | 57.672 | Đặt trước xa → rủi ro cao |
+| 3 | `market_segment` | 48.270 | OTA / Direct |
+| 4 | `total_of_special_requests` | 26.969 | Cam kết / nhu cầu cụ thể |
+| 5 | **`price_per_person`** | **23.828** | Cam kết tài chính |
+| 6 | `customer_type` | 17.171 | Transient rủi ro hơn |
+| 7 | **`lead_time_per_night`** | **16.923** | **Biến engineered mạnh** |
+| 8 | **`arrival_month_mapped`** | **12.350** | Mùa vụ |
+| 9 | **`history_cancel_rate`** | **11.634** | Lịch sử hủy |
+| 10 | **`total_nights`** | **10.556** | Cấu trúc chuyến đi |
+| 11 | `deposit_type` | 9.998 | Chính sách cọc |
+| 12 | `distribution_channel` | 8.335 | TA/TO vs Direct |
+| 13 | **`total_guests`** | **5.584** | Quy mô nhóm |
+| 14 | `hotel` | 5.058 | City vs Resort |
+| 15 | **`is_family`** | **1.432** | Gia đình — yếu |
+| 16 | **`is_weekend_only`** | **0.185** | Cuối tuần — yếu nhất |
 
 ---
 
@@ -241,13 +241,13 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 | Hạng | Biến | Mean \|SHAP\| | Mean SHAP | Nhóm | Diễn giải |
 |:---:|------|------------:|----------:|------|-----------|
-| 1 | **`price_per_person`** | **0,198** | −0,031 | Financial Commitment | Đóng góp lớn nhất trong nhóm engineered |
-| 2 | **`lead_time_per_night`** | **0,132** | −0,001 | Trip Structure | Chuẩn hóa lead time theo độ dài chuyến |
-| 3 | **`history_cancel_rate`** | **0,115** | +0,010 | Trust & History | Lịch sử hủy cao → đẩy P(hủy) lên |
-| 4 | **`arrival_month_mapped`** | **0,108** | −0,001 | Calendar | Mùa vụ — SHAP mạnh hơn Gini gợi ý |
-| 5 | **`total_nights`** | **0,092** | +0,009 | Trip Structure | Số đêm và cấu trúc chuyến |
-| 6 | **`total_guests`** | **0,087** | +0,009 | Financial Commitment | Quy mô nhóm khách |
-| 7 | **`is_family`** | **0,022** | −0,001 | Financial Commitment | Tác động nhỏ |
+| 1 | **`price_per_person`** | **0,244** | −0,012 | Financial Commitment | Đóng góp lớn nhất trong nhóm engineered |
+| 2 | **`lead_time_per_night`** | **0,139** | +0,004 | Trip Structure | Chuẩn hóa lead time theo độ dài chuyến |
+| 3 | **`arrival_month_mapped`** | **0,130** | −0,005 | Calendar | Mùa vụ — SHAP mạnh hơn gain gợi ý |
+| 4 | **`history_cancel_rate`** | **0,121** | +0,012 | Trust & History | Lịch sử hủy cao → đẩy P(hủy) lên |
+| 5 | **`total_nights`** | **0,117** | +0,010 | Trip Structure | Số đêm và cấu trúc chuyến |
+| 6 | **`total_guests`** | **0,095** | +0,003 | Financial Commitment | Quy mô nhóm khách |
+| 7 | **`is_family`** | **0,026** | −0,001 | Financial Commitment | Tác động nhỏ |
 | 8 | **`is_weekend_only`** | **0,002** | −0,000 | Calendar | Yếu nhất |
 
 **So v1.2 (RF):** LightGBM SHAP nhấn mạnh `price_per_person` (#1 engineered) thay vì `lead_time_per_night` (#1 ở RF). `arrival_month_mapped` tăng đóng góp SHAP đáng kể so Gini importance thấp.
@@ -256,10 +256,10 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 | Nhóm | Tổng mean \|SHAP\| | Mean SHAP | Đánh giá |
 |------|------------------:|----------:|----------|
-| **Financial Commitment** | **0,308** | −0,023 | Nhóm engineered quan trọng nhất — `price_per_person` chi phối |
-| **Trip Structure** | **0,224** | +0,008 | `lead_time_per_night` + `total_nights` |
-| **Trust & History** | **0,115** | +0,010 | `history_cancel_rate` — tín hiệu có hướng |
-| **Calendar & Seasonality** | **0,110** | −0,001 | `arrival_month_mapped` mạnh hơn `is_weekend_only` |
+| **Financial Commitment** | **0,365** | −0,009 | Nhóm engineered quan trọng nhất — `price_per_person` chi phối |
+| **Trip Structure** | **0,255** | +0,014 | `lead_time_per_night` + `total_nights` |
+| **Calendar & Seasonality** | **0,132** | −0,005 | `arrival_month_mapped` mạnh hơn `is_weekend_only` |
+| **Trust & History** | **0,121** | +0,012 | `history_cancel_rate` — tín hiệu có hướng |
 
 ---
 
@@ -267,15 +267,15 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 ### 6.1 Confusion Matrix (@ 0,35 — Tuned)
 
-FN = 540, FP = 4.033. Cân bằng tốt hơn RF v1.2 về Precision (ít FP hơn), nhưng FN cao hơn — cần cân nhắc hạ ngưỡng xuống 0,30 nếu ưu tiên Recall tuyệt đối.
+FN = 469, FP = 4.329. Cân bằng tốt hơn RF v1.2 về Precision (ít FP hơn), nhưng FN cao hơn — cần cân nhắc hạ ngưỡng xuống 0,30 nếu ưu tiên Recall tuyệt đối.
 
-### 6.2 ROC Curve (AUC = 0,872)
+### 6.2 ROC Curve (AUC = 0,871)
 
 Cải thiện rõ so RF v1.2 (0,840) và baseline LGBM (0,867). Mô hình xếp hạng rủi ro tốt; phù hợp scoring / prioritization.
 
 ### 6.3 Prediction Probability Distribution
 
-Median P(hủy): Không hủy **0,21** · Hủy **0,75** — tách lớp tốt hơn v1.2. Ngưỡng 0,35 nằm dưới median class Không hủy → vẫn đảm bảo Recall cao.
+Median P(hủy): Không hủy **0,23** · Hủy **0,75** — tách lớp tốt hơn v1.2. Ngưỡng 0,35 nằm trên median class Không hủy → vẫn đảm bảo Recall cao.
 
 ### 6.4 Gain importance vs SHAP
 
@@ -291,15 +291,15 @@ Median P(hủy): Không hủy **0,21** · Hủy **0,75** — tách lớp tốt h
 
 ### Điểm mạnh v2
 
-1. **ROC-AUC 0,872** — tốt nhất trong các phiên bản (v1.1: 0,831 · v1.2: 0,840 · v2: **0,872**).
+1. **ROC-AUC 0,871** — tốt nhất trong các phiên bản (v1.1: 0,831 · v1.2: 0,840 · v2: **0,871**).
 2. **Tinh chỉnh Optuna** cải thiện +0,005 AUC so baseline LGBM với cùng feature.
-3. **Precision Hủy 0,51** @ 0,35 — cao hơn RF v1.2 (~42%), giảm cảnh báo sai.
+3. **Precision Hủy 0,49** @ 0,35 — cao hơn RF v1.2 (~42%), giảm cảnh báo sai.
 4. **Feature engineering v1.2** vẫn có giá trị; 5/8 biến engineered trong top 20 gain.
 5. **SHAP** xác nhận `price_per_person` và `history_cancel_rate` là trụ chính ngoài `lead_time` / segment.
 
 ### Hạn chế & rủi ro
 
-1. **Recall Hủy 0,88** thấp hơn RF v1.2 (0,94) @ cùng ngưỡng 0,35 — FN = 540 vs 289.
+1. **Recall Hủy 0,90** thấp hơn RF v1.2 (0,94) @ cùng ngưỡng 0,35 — FN = 469 vs 289.
 2. Tune theo `roc_auc` không tối ưu trực tiếp Recall — cần quét ngưỡng hoặc `scale_pos_weight` nếu mục tiêu là không bỏ sót hủy.
 3. GridSearch + Optuna **tốn thời gian** (~5–10 phút) — production nên lưu `best_params` cố định.
 4. SHAP / gain **không phải nhân quả** — cần A/B trước khi đổi chính sách.
@@ -308,7 +308,7 @@ Median P(hủy): Không hủy **0,21** · Hủy **0,75** — tách lớp tốt h
 
 | Ưu tiên | Hành động | Ghi chú |
 |--------|-----------|---------|
-| 1 | Triển khai pilot scoring với **LightGBM tuned** + ngưỡng 0,35 | AUC 0,872, Precision cao |
+| 1 | Triển khai pilot scoring với **LightGBM tuned** + ngưỡng 0,35 | AUC 0,871, Precision cao |
 | 2 | Nếu cần Recall ≥ 0,94: thử ngưỡng **0,28–0,30** hoặc tăng `scale_pos_weight` | Trade-off Precision |
 | 3 | Rule: **`history_cancel_rate` > 0** + **Online TA** → xác nhận chặt | SHAP + gain |
 | 4 | Rule: **`price_per_person` thấp** + lead time dài → ưu tiên cọc | Financial Commitment |
