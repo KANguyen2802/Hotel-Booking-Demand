@@ -2,8 +2,8 @@
 
 > **Nguồn dữ liệu:** `hotel_bookings_v5.csv` (tái tạo từ v4 + `day_of_week`)  
 > **Phạm vi:** 82.811 booking | Tỷ lệ hủy tổng thể: **28,12%** (23.284 booking bị hủy)  
-> **Notebook tham chiếu:** `Correlation_matrix_is_canceled.ipynb`  
-> **Bổ sung EDA:** [EDA Stage 1 — Cancellation Analysis](EDA%20Stage%201%20-%20Cancellation%20Analysis.md)
+> **Notebook tham chiếu:** `04_correlation_analysis.ipynb`  
+> **Bổ sung EDA:** [02 02 EDA Stage 1 — Cancellation](02_eda_stage1_cancellation_analysis.md)
 
 ---
 
@@ -285,7 +285,7 @@ flowchart LR
 ### 7.3 Bước tiếp theo
 
 - **Feature engineering:** `lead_time_bin` (ngưỡng 30/60/180 ngày), `market_segment × distribution_channel`, `lead_time × deposit_type`
-- **Modeling:** `Cancellation_Prediction_Model_v1.ipynb` — Logistic Regression / Random Forest với feature Tier 1–2, loại leakage
+- **Modeling:** `06_cancellation_model_v1.ipynb` — Logistic Regression / Random Forest với feature Tier 1–2, loại leakage
 - **Đánh giá:** SHAP/feature importance để xác nhận directionality sau khi fit model
 
 ---

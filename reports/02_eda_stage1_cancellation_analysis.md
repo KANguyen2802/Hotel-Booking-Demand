@@ -2,7 +2,7 @@
 
 > **Nguồn dữ liệu:** `hotel_bookings_v4.csv`  
 > **Phạm vi:** 82.811 booking | Tỷ lệ hủy tổng thể: **28,12%** (23.284 booking bị hủy)  
-> **Notebook tham chiếu:** `eda_cancellation.ipynb`
+> **Notebook tham chiếu:** `02_eda_stage1_cancellation.ipynb`
 
 ---
 

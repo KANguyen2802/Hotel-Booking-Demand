@@ -1,6 +1,6 @@
 # Hướng dẫn đọc hiểu chỉ số thống kê
 
-> **Phạm vi:** `hypothesis.ipynb` (kiểm định giả thuyết) và `Cancellation_Prediction_Model_v1.ipynb` (dự báo hủy phòng)  
+> **Phạm vi:** `05_hypothesis_testing.ipynb` (kiểm định giả thuyết) và `06_cancellation_model_v1.ipynb` (dự báo hủy phòng)  
 > **Biến mục tiêu:** `is_canceled` (0 = không hủy, 1 = hủy)  
 > **Dữ liệu tham chiếu:** `hotel_bookings_v5.csv` (~82.811 booking, tỷ lệ hủy ~28,12%)
 
@@ -8,18 +8,18 @@
 
 ## Phân biệt hai notebook
 
-| | `hypothesis.ipynb` | `Cancellation_Prediction_Model_v1.ipynb` |
+| | `05_hypothesis_testing.ipynb` | `06_cancellation_model_v1.ipynb` |
 |---|---|---|
 | **Mục đích** | Trả lời *"Biến X có liên quan đến hủy không?"* | Trả lời *"Booking này có khả năng hủy bao nhiêu %?"* |
 | **Loại phân tích** | Kiểm định giả thuyết (inferential) | Học máy / dự báo (predictive) |
 | **Đầu ra chính** | p-value, effect size, OR, kết luận H₀ | Accuracy, F1, ROC-AUC, confusion matrix |
 | **Câu hỏi kinh doanh** | Lead time có ảnh hưởng hủy không? | Booking #12345 có 72% khả năng hủy — có nên overbooking không? |
 
-> **Lưu ý:** `Cancellation_Prediction_Model_v1.ipynb` hiện là notebook trống (theo thiết kế dự án sẽ dùng Logistic Regression / Random Forest). Phần **II** mô tả các chỉ số **dự kiến xuất hiện** khi notebook được triển khai, tham chiếu từ `Correlation Analysis - is_canceled.md`.
+> **Lưu ý:** `06_cancellation_model_v1.ipynb` hiện là notebook trống (theo thiết kế dự án sẽ dùng Logistic Regression / Random Forest). Phần **II** mô tả các chỉ số **dự kiến xuất hiện** khi notebook được triển khai, tham chiếu từ `04_correlation_analysis_is_canceled.md`.
 
 ---
 
-# PHẦN I — `hypothesis.ipynb` (Kiểm định giả thuyết)
+# PHẦN I — `05_hypothesis_testing.ipynb` (Kiểm định giả thuyết)
 
 ## 1. Khái niệm nền
 
@@ -188,7 +188,7 @@ Sau khi chi-square tổng thể bác bỏ H₀, so sánh **từng cặp** loại
 
 ---
 
-## 6. Dashboard tổng hợp (`hypothesis.ipynb`)
+## 6. Dashboard tổng hợp (`05_hypothesis_testing.ipynb`)
 
 | Biểu đồ | Trục / nội dung | Cách đọc |
 |---|---|---|
@@ -198,7 +198,7 @@ Sau khi chi-square tổng thể bác bỏ H₀, so sánh **từng cặp** loại
 
 ---
 
-## 7. Checklist đọc `hypothesis.ipynb`
+## 7. Checklist đọc `05_hypothesis_testing.ipynb`
 
 1. Xem **p-value** → có bác bỏ H₀ không?
 2. Xem **effect size** (r, V, Pseudo R²) → mạnh hay yếu?
@@ -208,7 +208,7 @@ Sau khi chi-square tổng thể bác bỏ H₀, so sánh **từng cặp** loại
 
 ---
 
-# PHẦN II — `Cancellation_Prediction_Model_v1.ipynb` (Dự báo)
+# PHẦN II — `06_cancellation_model_v1.ipynb` (Dự báo)
 
 > Notebook hiện **chưa có code**. Phần dưới mô tả các chỉ số **theo thiết kế dự án** (Logistic Regression / Random Forest, feature Tier 1–2, loại leakage) để bạn đọc khi notebook được triển khai.
 
@@ -309,7 +309,7 @@ Dự đoán  Không hủy   TN        FN
 
 ## 7. Feature importance & SHAP
 
-Dự kiến trong notebook (theo `Correlation Analysis - is_canceled.md`):
+Dự kiến trong notebook (theo `04_correlation_analysis_is_canceled.md`):
 
 | Phương pháp | Ý nghĩa | Cách đọc |
 |---|---|---|
@@ -338,13 +338,13 @@ Dự kiến trong notebook (theo `Correlation Analysis - is_canceled.md`):
 
 ---
 
-## 9. Checklist đọc `Cancellation_Prediction_Model_v1.ipynb` (khi có code)
+## 9. Checklist đọc `06_cancellation_model_v1.ipynb` (khi có code)
 
 1. **Confusion matrix** trên **test** — TN, TP, FP, FN có hợp lý không?
 2. **F1 & PR-AUC** — không chỉ accuracy.
 3. **Train vs test gap** — có overfit không?
 4. **Feature list** — có biến leakage không?
-5. **SHAP / importance** — có khớp insight từ `hypothesis.ipynb` (lead_time, segment, deposit)?
+5. **SHAP / importance** — có khớp insight từ `05_hypothesis_testing.ipynb` (lead_time, segment, deposit)?
 6. **Ngưỡng** — 0,5 có phù hợp mục tiêu kinh doanh không?
 
 ---
@@ -354,7 +354,7 @@ Dự kiến trong notebook (theo `Correlation Analysis - is_canceled.md`):
 ```
 EDA / Correlation
        │
-       ├── hypothesis.ipynb          → Biến nào có association? (p, V, OR)
+       ├── 05_hypothesis_testing.ipynb          → Biến nào có association? (p, V, OR)
        │         │
        │         └── Xác nhận: lead_time, deposit_type, market_segment
        │
@@ -377,9 +377,9 @@ EDA / Correlation
 
 | File | Nội dung |
 |---|---|
-| `Hypothesis Testing - is_canceled.md` | Báo cáo kết quả kiểm định |
-| `Correlation Analysis - is_canceled.md` | Feature tier & leakage |
-| `EDA Stage 1 - Cancellation Analysis.md` | Insight trực quan cancellation |
+| `05_hypothesis_testing_is_canceled.md` | Báo cáo kết quả kiểm định |
+| `04_correlation_analysis_is_canceled.md` | Feature tier & leakage |
+| `02_eda_stage1_cancellation_analysis.md` | Insight trực quan cancellation |
 
 ---
 

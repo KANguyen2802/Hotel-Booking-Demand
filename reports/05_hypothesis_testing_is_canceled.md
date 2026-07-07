@@ -2,7 +2,7 @@
 
 > **Nguồn dữ liệu:** `hotel_bookings_v5.csv` (tái tạo từ v4 + `day_of_week`)  
 > **Phạm vi:** 82.811 booking | Tỷ lệ hủy tổng thể: **28,12%** (~23.284 booking bị hủy)  
-> **Notebook tham chiếu:** `hypothesis.ipynb`  
+> **Notebook tham chiếu:** `05_hypothesis_testing.ipynb`  
 > **Mức ý nghĩa:** α = 0,05
 
 ---
@@ -245,10 +245,10 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 ## Tài liệu liên quan
 
-- `eda_cancellation.ipynb` — EDA trực quan cancellation  
-- `Correlation_matrix_is_canceled.ipynb` — Tương quan tổng hợp  
-- `EDA Stage 1 - Cancellation Analysis.md` — Báo cáo EDA Stage 1  
-- `Correlation Analysis - is_canceled.md` — Báo cáo correlation
+- `02_eda_stage1_cancellation.ipynb` — EDA trực quan cancellation  
+- `04_correlation_analysis.ipynb` — Tương quan tổng hợp  
+- `02_eda_stage1_cancellation_analysis.md` — Báo cáo EDA Stage 1  
+- `04_correlation_analysis_is_canceled.md` — Báo cáo correlation
 
 ---
 

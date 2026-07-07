@@ -2,7 +2,7 @@
 
 > **Nguồn dữ liệu:** `hotel_bookings_v5.csv`  
 > **Phạm vi:** 82.811 booking | Tỷ lệ hủy tổng thể: **28,12%** (~23.284 booking bị hủy)  
-> **Notebook tham chiếu:** `Cancellation_Prediction_Model_v1.ipynb`  
+> **Notebook tham chiếu:** `06_cancellation_model_v1.ipynb`  
 > **Thuật toán:** `RandomForestClassifier` (scikit-learn)  
 > **Ngưỡng phân loại:** **0,50** (mặc định)
 
@@ -142,7 +142,7 @@ Gini importance từ Random Forest sau One-Hot (~129 cột). Tổng hợp theo b
 ### Khuyến nghị
 
 - Dùng v1 làm **baseline phân loại**; chuyển sang **v1.1** khi cần AUC và giải thích đa chiều hơn.
-- Kết hợp với [Hypothesis Testing - is_canceled.md](Hypothesis%20Testing%20-%20is_canceled.md) và [Correlation Analysis - is_canceled.md](Correlation%20Analysis%20-%20is_canceled.md) để đối chiếu association vs prediction.
+- Kết hợp với [05_hypothesis_testing_is_canceled.md](05_hypothesis_testing_is_canceled.md) và [04_correlation_analysis_is_canceled.md](04_correlation_analysis_is_canceled.md) để đối chiếu association vs prediction.
 
 ---
 
@@ -150,6 +150,6 @@ Gini importance từ Random Forest sau One-Hot (~129 cột). Tổng hợp theo b
 
 | Tài liệu | Nội dung |
 |----------|----------|
-| `Cancellation_Prediction_Model_v1.ipynb` | Notebook đầy đủ |
-| `Cancellation Prediction Model v1.1.md` | Mô hình mở rộng + segment analysis |
+| `06_cancellation_model_v1.ipynb` | Notebook đầy đủ |
+| `07_cancellation_model_v1_1.md` | Mô hình mở rộng + segment analysis |
 | `Guide - Cach doc chi so thong ke.md` | Cách đọc Accuracy, F1, ROC-AUC |

@@ -2,7 +2,7 @@
 
 > **Nguồn dữ liệu:** `hotel_bookings_v5.csv` (tái tạo từ v4, thêm `day_of_week`)  
 > **Phạm vi:** 58.066 booking (không hủy, `adr > 0`) / 82.811 booking tổng | Mean ADR tổng thể: **105,92**  
-> **Notebook tham chiếu:** `eda_adr.ipynb`  
+> **Notebook tham chiếu:** `03_eda_stage2_adr.ipynb`  
 > **Cột mới trong v5:** `day_of_week` (parse từ `arrival_date_year` + `arrival_date_month` + `arrival_date_day_of_month`)
 
 ---

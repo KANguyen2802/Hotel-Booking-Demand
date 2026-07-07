@@ -2,7 +2,7 @@
 
 > **Nguồn dữ liệu:** `hotel_bookings_v5.csv`  
 > **Phạm vi:** 82.811 booking | Tỷ lệ hủy tổng thể: **28,12%** (~23.284 booking bị hủy)  
-> **Notebook tham chiếu:** `Cancellation_Prediction_Model_v1_2.ipynb`  
+> **Notebook tham chiếu:** `08_cancellation_model_v1_2.ipynb`  
 > **Thuật toán:** `RandomForestClassifier` (scikit-learn) + giải thích **SHAP** (`TreeExplainer`)  
 > **Ngưỡng phân loại:** **0,35** (`P(hủy) >= 0,35` → dự đoán Hủy)
 
@@ -331,8 +331,8 @@ Median P(hủy): Không hủy **0,35** · Hủy **0,63** — tách lớp tốt. 
 
 | Tài liệu | Nội dung |
 |----------|----------|
-| `Cancellation_Prediction_Model_v1_2.ipynb` | Notebook đầy đủ (huấn luyện + SHAP) |
-| [Cancellation Prediction Model v1.1.md](Cancellation%20Prediction%20Model%20v1.1.md) | Phiên bản trước (9 feature) |
-| [Cancellation Prediction Model v1.md](Cancellation%20Prediction%20Model%20v1.md) | Baseline phân loại |
-| [Hypothesis Testing - is_canceled.md](Hypothesis%20Testing%20-%20is_canceled.md) | Kiểm định lead_time, deposit, segment |
-| [Correlation Analysis - is_canceled.md](Correlation%20Analysis%20-%20is_canceled.md) | Tier feature & leakage |
+| `08_cancellation_model_v1_2.ipynb` | Notebook đầy đủ (huấn luyện + SHAP) |
+| [07_cancellation_model_v1_1.md](07_cancellation_model_v1_1.md) | Phiên bản trước (9 feature) |
+| [06_cancellation_model_v1.md](06_cancellation_model_v1.md) | Baseline phân loại |
+| [05_hypothesis_testing_is_canceled.md](05_hypothesis_testing_is_canceled.md) | Kiểm định lead_time, deposit, segment |
+| [04_correlation_analysis_is_canceled.md](04_correlation_analysis_is_canceled.md) | Tier feature & leakage |
