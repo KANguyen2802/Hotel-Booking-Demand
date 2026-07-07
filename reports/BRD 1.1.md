@@ -16,6 +16,7 @@
 | **v1.0**      | 30/06/2026        | Business Analyst   | Khởi tạo tài liệu ban đầu dựa trên cấu trúc file mẫu và tệp phân tích dữ liệu thô hotel_bookings.csv.                                                                                                                                                                   | Draft              |
 | **v1.1**      | 06/07/2026        | Business Analyst   | Tích hợp sâu kết quả phân tích khám phá dữ liệu (EDA Stage 1 & 2). Bổ sung bài toán chiến lược RevPAR, ma trận phân tích Market Segment, sơ đồ quy trình nghiệp vụ As-Is, nhận diện điểm nghẽn hệ thống và cập nhật 05 Luật nghiệp vụ cốt lõi (BR-REV, BR-PRC, BR-OPS). | **To be Approved** |
 | **v1.1.1**    | 07/07/2026        | Business Analyst   | Đồng bộ BRD với POC LightGBM v2; làm rõ nguồn tỷ lệ hủy (thô vs v5); thay ảnh base64 bằng PNG; cập nhật REQ-M-01, mục 3.4 và ngưỡng Use Case. | **To be Approved** |
+| **v1.1.2**    | 07/07/2026        | Business Analyst   | Đồng bộ metric POC LightGBM v2 với notebook Run All (ROC-AUC 0,871; Recall 0,899; Precision 0,492). | **To be Approved** |
 
 ## 2. Phê duyệt (Sign-off / Approvals)
 
@@ -52,7 +53,7 @@ Tuy nhiên, việc gần 42% lượng phòng tại City Hotel bị huỷ đã tr
 
 ### 3.4. Điểm cần đào sâu thêm & Business Questions bổ sung cho Data Analyst (DA)
 
-Hiện tại phân tích ADR chỉ dựa trên các booking thành công (is_canceled = 0). Việc tách rời này làm mờ đi bức tranh tổng thể về Doanh thu tiềm năng bị mất do hủy phòng (Revenue Loss), đặc biệt là vào mùa cao điểm hè (July-August) khi mỗi phòng hủy gây tổn thất ước tính 130-150 €/đêm. POC mô hình dự báo hủy **LightGBM v2** đã hoàn thành (ROC-AUC test **0,872**, ngưỡng **0,35** — chi tiết tại `09_cancellation_model_v2.md`). Song song, DA vẫn cần trả lời các câu hỏi kinh doanh mang tính đa chiều sau để tinh chỉnh chính sách vận hành:
+Hiện tại phân tích ADR chỉ dựa trên các booking thành công (is_canceled = 0). Việc tách rời này làm mờ đi bức tranh tổng thể về Doanh thu tiềm năng bị mất do hủy phòng (Revenue Loss), đặc biệt là vào mùa cao điểm hè (July-August) khi mỗi phòng hủy gây tổn thất ước tính 130-150 €/đêm. POC mô hình dự báo hủy **LightGBM v2** đã hoàn thành (ROC-AUC test **0,871**, ngưỡng **0,35** — chi tiết tại `09_cancellation_model_v2.md`). Song song, DA vẫn cần trả lời các câu hỏi kinh doanh mang tính đa chiều sau để tinh chỉnh chính sách vận hành:
 
 - **Interaction 3 chiều (Lead time × Segment × Mùa vụ):** Tỷ lệ hủy của nhóm Online TA có lead_time > 90 ngày vào mùa cao điểm (Jul-Aug) chính xác là bao nhiêu? Nhóm này đang chiếm bao nhiêu phần trăm trong tổng doanh thu bị tổn thất?
 - **Chi phí cơ hội của Room Mis-match:** Booking không khớp phòng có ADR thấp hơn booking khớp phòng là 18.24 €. DA cần làm rõ: Đây là do chúng ta chủ động nâng hạng phòng miễn phí (Free Upgrade) cho khách đặt phòng giá rẻ (Room A, B) để giải phóng phòng, hay do lỗi hệ thống vận hành làm mất cơ hội Upsell thu phí?
@@ -162,7 +163,7 @@ Hệ thống quản lý đặt phòng mới yêu cầu cấu hình các luật t
   - **16 feature** (6 phân loại + 10 số, gồm 8 biến engineered từ v1.2) — không dùng feature tương tác tường minh; LightGBM học phi tuyến qua cây quyết định.
   - Pipeline: One-Hot Encoding (`min_frequency=5`) + `LGBMClassifier`; tinh chỉnh **GridSearchCV** & **Optuna**.
   - **Ngưỡng phân loại:** **0,35** (`P(hủy) ≥ 0,35` → Hủy).
-  - **Kết quả test (tuned):** ROC-AUC **0,872** | Recall Hủy **0,884** | Precision Hủy **0,505** @ ngưỡng 0,35.
+  - **Kết quả test (tuned, Run All):** ROC-AUC **0,871** | Recall Hủy **0,899** | Precision Hủy **0,492** | Accuracy **0,710** @ ngưỡng 0,35 (CV ROC-AUC 5-fold: **0,867 ± 0,004**).
   - **Yêu cầu production:** Tích hợp pipeline trên để trả về xác suất hủy theo thời gian thực (*Probability of Cancellation*) cho từng booking đơn lẻ.
 - **REQ-M-02 (Mô hình ADR tối ưu):** Thuật toán gợi ý giá động phải tích hợp các biến kiểm soát biến động cao bao gồm: Tháng đến (arrival_date_month), Ngày trong tuần (day_of_week), và cặp tương tác (customer_type × hotel) nhằm tránh tình trạng Underpricing đối với khách doanh nghiệp tại City Hotel.
 
