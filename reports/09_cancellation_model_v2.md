@@ -258,9 +258,7 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 ### 5.3 Tổng hợp theo nhóm feature engineering
 
 
-
-
-![SHAP — tổng hợp theo nhóm](figures/09/chart_05.png)
+![SHAP — mean |SHAP| engineered & tổng hợp theo nhóm](figures/09/chart_04.png)
 
 | Nhóm | Tổng mean \|SHAP\| | Mean SHAP | Đánh giá |
 |------|------------------:|----------:|----------|
@@ -268,6 +266,13 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 | **Trip Structure** | **0,255** | +0,014 | `lead_time_per_night` + `total_nights` |
 | **Calendar & Seasonality** | **0,132** | −0,005 | `arrival_month_mapped` mạnh hơn `is_weekend_only` |
 | **Trust & History** | **0,121** | +0,012 | `history_cancel_rate` — tín hiệu có hướng |
+
+### 5.4 SHAP Beeswarm — Phân tán đóng góp theo từng booking
+
+
+![SHAP Beeswarm — Biến engineered](figures/09/chart_05.png)
+
+Mỗi chấm là một booking trong mẫu 2.000; trục ngang là giá trị SHAP (đóng góp vào P(hủy)), màu thể hiện giá trị feature (cao → đỏ, thấp → xanh). Beeswarm bổ sung cho bảng 5.2–5.3 bằng cách cho thấy **phân bố** và **hướng** tác động trên từng quan sát — ví dụ `history_cancel_rate` cao tập trung SHAP dương mạnh; `price_per_person` cao thường kéo SHAP âm.
 
 ---
 
