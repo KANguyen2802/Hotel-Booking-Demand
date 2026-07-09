@@ -9,3 +9,5 @@ optuna>=3.0
 scipy>=1.11
 jupyter>=1.0
 ipykernel>=6.25
+markdown>=3.5
+xhtml2pdf>=0.2.16
