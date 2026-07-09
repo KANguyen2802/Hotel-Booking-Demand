@@ -88,7 +88,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 
 **Ma trận mean ADR (€)**
 
-| Tháng ↓ / Năm → | 2015 || 2016 || 2017 |
+| Tháng ↓ / Năm → | 2015 | 2016 | 2017 |
 |---|---:|---:|---:|
 | January | — | 63,79 | 74,80 |
 | February | — | 71,33 | 79,63 |
