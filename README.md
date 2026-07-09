@@ -15,7 +15,7 @@ Hotel RevPAR Optimization
 | 06–08 | `models/Cancellation Predict Model v1/06–08_*.ipynb` | `reports/06–08_*.md` | ✓ |
 | 09 | `models/Cancellation Predict Model v2/09_cancellation_model_v2.ipynb` | `reports/09_cancellation_model_v2.md` | — |
 | 10 | — | `reports/10_brd_v1_1.md` | — |
-| 12 | `notebooks/12_brd_gap_analysis.ipynb` | `reports/12_brd_gap_analysis.md` · `reports/12_brd_v1_2.md` | `reports/figures/12/...` |
+| 12 | `notebooks/12_brd_gap_analysis.ipynb` | `reports/12_brd_gap_analysis.md` · `reports/12_brd_v1_2.md` | `reports/figures/12/` (ảnh tĩnh) |
 
 Ảnh biểu đồ từ notebook được trích xuất vào `reports/figures/{số_báo_cáo}/` và nhúng trong file MD tương ứng. Chạy lại `python scripts/embed_notebook_figures.py` sau khi cập nhật output notebook.
 
