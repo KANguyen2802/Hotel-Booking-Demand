@@ -240,7 +240,7 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 ### 5.2 Mean |SHAP| — Xếp hạng biến engineered
 
 
-<img src="figures/09/chart_04.png" alt="SHAP — mean |SHAP| engineered" width="800">
+![SHAP — mean \|SHAP\| engineered](./figures/09/chart_04.png)
 
 | Hạng | Biến | Mean \|SHAP\| | Mean SHAP | Nhóm | Diễn giải |
 |:---:|------|------------:|----------:|------|-----------|
@@ -258,7 +258,7 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 ### 5.3 Tổng hợp theo nhóm feature engineering
 
 
-<img src="figures/09/chart_04.png" alt="SHAP — mean |SHAP| engineered &amp; tổng hợp theo nhóm" width="800">
+![SHAP — mean \|SHAP\| engineered & tổng hợp theo nhóm](./figures/09/chart_04.png)
 
 | Nhóm | Tổng mean \|SHAP\| | Mean SHAP | Đánh giá |
 |------|------------------:|----------:|----------|
@@ -270,7 +270,7 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 ### 5.4 SHAP Beeswarm — Phân tán đóng góp theo từng booking
 
 
-<img src="figures/09/chart_05.png" alt="SHAP Beeswarm — Biến engineered" width="800">
+![SHAP Beeswarm — Biến engineered](./figures/09/chart_05.png)
 
 Mỗi chấm là một booking trong mẫu 2.000; trục ngang là giá trị SHAP (đóng góp vào P(hủy)), màu thể hiện giá trị feature (cao → đỏ, thấp → xanh). Beeswarm bổ sung cho bảng 5.2–5.3 bằng cách cho thấy **phân bố** và **hướng** tác động trên từng quan sát — ví dụ `history_cancel_rate` cao tập trung SHAP dương mạnh; `price_per_person` cao thường kéo SHAP âm.
 
@@ -282,14 +282,14 @@ Mỗi chấm là một booking trong mẫu 2.000; trục ngang là giá trị SH
 
 
 
-<img src="figures/09/chart_01.png" alt="Confusion Matrix &amp; ROC Curve" width="800">
+![Confusion Matrix & ROC Curve](./figures/09/chart_01.png)
 
 FN = 469, FP = 4.329. Cân bằng tốt hơn RF v1.2 về Precision (ít FP hơn), nhưng FN cao hơn — cần cân nhắc hạ ngưỡng xuống 0,30 nếu ưu tiên Recall tuyệt đối.
 
 ### 6.2 ROC Curve (AUC = 0,871)
 
 
-<img src="figures/09/chart_01.png" alt="ROC Curve (cùng hình với Confusion Matrix)" width="800">
+![ROC Curve (cùng hình với Confusion Matrix)](./figures/09/chart_01.png)
 
 Cải thiện rõ so RF v1.2 (0,840) và baseline LGBM (0,867). Mô hình xếp hạng rủi ro tốt; phù hợp scoring / prioritization.
 
@@ -297,7 +297,7 @@ Cải thiện rõ so RF v1.2 (0,840) và baseline LGBM (0,867). Mô hình xếp 
 
 
 
-<img src="figures/09/chart_02.png" alt="Phân phối xác suất dự đoán" width="800">
+![Phân phối xác suất dự đoán](./figures/09/chart_02.png)
 
 Median P(hủy): Không hủy **0,23** · Hủy **0,75** — tách lớp tốt hơn v1.2. Ngưỡng 0,35 nằm trên median class Không hủy → vẫn đảm bảo Recall cao.
 
@@ -305,7 +305,7 @@ Median P(hủy): Không hủy **0,23** · Hủy **0,75** — tách lớp tốt h
 
 
 
-<img src="figures/09/chart_03.png" alt="Feature Importance (gain)" width="800">
+![Feature Importance (gain)](./figures/09/chart_03.png)
 
 | Góc nhìn | Gain (LightGBM) | SHAP |
 |----------|-----------------|------|

@@ -265,39 +265,27 @@ Khác với Gini importance (trung bình toàn cục, không có dấu), SHAP ch
 
 ### 5.5 Biểu đồ SHAP trong notebook
 
-
-
-<img src="figures/08/chart_04.png" alt="SHAP — mean |SHAP| engineered" width="800">
-
 | Biểu đồ | Nội dung |
 |---------|----------|
 | **Bar \|SHAP\| theo biến & nhóm** | So sánh độ lớn đóng góp trung bình |
 | **Beeswarm** | Phân bố SHAP theo giá trị feature (màu = cao/thấp) |
-
-
-<img src="figures/08/chart_05.png" alt="SHAP beeswarm" width="800">
-
 | **Dependence (top 3)** | Quan hệ phi tuyến: `lead_time_per_night`, `price_per_person`, `total_nights` |
-
-
-
-
-<img src="figures/08/chart_08.png" alt="SHAP dependence (3)" width="800">
-
-<img src="figures/08/chart_07.png" alt="SHAP dependence (2)" width="800">
-
-<img src="figures/08/chart_06.png" alt="SHAP dependence" width="800">
-
 | **Waterfall** | Giải thích từng booking nguy cơ cao / thấp (toàn feature) |
-
-
-<img src="figures/08/chart_09.png" alt="SHAP waterfall" width="800">
-
 | **Bar engineered** | Chỉ 8 biến mới trong 2 ví dụ điển hình |
 
+![SHAP — mean \|SHAP\| engineered](./figures/08/chart_04.png)
 
+![SHAP beeswarm](./figures/08/chart_05.png)
 
-<img src="figures/08/chart_10.png" alt="SHAP engineered bar" width="800">
+![SHAP dependence](./figures/08/chart_06.png)
+
+![SHAP dependence (2)](./figures/08/chart_07.png)
+
+![SHAP dependence (3)](./figures/08/chart_08.png)
+
+![SHAP waterfall](./figures/08/chart_09.png)
+
+![SHAP engineered bar](./figures/08/chart_10.png)
 
 ---
 
@@ -307,14 +295,14 @@ Khác với Gini importance (trung bình toàn cục, không có dấu), SHAP ch
 
 
 
-<img src="figures/08/chart_01.png" alt="Confusion Matrix &amp; ROC Curve" width="800">
+![Confusion Matrix & ROC Curve](./figures/08/chart_01.png)
 
 FN = 289 (giảm so v1.1 ~273–289 tùy run), FP = 6.013. Chiến lược ngưỡng thấp — phù hợp **không bỏ sót hủy**, không phù hợp nếu mỗi cảnh báo tốn chi phí cao.
 
 ### 6.2 ROC Curve (AUC = 0,840)
 
 
-<img src="figures/08/chart_01.png" alt="ROC Curve (cùng hình với Confusion Matrix)" width="800">
+![ROC Curve (cùng hình với Confusion Matrix)](./figures/08/chart_01.png)
 
 Cải thiện so v1.1 (0,831). Mô hình xếp hạng rủi ro tốt; ngưỡng 0,35 là điểm cắt kinh doanh, không ảnh hưởng AUC.
 
@@ -322,7 +310,7 @@ Cải thiện so v1.1 (0,831). Mô hình xếp hạng rủi ro tốt; ngưỡng 
 
 
 
-<img src="figures/08/chart_02.png" alt="Phân phối xác suất dự đoán" width="800">
+![Phân phối xác suất dự đoán](./figures/08/chart_02.png)
 
 Median P(hủy): Không hủy **0,35** · Hủy **0,63** — tách lớp tốt. Overlap vùng 0,25–0,55 vẫn tồn tại (bình thường với dữ liệu hành vi).
 
@@ -330,7 +318,7 @@ Median P(hủy): Không hủy **0,35** · Hủy **0,63** — tách lớp tốt. 
 
 
 
-<img src="figures/08/chart_03.png" alt="Feature Importance (Gini)" width="800">
+![Feature Importance (Gini)](./figures/08/chart_03.png)
 
 | Góc nhìn | Gini importance | SHAP |
 |----------|-----------------|------|

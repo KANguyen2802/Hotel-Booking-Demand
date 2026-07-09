@@ -17,6 +17,6 @@ Hotel RevPAR Optimization
 | 10 | — | `reports/10_brd_v1_1.md` | — |
 | 12 | `notebooks/12_brd_gap_analysis.ipynb` | `reports/12_brd_gap_analysis.md` · `reports/12_brd_v1_2.md` | `reports/figures/12/` (ảnh tĩnh) |
 
-Ảnh biểu đồ từ notebook được trích xuất vào `reports/figures/{số_báo_cáo}/` và nhúng trong file MD bằng thẻ HTML `<img>`. Chạy `python scripts/embed_notebook_figures.py` sau khi cập nhật output notebook; chuyển ảnh markdown cũ sang HTML bằng `python scripts/md_images_to_html.py`. Xuất PDF (có chèn hình, font tiếng Việt): `python scripts/md_reports_to_pdf.py` (cần `playwright install chromium` lần đầu) → ghi đè `reports/figures/{tên_báo_cáo}.pdf`.
+Ảnh biểu đồ từ notebook được trích xuất vào `reports/figures/{số_báo_cáo}/` và nhúng trong file MD bằng `![alt](./figures/...)`. Chạy `python scripts/embed_notebook_figures.py` sau khi cập nhật output notebook. Xuất PDF (có chèn hình, font tiếng Việt): `python scripts/md_reports_to_pdf.py` (cần `playwright install chromium` lần đầu) → ghi đè `reports/figures/{tên_báo_cáo}.pdf`.
 
 Thư mục `data/` giữ nguyên tên file CSV.

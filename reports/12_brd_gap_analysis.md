@@ -42,7 +42,7 @@ Xác định tổ hợp **market segment × lead time × mùa cao điểm** có 
 | Online TA (tổng) | 32.491 | 43,23% | — | — |
 | Toàn hệ thống | 82.811 | 28,12% | 11.245.770 € | 100% |
 
-<img src="figures/12/chart_02_cancel_rate_hotspots.png" alt="So sánh tỷ lệ hủy theo tổ hợp rủi ro BRD" width="800">
+![So sánh tỷ lệ hủy theo tổ hợp rủi ro BRD](./figures/12/chart_02_cancel_rate_hotspots.png)
 
 ### 1.4 Diễn giải
 
@@ -93,7 +93,7 @@ Xác định tổ hợp **market segment × lead time × mùa cao điểm** có 
 | November | 316.257 | 1.004 | 0,32 |
 | December | 474.532 | 1.319 | 0,47 |
 
-<img src="figures/12/chart_01_revenue_loss_by_month.png" alt="Doanh thu tiềm năng mất theo tháng đến" width="800">
+![Doanh thu tiềm năng mất theo tháng đến](./figures/12/chart_01_revenue_loss_by_month.png)
 
 ### 2.5 Diễn giải
 
@@ -146,7 +146,7 @@ Xác định tổ hợp **market segment × lead time × mùa cao điểm** có 
 | ADR gap (khớp − mis-match) | **18,24 €** |
 | Free upgrade (B/A) | **7.812** (**74,9%** mis-match) |
 
-<img src="figures/12/chart_03_room_mismatch.png" alt="Phân bố mis-match và ADR theo loại chuyển phòng" width="800">
+![Phân bố mis-match và ADR theo loại chuyển phòng](./figures/12/chart_03_room_mismatch.png)
 
 ### 3.5 Diễn giải
 
@@ -184,7 +184,7 @@ Mô phỏng tác động tài chính nếu áp dụng **chính sách cọc** cho
 | Δ Net Revenue (chỉ lưu trú) | **+1.523.695 €** (**+17,7%**) |
 | Δ Net Revenue (+ cọc giữ lại) | **+3.482.549 €** (**+40,6%**) |
 
-<img src="figures/12/chart_04_deposit_simulation.png" alt="Mô phỏng Deposit Policy — Online TA" width="800">
+![Mô phỏng Deposit Policy — Online TA](./figures/12/chart_04_deposit_simulation.png)
 
 ### 4.4 Diễn giải
 

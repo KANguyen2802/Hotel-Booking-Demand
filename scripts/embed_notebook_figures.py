@@ -34,20 +34,18 @@ REPORTS = {
 }
 
 CHART_RE = re.compile(r"Biểu đồ\s+(\d+)", re.IGNORECASE)
-IMG_MD_RE = re.compile(r"!\[[^\]]*\]\(figures/[^\)]+\)\s*\n?", re.MULTILINE)
+IMG_MD_RE = re.compile(r"!\[[^\]]*\]\(\.?/?figures/[^\)]+\)\s*\n?", re.MULTILINE)
 IMG_HTML_RE = re.compile(
     r'<img src="figures/[^"]+" alt="[^"]*" width="\d+">\s*\n?',
     re.MULTILINE,
 )
 HEADER_CHART_RE = re.compile(r"^### Biểu đồ (\d+):", re.MULTILINE)
-IMG_WIDTH = 800
 
 
-def html_img(caption: str, rel: str, width: int = IMG_WIDTH) -> str:
-    from html import escape
-
-    alt = caption.replace(r"\|", "|")
-    return f'\n<img src="{rel}" alt="{escape(alt, quote=True)}" width="{width}">\n\n'
+def md_img(caption: str, rel: str) -> str:
+    alt = caption.replace("|", r"\|")
+    rel_md = rel if rel.startswith("./") else f"./{rel}"
+    return f"\n![{alt}]({rel_md})\n\n"
 
 
 def chart_numbers_from_source(source: str) -> list[int]:
@@ -137,7 +135,7 @@ def embed_eda_charts(text: str, figures: list[dict]) -> str:
         if not f:
             continue
         header = m.group(0)
-        image_md = html_img(f["label"], f["rel"])
+        image_md = md_img(f["label"], f["rel"])
         text = insert_after_header(text, header, image_md)
     return text
 
@@ -161,12 +159,12 @@ MODEL_INSERTIONS = {
         ("### 6.3 Prediction Probability Distribution", "chart_02.png", "Phân phối xác suất dự đoán"),
         ("### 6.4 Feature Importance vs SHAP", "chart_03.png", "Feature Importance (Gini)"),
         ("### 5.5 Biểu đồ SHAP trong notebook", "chart_04.png", "SHAP — mean |SHAP| engineered"),
-        ("| **Beeswarm** |", "chart_05.png", "SHAP beeswarm"),
-        ("| **Dependence (top 3)** |", "chart_06.png", "SHAP dependence"),
-        ("| **Dependence (top 3)** |", "chart_07.png", "SHAP dependence (2)"),
-        ("| **Dependence (top 3)** |", "chart_08.png", "SHAP dependence (3)"),
-        ("| **Waterfall** |", "chart_09.png", "SHAP waterfall"),
-        ("| **Bar engineered** |", "chart_10.png", "SHAP engineered bar"),
+        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_05.png", "SHAP beeswarm"),
+        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_06.png", "SHAP dependence"),
+        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_07.png", "SHAP dependence (2)"),
+        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_08.png", "SHAP dependence (3)"),
+        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_09.png", "SHAP waterfall"),
+        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_10.png", "SHAP engineered bar"),
     ],
     "09": [
         ("### 6.1 Confusion Matrix", "chart_01.png", "Confusion Matrix & ROC Curve"),
@@ -202,7 +200,7 @@ def embed_mapped(prefix: str, text: str, insertions: list[tuple]) -> str:
         if not (fig_dir / fname).exists():
             continue
         rel = f"figures/{prefix}/{fname}"
-        image_md = html_img(caption, rel)
+        image_md = md_img(caption, rel)
         text = insert_after_header(text, header, image_md)
     return text
 
@@ -223,7 +221,7 @@ def process_report(prefix: str) -> int:
         text = embed_mapped(prefix, text, MODEL_INSERTIONS[prefix])
 
     md_path.write_text(text, encoding="utf-8")
-    return len(re.findall(r'<img src="figures/', text))
+    return len(re.findall(r"!\[[^\]]*\]\(\.?/?figures/", text))
 
 
 def main():

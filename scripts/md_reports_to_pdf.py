@@ -23,6 +23,7 @@ IMG_TAG_RE = re.compile(
     r'<img\s+src="([^"]+)"\s+alt="([^"]*)"\s+width="(\d+)"\s*/?>',
     re.IGNORECASE,
 )
+MD_IMG_RE = re.compile(r"!\[((?:[^\]\\]|\\.)*)\]\((\./)?figures/([^)]+)\)")
 
 CSS = """
 @page { size: A4; margin: 1.8cm 1.5cm; }
@@ -84,6 +85,19 @@ def image_to_data_uri(img_path: Path) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
+def resolve_md_images(text: str, md_dir: Path) -> str:
+    def repl(match: re.Match[str]) -> str:
+        alt = match.group(1).replace(r"\|", "|")
+        img_path = (md_dir / "figures" / match.group(3)).resolve()
+        if not img_path.is_file():
+            print(f"  [warn] Missing image: {img_path}", file=sys.stderr)
+            return match.group(0)
+        uri = image_to_data_uri(img_path)
+        return f'<img src="{uri}" alt="{alt}" width="700"/>'
+
+    return MD_IMG_RE.sub(repl, text)
+
+
 def resolve_images(text: str, md_dir: Path) -> str:
     def repl(match: re.Match[str]) -> str:
         src, alt, width = match.group(1), match.group(2), match.group(3)
@@ -98,6 +112,7 @@ def resolve_images(text: str, md_dir: Path) -> str:
 
 
 def md_to_html(text: str, md_dir: Path) -> str:
+    text = resolve_md_images(text, md_dir)
     text = resolve_images(text, md_dir)
     body = markdown.markdown(
         text,
