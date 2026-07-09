@@ -146,7 +146,7 @@ MODEL_INSERTIONS = {
         ("### 6.2 ROC Curve", "chart_01.png", "ROC Curve (cùng hình với Confusion Matrix)"),
         ("### 6.3 Prediction Probability Distribution", "chart_02.png", "Phân phối xác suất dự đoán"),
         ("### 6.4 Feature Importance vs SHAP", "chart_03.png", "Feature Importance (Gini)"),
-        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_04.png", "SHAP — mean |SHAP| engineered"),
+        ("### 5.5 Biểu đồ SHAP trong notebook", "chart_04.png", r"SHAP — mean \|SHAP\| engineered"),
         ("| **Beeswarm** |", "chart_05.png", "SHAP beeswarm"),
         ("| **Dependence (top 3)** |", "chart_06.png", "SHAP dependence"),
         ("| **Dependence (top 3)** |", "chart_07.png", "SHAP dependence (2)"),
@@ -159,7 +159,7 @@ MODEL_INSERTIONS = {
         ("### 6.2 ROC Curve", "chart_01.png", "ROC Curve (cùng hình với Confusion Matrix)"),
         ("### 6.3 Prediction Probability Distribution", "chart_02.png", "Phân phối xác suất dự đoán"),
         ("### 6.4 Gain importance vs SHAP", "chart_03.png", "Feature Importance (gain)"),
-        ("### 5.2 Mean |SHAP|", "chart_04.png", "SHAP — mean |SHAP| engineered"),
+        ("### 5.2 Mean |SHAP|", "chart_04.png", r"SHAP — mean \|SHAP\| engineered"),
         ("### 5.3 Tổng hợp theo nhóm feature engineering", "chart_05.png", "SHAP — tổng hợp theo nhóm"),
     ],
 }

@@ -267,7 +267,7 @@ Khác với Gini importance (trung bình toàn cục, không có dấu), SHAP ch
 
 
 
-![SHAP — mean |SHAP| engineered](figures/08/chart_04.png)
+![SHAP — mean \|SHAP\| engineered](figures/08/chart_04.png)
 
 | Biểu đồ | Nội dung |
 |---------|----------|

@@ -240,7 +240,7 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 ### 5.2 Mean |SHAP| — Xếp hạng biến engineered
 
 
-![SHAP — mean |SHAP| engineered](figures/09/chart_04.png)
+![SHAP — mean \|SHAP\| engineered](figures/09/chart_04.png)
 
 | Hạng | Biến | Mean \|SHAP\| | Mean SHAP | Nhóm | Diễn giải |
 |:---:|------|------------:|----------:|------|-----------|
@@ -258,7 +258,7 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 ### 5.3 Tổng hợp theo nhóm feature engineering
 
 
-![SHAP — mean |SHAP| engineered & tổng hợp theo nhóm](figures/09/chart_04.png)
+![SHAP — mean \|SHAP\| engineered & tổng hợp theo nhóm](figures/09/chart_04.png)
 
 | Nhóm | Tổng mean \|SHAP\| | Mean SHAP | Đánh giá |
 |------|------------------:|----------:|----------|
