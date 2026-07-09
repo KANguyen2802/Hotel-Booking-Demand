@@ -1,6 +1,7 @@
 """
 Convert report Markdown files to PDF with embedded figures.
 
+Uses Playwright (Chromium) for correct Vietnamese Unicode rendering.
 Output: reports/figures/{md_stem}.pdf (overwrites existing PDFs)
 """
 from __future__ import annotations
@@ -12,7 +13,7 @@ import sys
 from pathlib import Path
 
 import markdown
-from xhtml2pdf import pisa
+from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 REPORTS = ROOT / "reports"
@@ -24,18 +25,20 @@ IMG_TAG_RE = re.compile(
 )
 
 CSS = """
-@page {
-    size: A4;
-    margin: 1.8cm 1.5cm;
-}
+@page { size: A4; margin: 1.8cm 1.5cm; }
 body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Segoe UI", Arial, sans-serif;
     font-size: 10pt;
     line-height: 1.45;
     color: #1a1a1a;
 }
 h1 { font-size: 18pt; margin-top: 0; }
-h2 { font-size: 14pt; margin-top: 18px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+h2 {
+    font-size: 14pt;
+    margin-top: 18px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 4px;
+}
 h3 { font-size: 12pt; margin-top: 14px; }
 blockquote {
     margin: 10px 0;
@@ -55,7 +58,7 @@ th, td {
     padding: 5px 7px;
     vertical-align: top;
 }
-th { background: #eef2f7; font-weight: bold; }
+th { background: #eef2f7; font-weight: 600; }
 tr:nth-child(even) td { background: #fafafa; }
 img {
     display: block;
@@ -64,7 +67,7 @@ img {
     margin: 10px auto 14px;
 }
 code {
-    font-family: Consolas, monospace;
+    font-family: Consolas, "Courier New", monospace;
     font-size: 9pt;
     background: #f4f4f4;
     padding: 1px 4px;
@@ -114,10 +117,24 @@ def md_to_html(text: str, md_dir: Path) -> str:
 
 def html_to_pdf(html: str, pdf_path: Path) -> None:
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(pdf_path, "wb") as out:
-        status = pisa.CreatePDF(html, dest=out, encoding="utf-8")
-    if status.err:
-        raise RuntimeError(f"PDF generation failed for {pdf_path}")
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        try:
+            page = browser.new_page()
+            page.set_content(html, wait_until="load")
+            page.pdf(
+                path=str(pdf_path),
+                format="A4",
+                margin={
+                    "top": "1.8cm",
+                    "right": "1.5cm",
+                    "bottom": "1.8cm",
+                    "left": "1.5cm",
+                },
+                print_background=True,
+            )
+        finally:
+            browser.close()
 
 
 def pdf_output_path(md_path: Path) -> Path:
