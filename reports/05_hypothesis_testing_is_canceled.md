@@ -43,7 +43,7 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 
 
-![H1 — lead_time](figures/05/chart_01.png)
+<img src="figures/05/chart_01.png" alt="H1 — lead_time" width="800">
 
 **H₀:** Phân bố `lead_time` giống nhau giữa booking hủy và không hủy.  
 **H₁:** Hai phân bố khác nhau.
@@ -72,7 +72,7 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 
 
-![H1b — lead_time_bin](figures/05/chart_05.png)
+<img src="figures/05/chart_05.png" alt="H1b — lead_time_bin" width="800">
 
 **H₀:** Nhóm lead_time bin và `is_canceled` độc lập.  
 **H₁:** Tỷ lệ hủy khác nhau giữa các bin.
@@ -108,7 +108,7 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 
 
-![H2 — deposit_type (crosstab)](figures/05/chart_02.png)
+<img src="figures/05/chart_02.png" alt="H2 — deposit_type (crosstab)" width="800">
 
 **H₀:** `deposit_type` và `is_canceled` độc lập.  
 **H₁:** Có association giữa loại cọc và tỷ lệ hủy.
@@ -143,7 +143,7 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 
 
-![H3 — market_segment](figures/05/chart_04.png)
+<img src="figures/05/chart_04.png" alt="H3 — market_segment" width="800">
 
 **H₀:** `market_segment` và `is_canceled` độc lập.  
 **H₁:** Có association giữa phân khúc thị trường và tỷ lệ hủy.
@@ -184,7 +184,7 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 
 
-![H4 — Logistic Regression](figures/05/chart_06.png)
+<img src="figures/05/chart_06.png" alt="H4 — Logistic Regression" width="800">
 
 **Mô hình:** `is_canceled ~ lead_time + deposit_type + market_segment`  
 **Baseline:** `deposit_type = No Deposit`, `market_segment = Direct`
@@ -225,7 +225,7 @@ Kiểm định thống kê xem ba biến **`lead_time`**, **`deposit_type`** và
 
 
 
-![Dashboard effect size](figures/05/chart_07.png)
+<img src="figures/05/chart_07.png" alt="Dashboard effect size" width="800">
 
 | Test | Biến | Metric | Giá trị | Xếp hạng tương đối |
 |---|---|---:|---:|---|

@@ -20,7 +20,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 1: Box plot ADR theo `arrival_date_month`
 
 
-![Biểu đồ 1](figures/03/chart_01.png)
+<img src="figures/03/chart_01.png" alt="Biểu đồ 1" width="800">
 
 **Mô tả:** Trục X = tháng đến (Jan–Dec, sắp theo thứ tự lịch), trục Y = `adr`. Thể hiện median, IQR và outlier theo từng tháng.
 
@@ -51,7 +51,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 2: Line chart mean ADR theo tháng (± 1 std)
 
 
-![Biểu đồ 2](figures/03/chart_02.png)
+<img src="figures/03/chart_02.png" alt="Biểu đồ 2" width="800">
 
 **Mô tả:** Trục X = `arrival_date_month`, trục Y = mean(`adr`), vùng tô ± 1 std — thể hiện seasonality và độ không chắc chắn giá.
 
@@ -82,7 +82,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 3: Heatmap mean ADR theo `arrival_date_month` × `arrival_date_year`
 
 
-![Biểu đồ 3](figures/03/chart_03.png)
+<img src="figures/03/chart_03.png" alt="Biểu đồ 3" width="800">
 
 **Mô tả:** Trục X = năm đến, trục Y = tháng đến, màu = mean(`adr`). Phát hiện xu hướng year-over-year.
 
@@ -118,7 +118,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 4: Bar chart mean ADR theo `day_of_week`
 
 
-![Biểu đồ 4](figures/03/chart_04.png)
+<img src="figures/03/chart_04.png" alt="Biểu đồ 4" width="800">
 
 **Mô tả:** Trục X = ngày trong tuần (Mon → Sun), trục Y = mean(`adr`).
 
@@ -144,7 +144,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 5: Box plot ADR theo `day_of_week`
 
 
-![Biểu đồ 5](figures/03/chart_05.png)
+<img src="figures/03/chart_05.png" alt="Biểu đồ 5" width="800">
 
 **Mô tả:** Trục X = `day_of_week`, trục Y = `adr`. Bổ sung median, IQR và outlier mà bar chart không thể hiện.
 
@@ -172,7 +172,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 6: Bar chart ngang mean ADR theo `reserved_room_type`
 
 
-![Biểu đồ 6](figures/03/chart_06.png)
+<img src="figures/03/chart_06.png" alt="Biểu đồ 6" width="800">
 
 **Mô tả:** Trục Y = loại phòng đặt (A–L), trục X = mean(`adr`), sắp giảm dần.
 
@@ -202,7 +202,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 7: Box plot ADR theo `room_match`
 
 
-![Biểu đồ 7](figures/03/chart_07.png)
+<img src="figures/03/chart_07.png" alt="Biểu đồ 7" width="800">
 
 **Mô tả:** Tạo `room_match = (reserved_room_type == assigned_room_type)`. Trục X = Khớp (True) / Không khớp (False), trục Y = `adr`.
 
@@ -223,7 +223,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 8: Heatmap mean ADR theo `reserved_room_type` × `hotel`
 
 
-![Biểu đồ 8](figures/03/chart_08.png)
+<img src="figures/03/chart_08.png" alt="Biểu đồ 8" width="800">
 
 **Mô tả:** Trục X = hotel (City Hotel / Resort Hotel), trục Y = `reserved_room_type`, màu = mean(`adr`).
 
@@ -258,7 +258,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 9: Bar chart mean ADR theo `customer_type`
 
 
-![Biểu đồ 9](figures/03/chart_09.png)
+<img src="figures/03/chart_09.png" alt="Biểu đồ 9" width="800">
 
 **Mô tả:** Trục X = customer_type (Transient, Transient-Party, Contract, Group), trục Y = mean(`adr`).
 
@@ -281,7 +281,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 10: Box plot ADR theo `customer_type`
 
 
-![Biểu đồ 10](figures/03/chart_10.png)
+<img src="figures/03/chart_10.png" alt="Biểu đồ 10" width="800">
 
 **Mô tả:** Trục X = `customer_type`, trục Y = `adr`. Phát hiện độ phân tán.
 
@@ -304,7 +304,7 @@ Giai đoạn EDA Stage 2 tập trung khám phá **Average Daily Rate (`adr`)** �
 ### Biểu đồ 11: Grouped bar mean ADR theo `customer_type` × `hotel`
 
 
-![Biểu đồ 11](figures/03/chart_11.png)
+<img src="figures/03/chart_11.png" alt="Biểu đồ 11" width="800">
 
 **Mô tả:** Trục X = `customer_type`, nhóm màu = hotel, trục Y = mean(`adr`).
 

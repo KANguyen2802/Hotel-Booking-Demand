@@ -106,7 +106,7 @@ Gini importance từ Random Forest sau One-Hot (~129 cột). Tổng hợp theo b
 
 
 
-![Confusion Matrix & ROC Curve](figures/06/chart_01.png)
+<img src="figures/06/chart_01.png" alt="Confusion Matrix &amp; ROC Curve" width="800">
 
 - **Mục đích:** Đếm TN/TP/FP/FN trên test.
 - **Đánh giá:** Cho thấy rõ trade-off — Recall hủy cao nhưng FP lớn. Không nên chỉ nhìn accuracy 59%.
@@ -114,7 +114,7 @@ Gini importance từ Random Forest sau One-Hot (~129 cột). Tổng hợp theo b
 ### 5.2 ROC Curve
 
 
-![ROC Curve (cùng hình với Confusion Matrix)](figures/06/chart_01.png)
+<img src="figures/06/chart_01.png" alt="ROC Curve (cùng hình với Confusion Matrix)" width="800">
 
 - **Mục đích:** Đo khả năng phân tách ở mọi ngưỡng; AUC = 0,734.
 - **Đánh giá:** Mô hình vượt ngẫu nhiên (0,5) rõ rệt nhưng **chưa đủ mạnh** để triển khai production chỉ với biến phân loại. Đường ROC phản ánh ranking tốt hơn là calibration xác suất tuyệt đối.
@@ -123,7 +123,7 @@ Gini importance từ Random Forest sau One-Hot (~129 cột). Tổng hợp theo b
 
 
 
-![Phân phối xác suất dự đoán](figures/06/chart_02.png)
+<img src="figures/06/chart_02.png" alt="Phân phối xác suất dự đoán" width="800">
 
 - **Mục đích:** So sánh phân phối `P(hủy)` giữa booking thực sự hủy vs không hủy.
 - **Quy ước màu:** teal = Không hủy · orange = Hủy · đường đứt nét = ngưỡng 0,50.
@@ -133,7 +133,7 @@ Gini importance từ Random Forest sau One-Hot (~129 cột). Tổng hợp theo b
 
 
 
-![Feature Importance (top 20)](figures/06/chart_03.png)
+<img src="figures/06/chart_03.png" alt="Feature Importance (top 20)" width="800">
 
 - **Mục đích:** Xác định category / biến gốc ảnh hưởng nhiều nhất tới quyết định cây.
 - **Đánh giá:** Hữu ích cho **diễn giải kinh doanh** (tập trung OTA, segment, thị trường PRT); không đồng nghĩa nhân quả.
