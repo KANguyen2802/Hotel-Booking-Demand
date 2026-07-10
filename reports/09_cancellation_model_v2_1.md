@@ -164,88 +164,143 @@ Ngay cả khi giữ ngưỡng 0,35, v2.1 vẫn Recall cao hơn nhờ `scale_pos_
 
 ## 4. Feature importance (gain)
 
-Sau One-Hot: **143 cột**. Tổng hợp theo biến gốc (top):
+> **Cách đọc:** Gain = chất lượng split LightGBM; **Giá trị ảnh hưởng** = mức cụ thể đẩy P(hủy) ↑/↓ (đối chiếu tỷ lệ hủy / SHAP mục 5). TB hủy toàn cục ~28,1%. Sau One-Hot: **143 cột**.
 
-| Hạng | Biến gốc | Ghi chú |
-|:---:|----------|---------|
-| 1 | `lead_time` | Trụ chính |
-| 2 | `country` | Thị trường nguồn |
-| 3 | `market_segment` | Online TA vs Direct/Corporate |
-| … | `arrival_month_mapped` | Tháng liên tục |
-| … | **`arrival_season`** | Có tín hiệu (gain ~14.921) nhưng không phải trụ chính |
+### 4.1 Top 20 feature (sau tiền xử lý)
 
 
 ![Feature Importance (gain) — Top 20](./figures/09_1/chart_03.png)
 
-**Nhận xét:** `arrival_season` đóng góp hữu ích nhưng yếu hơn tháng / lead time / segment — phù hợp vai trò bổ sung, không thay thế `arrival_month_mapped`.
+| Hạng | Feature | Gain | Biến gốc / nhóm | Giá trị / mức ảnh hưởng | Hướng | Đánh giá |
+|:---:|---------|-----:|------------------|-------------------------|-------|----------|
+| 1 | `lead_time` | 109.461 | `lead_time` | **> 180 ngày** (~41,7%) vs **0–30** (~16,8%) | Cao ↑ · Thấp ↓ | Lever số gốc mạnh nhất |
+| 2 | `market_segment_Online TA` | 62.329 | `market_segment` | = **Online TA** | ↑ (~35,5%) | Nguồn rủi ro OTA chính |
+| 3 | **`price_per_person`** | **60.217** | **Financial Commitment** | Giá/người **cao** vs **thấp** | Cao ↓ · Thấp ↑ (SHAP #1 eng.) | Engineered mạnh nhất ở LGBM |
+| 4 | **`lead_time_per_night`** | **59.124** | **Trip Structure** | Thấp vs cao (lead/đêm) | Thấp ↑ · Cao ↓ (SHAP) | Chuẩn hóa lead time theo đêm |
+| 5 | `total_of_special_requests` | 50.397 | `total_of_special_requests` | **0** (~34%) vs **3+** (~16%) | Nhiều ↓ · 0 ↑ | Cam kết giảm rủi ro |
+| 6 | `country_PRT` | 48.086 | `country` | = **PRT** | ↑ (~36,8%) | Thị trường nội địa lớn |
+| 7 | **`total_nights`** | **24.457** | **Trip Structure** | Số đêm dài / ngắn | Tác động phi tuyến (SHAP) | Cấu trúc chuyến đi |
+| 8 | **`arrival_month_mapped`** | **22.735** | **Calendar & Seasonality** | Tháng cao điểm / thấp điểm | Phụ thuộc mùa (SHAP) | Mùa vụ — bổ sung bởi `arrival_season` |
+| 9 | `market_segment_Offline TA/TO` | 22.037 | `market_segment` | = **Offline TA/TO** | ↓ (~15,1%) | Đối trọng Online TA |
+| 10 | **`history_cancel_rate`** | **21.400** | **Trust & History** | **> 0** (≈1) vs **= 0** | Cao ↑↑ · 0 gần TB | Lịch sử hủy → đẩy P(hủy) rõ |
+| 11 | `customer_type_Transient` | 16.800 | `customer_type` | = **Transient** | ↑ (~30,4%) | Khách lẻ rủi ro hơn |
+| 12 | `customer_type_Transient-Party` | 14.870 | `customer_type` | = **Transient-Party** | ↓ (~15,8%) | An toàn hơn Transient đơn |
+| 13 | `distribution_channel_TA/TO` | 14.093 | `distribution_channel` | = **TA/TO** | ↑ (~31,5%) | Kênh đại lý / OTA |
+| 14 | `deposit_type_Non Refund` | 13.558 | `deposit_type` | = **Non Refund** | ↑↑ (~95%) | Đặc thù chính sách |
+| 15 | `market_segment_Direct` | 11.905 | `market_segment` | = **Direct** | ↓ (~14,9%) | Segment ổn định |
+| 16 | `country_GBR` | 11.707 | `country` | = **GBR** | ↓ (~19,6%) | Thị trường ổn định hơn PRT |
+| 17 | **`total_guests`** | **11.514** | **Financial Commitment** | Nhiều / ít khách | Tác động nhỏ–trung bình | Quy mô nhóm |
+| 18 | `country_DEU` | 8.036 | `country` | = **DEU** | Thường ↓ so PRT | Thị trường ổn định hơn |
+| 19 | `hotel_City Hotel` | 7.652 | `hotel` | = **City Hotel** | ↑ nhẹ (~30,7% vs Resort ~24%) | City rủi ro hơn Resort |
+| 20 | `country_FRA` | 7.509 | `country` | = **FRA** | Thường ↓ so PRT | Thị trường ổn định hơn |
+
+**Nhận xét:** 5 biến engineered trong top 20 (giống v2). So v2: `price_per_person` và `lead_time_per_night` leo lên hạng 3–4 (gain tuyệt đối cao hơn sau `scale_pos_weight`). **Giá trị đẩy rủi ro ↑:** lead time dài, Online TA, PRT, `history_cancel_rate` > 0, Non Refund, Transient. **Giá trị kéo ↓:** Offline/Direct, nhiều special requests, `price_per_person` cao, Transient-Party, GBR/DEU/FRA.
+
+### 4.2 Gom nhóm theo biến gốc (tổng gain)
+
+| Hạng | Biến / nhóm | Tổng gain | Giá trị ảnh hưởng chính | Hướng tác động | Đánh giá |
+|:---:|-------------|----------:|-------------------------|----------------|----------|
+| 1 | `lead_time` | 109.461 | > 90–180 ↑; ≤ 30 ↓ | Dài ngày → rủi ro cao | Đặt trước xa → rủi ro cao |
+| 2 | `country` | 103.456 | PRT ↑; GBR / DEU / FRA ↓ | Thị trường nguồn | PRT chi phối tổng gain |
+| 3 | `market_segment` | 101.195 | Online TA ↑; Offline / Direct ↓ | OTA vs Direct | Phân cực kênh rõ |
+| 4 | **`price_per_person`** | **60.217** | Cao ↓ · Thấp ↑ (SHAP) | Cam kết tài chính | Engineered #1 ở LGBM |
+| 5 | **`lead_time_per_night`** | **59.124** | Thấp ↑ · Cao ↓ | Chuẩn hóa lead/đêm | **Biến engineered mạnh** |
+| 6 | `total_of_special_requests` | 50.397 | 0 ↑; 3+ ↓ | Nhiều yêu cầu → ít hủy | Cam kết / nhu cầu cụ thể |
+| 7 | `customer_type` | 36.610 | Transient ↑; Transient-Party / Group ↓ | Loại khách | Transient rủi ro hơn |
+| 8 | **`total_nights`** | **24.457** | Dài / ngắn — phi tuyến | Cấu trúc chuyến | Bổ sung lead_time |
+| 9 | **`arrival_month_mapped`** | **22.735** | Tháng cao / thấp điểm | Mùa vụ (SHAP) | Mạnh hơn ở SHAP so gợi ý gain thuần |
+| 10 | `distribution_channel` | 22.493 | TA/TO ↑; Direct ↓ | Kênh đặt | TA/TO vs Direct |
+| 11 | **`history_cancel_rate`** | **21.400** | > 0 ↑↑; = 0 gần TB | Lịch sử hủy | Hướng rõ — flag khi > 0 |
+| 12 | `deposit_type` | 17.167 | Non Refund ↑↑; No Deposit ~TB | Chính sách cọc | Non Refund đặc thù |
+| 13 | **`arrival_season`** | **14.921** | Summer / Winter / Autumn / Spring | Mùa rời rạc (One-Hot) | Bổ sung tháng — không thay thế `arrival_month_mapped` |
+| 14 | `hotel` | 12.878 | City ↑ nhẹ vs Resort | Loại KS | City vs Resort |
+| 15 | **`total_guests`** | **11.514** | Tác động nhỏ–TB | Quy mô nhóm | Tín hiệu phụ |
+| 16 | **`is_family`** | **3.164** | Có trẻ — yếu | Gia đình | Yếu |
+| 17 | **`is_weekend_only`** | **0.831** | Chỉ cuối tuần — yếu nhất | Calendar | Yếu nhất |
 
 ---
 
-## 5. SHAP — biến engineered & mở rộng
+## 5. Giải thích SHAP — Biến engineered
 
-Mẫu SHAP: **2.000** booking trên tập test (`TreeExplainer`).
+### 5.1 Phương pháp
 
-### 5.1 Mean |SHAP| — biến engineered & theo nhóm
+| Thành phần | Cài đặt |
+|------------|---------|
+| Thư viện | `shap` — `TreeExplainer` |
+| Mô hình giải thích | `LGBMClassifier` (tuned v2.1) sau `ColumnTransformer` |
+| Dữ liệu | Mẫu **2.000** booking ngẫu nhiên từ tập test (`random_state=42`) |
+| Class giải thích | **Hủy** (class 1) |
 
-
-![SHAP mean |SHAP| engineered & theo nhóm](./figures/09_1/chart_04.png)
-
-| Feature | Mean \|SHAP\| | Nhóm |
-|---------|-------------:|------|
-| `price_per_person` | 0,275 | Financial Commitment |
-| `lead_time_per_night` | 0,184 | Trip Structure |
-| `history_cancel_rate` | 0,130 | Trust & History |
-| `total_nights` | 0,116 | Trip Structure |
-| `total_guests` | 0,112 | Financial Commitment |
-| `arrival_month_mapped` | 0,095 | Calendar & Seasonality |
-| `is_family` | 0,036 | Financial Commitment |
-| `is_weekend_only` | thấp | Calendar & Seasonality |
-
-**Theo nhóm:** Financial Commitment > Trip Structure > Trust & History — khớp hướng v2.
-
-### 5.2 SHAP Beeswarm — biến engineered
+### 5.2 Mean |SHAP| — Xếp hạng biến engineered
 
 
-![SHAP Beeswarm — biến engineered](./figures/09_1/chart_05.png)
+![SHAP — mean \|SHAP\| engineered & theo nhóm](./figures/09_1/chart_04.png)
 
-Mỗi chấm là một booking; trục ngang = đóng góp vào P(hủy); màu = giá trị feature. `history_cancel_rate` cao tập trung SHAP dương; `price_per_person` cao thường kéo SHAP âm.
+| Hạng | Biến | Mean \|SHAP\| | Mean SHAP | Nhóm | Giá trị ảnh hưởng | Hướng | Diễn giải |
+|:---:|------|------------:|----------:|------|-------------------|-------|-----------|
+| 1 | **`price_per_person`** | **0,275** | −0,016 | Financial Commitment | Giá/người cao vs thấp | Cao ↓ · Thấp ↑ | Đóng góp engineered lớn nhất |
+| 2 | **`lead_time_per_night`** | **0,184** | +0,002 | Trip Structure | Thấp vs cao (lead/đêm) | Thấp ↑ · Cao ↓ | Chuẩn hóa lead time theo độ dài chuyến |
+| 3 | **`history_cancel_rate`** | **0,130** | +0,014 | Trust & History | > 0 (≈1) vs = 0 | Cao ↑↑ | Lịch sử hủy cao → đẩy P(hủy) lên |
+| 4 | **`total_nights`** | **0,116** | +0,010 | Trip Structure | Số đêm dài / ngắn | Phi tuyến | Cấu trúc chuyến đi |
+| 5 | **`total_guests`** | **0,112** | +0,012 | Financial Commitment | Nhiều / ít khách | Nhỏ–TB | Quy mô nhóm khách |
+| 6 | **`arrival_month_mapped`** | **0,095** | −0,003 | Calendar & Seasonality | Tháng cao / thấp điểm | Phụ thuộc mùa | SHAP mạnh hơn gain gợi ý; bổ sung bởi season |
+| 7 | **`is_family`** | **0,036** | −0,001 | Financial Commitment | Có trẻ (=1) vs không | Yếu | Tác động nhỏ |
+| 8 | **`is_weekend_only`** | **0,006** | −0,001 | Calendar & Seasonality | Chỉ cuối tuần (=1) | Yếu nhất | Calendar — yếu nhất |
 
-### 5.3 SHAP — `arrival_season` (One-Hot)
+**So v2:** Thứ tự engineered giữ nguyên hướng (`price_per_person` #1). Mean \|SHAP\| tăng nhẹ (0,244 → 0,275) — phù hợp phân phối P(hủy) bị đẩy lên bởi `scale_pos_weight`. `arrival_month_mapped` tụt xuống #6 so v2 (#3) khi có thêm tín hiệu mùa rời rạc.
+
+### 5.3 Tổng hợp theo nhóm feature engineering
+
+| Nhóm | Tổng mean \|SHAP\| | Mean SHAP | Đánh giá |
+|------|------------------:|----------:|----------|
+| **Financial Commitment** | **0,423** | −0,005 | Nhóm engineered quan trọng nhất — `price_per_person` chi phối |
+| **Trip Structure** | **0,300** | +0,012 | `lead_time_per_night` + `total_nights` |
+| **Trust & History** | **0,130** | +0,014 | `history_cancel_rate` — tín hiệu có hướng |
+| **Calendar & Seasonality** | **0,101** | −0,004 | `arrival_month_mapped` mạnh hơn `is_weekend_only`; season xem mục 5.5 |
+
+### 5.4 SHAP Beeswarm — Phân tán đóng góp theo từng booking
+
+
+![SHAP Beeswarm — Biến engineered](./figures/09_1/chart_05.png)
+
+Mỗi chấm là một booking trong mẫu 2.000; trục ngang là giá trị SHAP (đóng góp vào P(hủy)), màu thể hiện giá trị feature (cao → đỏ, thấp → xanh). Beeswarm bổ sung cho bảng 5.2–5.3 bằng cách cho thấy **phân bố** và **hướng** tác động trên từng quan sát — ví dụ `history_cancel_rate` cao tập trung SHAP dương mạnh; `price_per_person` cao thường kéo SHAP âm.
+
+### 5.5 SHAP — `arrival_season` (One-Hot)
 
 
 ![SHAP arrival_season](./figures/09_1/chart_06.png)
 
-| Feature | Mean \|SHAP\| |
-|---------|-------------:|
-| `arrival_season_Summer` | 0,046 |
-| `arrival_season_Winter` | 0,026 |
-| `arrival_season_Autumn` | 0,021 |
-| `arrival_season_Spring` | 0,018 |
+| Hạng | Feature | Mean \|SHAP\| | Mean SHAP | Giá trị ảnh hưởng | Hướng | Diễn giải |
+|:---:|---------|------------:|----------:|-------------------|-------|-----------|
+| 1 | `arrival_season_Summer` | 0,046 | −0,005 | = **Summer** | ↓ nhẹ (trung bình) | Tín hiệu mùa mạnh nhất trong 4 mùa |
+| 2 | `arrival_season_Winter` | 0,026 | −0,002 | = **Winter** | ↓ nhẹ | Yếu hơn Summer |
+| 3 | `arrival_season_Autumn` | 0,021 | ~0 | = **Autumn** | Gần trung tính | Đóng góp nhỏ |
+| 4 | `arrival_season_Spring` | 0,018 | ~0 | = **Spring** | Gần trung tính | Yếu nhất trong 4 mùa |
 
-Summer là tín hiệu mùa mạnh nhất; vẫn yếu hơn các biến tài chính / lead time.
+Summer là tín hiệu mùa mạnh nhất; tổng mean \|SHAP\| bốn mùa (~0,112) vẫn yếu hơn Financial / Trip — phù hợp vai trò **bổ sung**, không thay thế `arrival_month_mapped`.
 
-### 5.4 Dependence plots (4 biến engineered mạnh)
+### 5.6 Dependence plots (4 biến engineered mạnh)
 
 
 ![SHAP Dependence plots](./figures/09_1/chart_07.png)
 
 Cho thấy quan hệ **giá trị feature → SHAP** (phi tuyến): ví dụ `price_per_person` thấp đẩy P(hủy) lên; `history_cancel_rate` > 0 tạo cụm SHAP dương rõ.
 
-### 5.5 Beeswarm toàn cục (top 15)
+### 5.7 Beeswarm toàn cục (top 15)
 
 
 ![SHAP Beeswarm — Top 15 toàn cục](./figures/09_1/chart_08.png)
 
 Bổ sung góc nhìn ngoài biến engineered: `lead_time`, `country`, `market_segment` vẫn nằm trong nhóm tín hiệu mạnh nhất.
 
-### 5.6 Waterfall — 2 ví dụ booking
+### 5.8 Waterfall — 2 ví dụ booking
 
 
 ![SHAP Waterfall — P(hủy) cao / thấp](./figures/09_1/chart_09.png)
 
 Giải thích **local**: booking P(hủy) cao bị đẩy bởi tổ hợp lead time / segment / lịch sử hủy; booking P(hủy) thấp được kéo xuống bởi tín hiệu “an toàn” (giá/người, special requests, kênh Direct, …).
 
-### 5.7 Mean |SHAP| top 15 toàn cục
+### 5.9 Mean |SHAP| top 15 toàn cục
 
 
 ![SHAP bar — Top 15 toàn cục](./figures/09_1/chart_10.png)
