@@ -1,0 +1,22 @@
+{
+  "cv_roc_auc": 0.8659652803720893,
+  "tuning_source": "Optuna",
+  "prediction_threshold": 0.28,
+  "scale_pos_weight": 3.834836527621195,
+  "note": "promoted from draft | prev_cv=0.865300 → new_cv=0.865965",
+  "params": {
+    "n_estimators": 350,
+    "max_depth": 16,
+    "num_leaves": 74,
+    "min_child_samples": 50,
+    "learning_rate": 0.05580055120883812,
+    "subsample": 0.7246857661513708,
+    "colsample_bytree": 0.6009002719524649,
+    "reg_alpha": 0.0013403277773316451,
+    "reg_lambda": 0.006086076357515975,
+    "scale_pos_weight": 3.834836527621195,
+    "random_state": 42,
+    "n_jobs": -1,
+    "verbose": -1
+  }
+}
