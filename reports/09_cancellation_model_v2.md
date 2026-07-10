@@ -176,53 +176,55 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 ## 4. Feature importance (gain)
 
+> **Cách đọc:** Gain = chất lượng split LightGBM; **Giá trị ảnh hưởng** = mức cụ thể đẩy P(hủy) ↑/↓ (đối chiếu tỷ lệ hủy / SHAP mục 5). TB hủy toàn cục ~28,1%.
+
 ### 4.1 Top 20 feature (sau tiền xử lý)
 
-| Hạng | Feature | Gain | Biến gốc / nhóm |
-|:---:|---------|-----:|------------------|
-| 1 | `lead_time` | 57.672 | `lead_time` |
-| 2 | `country_PRT` | 38.574 | `country` |
-| 3 | `market_segment_Online TA` | 36.623 | `market_segment` |
-| 4 | `total_of_special_requests` | 26.969 | `total_of_special_requests` |
-| 5 | **`price_per_person`** | **23.828** | **Financial Commitment** |
-| 6 | **`lead_time_per_night`** | **16.923** | **Trip Structure** |
-| 7 | **`arrival_month_mapped`** | **12.350** | **Calendar & Seasonality** |
-| 8 | **`history_cancel_rate`** | **11.634** | **Trust & History** |
-| 9 | `customer_type_Transient` | 10.870 | `customer_type` |
-| 10 | **`total_nights`** | **10.556** | **Trip Structure** |
-| 11 | `deposit_type_Non Refund` | 7.327 | `deposit_type` |
-| 12 | **`total_guests`** | **5.584** | **Financial Commitment** |
-| 13 | `distribution_channel_TA/TO` | 5.440 | `distribution_channel` |
-| 14 | `market_segment_Offline TA/TO` | 4.911 | `market_segment` |
-| 15 | `market_segment_Direct` | 4.671 | `market_segment` |
-| 16 | `customer_type_Transient-Party` | 4.604 | `customer_type` |
-| 17 | `hotel_City Hotel` | 3.145 | `hotel` |
-| 18 | `deposit_type_No Deposit` | 2.671 | `deposit_type` |
-| 19 | `country_GBR` | 2.536 | `country` |
-| 20 | `country_DEU` | 2.341 | `country` |
+| Hạng | Feature | Gain | Biến gốc / nhóm | Giá trị / mức ảnh hưởng | Hướng | Đánh giá |
+|:---:|---------|-----:|------------------|-------------------------|-------|----------|
+| 1 | `lead_time` | 57.672 | `lead_time` | **> 180 ngày** (~41,7%) vs **0–30** (~16,8%) | Cao ↑ · Thấp ↓ | Lever số gốc mạnh nhất |
+| 2 | `country_PRT` | 38.574 | `country` | = **PRT** | ↑ (~36,8%) | Thị trường nội địa lớn |
+| 3 | `market_segment_Online TA` | 36.623 | `market_segment` | = **Online TA** | ↑ (~35,5%) | Nguồn rủi ro OTA chính |
+| 4 | `total_of_special_requests` | 26.969 | `total_of_special_requests` | **0** (~34%) vs **3+** (~16%) | Nhiều ↓ · 0 ↑ | Cam kết giảm rủi ro |
+| 5 | **`price_per_person`** | **23.828** | **Financial Commitment** | Giá/người **cao** vs **thấp** | Cao ↓ · Thấp ↑ (SHAP #1 eng.) | Engineered mạnh nhất ở LGBM |
+| 6 | **`lead_time_per_night`** | **16.923** | **Trip Structure** | Thấp vs cao (lead/đêm) | Thấp ↑ · Cao ↓ (SHAP) | Chuẩn hóa lead time theo đêm |
+| 7 | **`arrival_month_mapped`** | **12.350** | **Calendar & Seasonality** | Tháng cao điểm / thấp điểm | Phụ thuộc mùa (SHAP mạnh hơn gain gợi ý) | Mùa vụ — đóng góp SHAP đáng kể |
+| 8 | **`history_cancel_rate`** | **11.634** | **Trust & History** | **> 0** (≈1) vs **= 0** | Cao ↑↑ · 0 gần TB | Lịch sử hủy → đẩy P(hủy) rõ |
+| 9 | `customer_type_Transient` | 10.870 | `customer_type` | = **Transient** | ↑ (~30,4%) | Khách lẻ rủi ro hơn |
+| 10 | **`total_nights`** | **10.556** | **Trip Structure** | Số đêm dài / ngắn | Tác động phi tuyến (SHAP) | Cấu trúc chuyến đi |
+| 11 | `deposit_type_Non Refund` | 7.327 | `deposit_type` | = **Non Refund** | ↑↑ (~95%) | Đặc thù chính sách |
+| 12 | **`total_guests`** | **5.584** | **Financial Commitment** | Nhiều / ít khách | Tác động nhỏ–trung bình | Quy mô nhóm |
+| 13 | `distribution_channel_TA/TO` | 5.440 | `distribution_channel` | = **TA/TO** | ↑ (~31,5%) | Kênh đại lý / OTA |
+| 14 | `market_segment_Offline TA/TO` | 4.911 | `market_segment` | = **Offline TA/TO** | ↓ (~15,1%) | Đối trọng Online TA |
+| 15 | `market_segment_Direct` | 4.671 | `market_segment` | = **Direct** | ↓ (~14,9%) | Segment ổn định |
+| 16 | `customer_type_Transient-Party` | 4.604 | `customer_type` | = **Transient-Party** | ↓ (~15,8%) | An toàn hơn Transient đơn |
+| 17 | `hotel_City Hotel` | 3.145 | `hotel` | = **City Hotel** | ↑ nhẹ (~30,7% vs Resort ~24%) | City rủi ro hơn Resort |
+| 18 | `deposit_type_No Deposit` | 2.671 | `deposit_type` | = **No Deposit** | Gần TB (~27%) | Phổ biến; tách Non Refund |
+| 19 | `country_GBR` | 2.536 | `country` | = **GBR** | ↓ (~19,6%) | Thị trường ổn định hơn PRT |
+| 20 | `country_DEU` | 2.341 | `country` | = **DEU** | Thường ↓ so PRT | Thị trường ổn định hơn |
 
-**Nhận xét:** 5 biến engineered trong top 20; `price_per_person` vượt `lead_time_per_night` so với RF v1.2.
+**Nhận xét:** 5 biến engineered trong top 20. **Giá trị đẩy rủi ro ↑:** lead time dài, Online TA, PRT, `history_cancel_rate` > 0, Non Refund, Transient. **Giá trị kéo ↓:** Offline/Direct, nhiều special requests, `price_per_person` cao, Transient-Party, GBR/DEU. So RF v1.2: `price_per_person` vượt `lead_time_per_night`.
 
 ### 4.2 Gom nhóm theo biến gốc (tổng gain)
 
-| Hạng | Biến / nhóm | Tổng gain | Đánh giá |
-|:---:|-------------|----------:|----------|
-| 1 | `country` | 58.645 | Thị trường nguồn (PRT) |
-| 2 | `lead_time` | 57.672 | Đặt trước xa → rủi ro cao |
-| 3 | `market_segment` | 48.270 | OTA / Direct |
-| 4 | `total_of_special_requests` | 26.969 | Cam kết / nhu cầu cụ thể |
-| 5 | **`price_per_person`** | **23.828** | Cam kết tài chính |
-| 6 | `customer_type` | 17.171 | Transient rủi ro hơn |
-| 7 | **`lead_time_per_night`** | **16.923** | **Biến engineered mạnh** |
-| 8 | **`arrival_month_mapped`** | **12.350** | Mùa vụ |
-| 9 | **`history_cancel_rate`** | **11.634** | Lịch sử hủy |
-| 10 | **`total_nights`** | **10.556** | Cấu trúc chuyến đi |
-| 11 | `deposit_type` | 9.998 | Chính sách cọc |
-| 12 | `distribution_channel` | 8.335 | TA/TO vs Direct |
-| 13 | **`total_guests`** | **5.584** | Quy mô nhóm |
-| 14 | `hotel` | 5.058 | City vs Resort |
-| 15 | **`is_family`** | **1.432** | Gia đình — yếu |
-| 16 | **`is_weekend_only`** | **0.185** | Cuối tuần — yếu nhất |
+| Hạng | Biến / nhóm | Tổng gain | Giá trị ảnh hưởng chính | Hướng tác động | Đánh giá |
+|:---:|-------------|----------:|-------------------------|----------------|----------|
+| 1 | `country` | 58.645 | PRT ↑; GBR / DEU / FRA ↓ | Thị trường nguồn | PRT chi phối tổng gain |
+| 2 | `lead_time` | 57.672 | > 90–180 ↑; ≤ 30 ↓ | Dài ngày → rủi ro cao | Đặt trước xa → rủi ro cao |
+| 3 | `market_segment` | 48.270 | Online TA ↑; Offline / Direct ↓ | OTA vs Direct | Phân cực kênh rõ |
+| 4 | `total_of_special_requests` | 26.969 | 0 ↑; 3+ ↓ | Nhiều yêu cầu → ít hủy | Cam kết / nhu cầu cụ thể |
+| 5 | **`price_per_person`** | **23.828** | Cao ↓ · Thấp ↑ (SHAP) | Cam kết tài chính | Engineered #1 ở LGBM |
+| 6 | `customer_type` | 17.171 | Transient ↑; Transient-Party / Group ↓ | Loại khách | Transient rủi ro hơn |
+| 7 | **`lead_time_per_night`** | **16.923** | Thấp ↑ · Cao ↓ | Chuẩn hóa lead/đêm | **Biến engineered mạnh** |
+| 8 | **`arrival_month_mapped`** | **12.350** | Tháng cao / thấp điểm | Mùa vụ (SHAP nổi bật) | Mạnh hơn ở SHAP so gợi ý gain thuần |
+| 9 | **`history_cancel_rate`** | **11.634** | > 0 ↑↑; = 0 gần TB | Lịch sử hủy | Hướng rõ — flag khi > 0 |
+| 10 | **`total_nights`** | **10.556** | Dài / ngắn — phi tuyến | Cấu trúc chuyến | Bổ sung lead_time |
+| 11 | `deposit_type` | 9.998 | Non Refund ↑↑; No Deposit ~TB | Chính sách cọc | Non Refund đặc thù |
+| 12 | `distribution_channel` | 8.335 | TA/TO ↑; Direct ↓ | Kênh đặt | TA/TO vs Direct |
+| 13 | **`total_guests`** | **5.584** | Tác động nhỏ–TB | Quy mô nhóm | Tín hiệu phụ |
+| 14 | `hotel` | 5.058 | City ↑ nhẹ vs Resort | Loại KS | City vs Resort |
+| 15 | **`is_family`** | **1.432** | Có trẻ — yếu | Gia đình | Yếu |
+| 16 | **`is_weekend_only`** | **0.185** | Chỉ cuối tuần — yếu nhất | Calendar | Yếu nhất |
 
 ---
 
@@ -242,16 +244,16 @@ Hai phân phối tách lớp rõ hơn RF v1.2 (median Không hủy: 0,35 → **0
 
 ![SHAP — mean \|SHAP\| engineered](./figures/09/chart_04.png)
 
-| Hạng | Biến | Mean \|SHAP\| | Mean SHAP | Nhóm | Diễn giải |
-|:---:|------|------------:|----------:|------|-----------|
-| 1 | **`price_per_person`** | **0,244** | −0,012 | Financial Commitment | Đóng góp lớn nhất trong nhóm engineered |
-| 2 | **`lead_time_per_night`** | **0,139** | +0,004 | Trip Structure | Chuẩn hóa lead time theo độ dài chuyến |
-| 3 | **`arrival_month_mapped`** | **0,130** | −0,005 | Calendar | Mùa vụ — SHAP mạnh hơn gain gợi ý |
-| 4 | **`history_cancel_rate`** | **0,121** | +0,012 | Trust & History | Lịch sử hủy cao → đẩy P(hủy) lên |
-| 5 | **`total_nights`** | **0,117** | +0,010 | Trip Structure | Số đêm và cấu trúc chuyến |
-| 6 | **`total_guests`** | **0,095** | +0,003 | Financial Commitment | Quy mô nhóm khách |
-| 7 | **`is_family`** | **0,026** | −0,001 | Financial Commitment | Tác động nhỏ |
-| 8 | **`is_weekend_only`** | **0,002** | −0,000 | Calendar | Yếu nhất |
+| Hạng | Biến | Mean \|SHAP\| | Mean SHAP | Nhóm | Giá trị ảnh hưởng | Hướng | Diễn giải |
+|:---:|------|------------:|----------:|------|-------------------|-------|-----------|
+| 1 | **`price_per_person`** | **0,244** | −0,012 | Financial Commitment | Giá/người cao vs thấp | Cao ↓ · Thấp ↑ | Đóng góp engineered lớn nhất |
+| 2 | **`lead_time_per_night`** | **0,139** | +0,004 | Trip Structure | Thấp vs cao (lead/đêm) | Thấp ↑ · Cao ↓ | Chuẩn hóa lead time theo độ dài chuyến |
+| 3 | **`arrival_month_mapped`** | **0,130** | −0,005 | Calendar | Tháng cao / thấp điểm | Phụ thuộc mùa | SHAP mạnh hơn gain gợi ý |
+| 4 | **`history_cancel_rate`** | **0,121** | +0,012 | Trust & History | > 0 (≈1) vs = 0 | Cao ↑↑ | Lịch sử hủy cao → đẩy P(hủy) lên |
+| 5 | **`total_nights`** | **0,117** | +0,010 | Trip Structure | Số đêm dài / ngắn | Phi tuyến | Cấu trúc chuyến đi |
+| 6 | **`total_guests`** | **0,095** | +0,003 | Financial Commitment | Nhiều / ít khách | Nhỏ–TB | Quy mô nhóm khách |
+| 7 | **`is_family`** | **0,026** | −0,001 | Financial Commitment | Có trẻ (=1) vs không | Yếu | Tác động nhỏ |
+| 8 | **`is_weekend_only`** | **0,002** | −0,000 | Calendar | Chỉ cuối tuần (=1) | Yếu nhất | Calendar — yếu nhất |
 
 **So v1.2 (RF):** LightGBM SHAP nhấn mạnh `price_per_person` (#1 engineered) thay vì `lead_time_per_night` (#1 ở RF). `arrival_month_mapped` tăng đóng góp SHAP đáng kể so Gini importance thấp.
 

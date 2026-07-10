@@ -89,36 +89,38 @@ y_pred = 1  nếu  P(hủy) >= 0.35
 
 ## 4. Feature importance analysis
 
+> **Cách đọc bảng:** Gini cho biết biến/cột quan trọng; cột **Giá trị ảnh hưởng** và **Hướng** chỉ rõ mức nào của feature đẩy P(hủy) lên (↑) hay xuống (↓), kèm tỷ lệ hủy thực tế (TB toàn cục ~28,1%). Chi tiết theo nhóm xem mục 5.
+
 ### 4.1 Top 20 feature (sau tiền xử lý)
 
-| Hạng | Feature | Importance | Biến gốc |
-|:---:|---------|----------:|----------|
-| 1 | `lead_time` | 0,211 | `lead_time` |
-| 2 | `market_segment_Online TA` | 0,132 | `market_segment` |
-| 3 | `country_PRT` | 0,110 | `country` |
-| 4 | `total_of_special_requests` | 0,100 | `total_of_special_requests` |
-| 5 | `market_segment_Offline TA/TO` | 0,073 | `market_segment` |
-| 6 | `customer_type_Transient` | 0,046 | `customer_type` |
-| 7 | `distribution_channel_TA/TO` | 0,045 | `distribution_channel` |
-| 8 | `customer_type_Transient-Party` | 0,032 | `customer_type` |
-| 9 | `previous_cancellations` | 0,030 | `previous_cancellations` |
-| 10 | `deposit_type_No Deposit` | 0,028 | `deposit_type` |
+| Hạng | Feature | Importance | Biến gốc | Giá trị / mức ảnh hưởng | Hướng | Đánh giá |
+|:---:|---------|----------:|----------|-------------------------|-------|----------|
+| 1 | `lead_time` | 0,211 | `lead_time` | **> 180 ngày** (hủy ~41,7%) vs **0–30** (~16,8%) | Cao ↑ · Thấp ↓ | Gradient rõ — lever số mạnh nhất |
+| 2 | `market_segment_Online TA` | 0,132 | `market_segment` | Giá trị = **Online TA** | ↑ (~35,5%) | Nguồn rủi ro chính trong OTA |
+| 3 | `country_PRT` | 0,110 | `country` | Giá trị = **PRT** | ↑ (~36,8%) | Thị trường nội địa lớn + hủy cao |
+| 4 | `total_of_special_requests` | 0,100 | `total_of_special_requests` | **0** (~34,3%) vs **3+** (~16,4%) | Nhiều ↓ · Không có ↑ | Cam kết / personalization giảm rủi ro |
+| 5 | `market_segment_Offline TA/TO` | 0,073 | `market_segment` | Giá trị = **Offline TA/TO** | ↓ (~15,1%) | Đối trọng Online TA |
+| 6 | `customer_type_Transient` | 0,046 | `customer_type` | Giá trị = **Transient** | ↑ (~30,4%) | Khách lẻ rủi ro hơn đoàn |
+| 7 | `distribution_channel_TA/TO` | 0,045 | `distribution_channel` | Giá trị = **TA/TO** | ↑ (~31,5%) | Kênh đại lý / OTA |
+| 8 | `customer_type_Transient-Party` | 0,032 | `customer_type` | Giá trị = **Transient-Party** | ↓ (~15,8%) | An toàn hơn Transient đơn |
+| 9 | `previous_cancellations` | 0,030 | `previous_cancellations` | **= 1** (hủy ~76,4%); **0** (~27,4%); **2+** mẫu nhỏ | =1 ↑↑ | Tín hiệu lịch sử — cẩn thận nhóm 2+ |
+| 10 | `deposit_type_No Deposit` | 0,028 | `deposit_type` | Giá trị = **No Deposit** (so Non Refund ~95%) | Gần TB; Non Refund ↑↑ | No Deposit phổ biến; Non Refund đặc thù |
 
-**Nhận xét:** `lead_time` vươn lên **#1** sau khi bổ sung biến số — khớp hypothesis (Mann-Whitney, r ≈ 0,30). `total_of_special_requests` top 4 (nhiều yêu cầu → ít hủy). `previous_cancellations` có vai trò nhỏ hơn nhưng vẫn vào top 10.
+**Nhận xét:** `lead_time` vươn lên **#1** — giá trị cao (đặt trước xa) tăng rủi ro. Trong phân loại, **Online TA** và **PRT** là hai giá trị đẩy hủy lên; **Offline TA/TO**, nhiều special requests, Transient-Party kéo xuống.
 
 ### 4.2 Gom nhóm theo biến gốc (tổng Gini importance)
 
-| Hạng | Biến gốc | Tổng importance | % trong tổng | Đánh giá |
-|:---:|----------|----------------:|-------------:|----------|
-| 1 | **`market_segment`** | 0,248 | 24,8% | Vẫn quan trọng nhất trong nhóm phân loại |
-| 2 | **`lead_time`** | 0,211 | 21,1% | **Lever hành vi mạnh nhất** — đặt trước xa → rủi ro cao |
-| 3 | **`country`** | 0,175 | 17,5% | Thị trường nguồn (PRT nổi bật) |
-| 4 | **`total_of_special_requests`** | 0,100 | 10,0% | Cam kết / nhu cầu cụ thể → giảm rủi ro |
-| 5 | **`customer_type`** | 0,088 | 8,8% | Transient rủi ro hơn Contract/Group |
-| 6 | **`distribution_channel`** | 0,076 | 7,6% | OTA (TA/TO) vs Direct |
-| 7 | **`deposit_type`** | 0,055 | 5,5% | Non Refund cực kỳ đặc thù (xem segment) |
-| 8 | **`previous_cancellations`** | 0,030 | 3,0% | Lịch sử hủy — tín hiệu phụ |
-| 9 | **`hotel`** | 0,018 | 1,8% | City Hotel hủy cao hơn Resort |
+| Hạng | Biến gốc | Tổng importance | % trong tổng | Giá trị ảnh hưởng chính | Hướng tác động | Đánh giá |
+|:---:|----------|----------------:|-------------:|-------------------------|----------------|----------|
+| 1 | **`market_segment`** | 0,248 | 24,8% | Online TA ↑; Offline/Direct/Corporate ↓ | Phân cực OTA vs Direct | Vẫn quan trọng nhất trong nhóm phân loại |
+| 2 | **`lead_time`** | 0,211 | 21,1% | 0–30 ↓ · 91–180 / >180 ↑ | Dài ngày → rủi ro cao | **Lever hành vi mạnh nhất** |
+| 3 | **`country`** | 0,175 | 17,5% | PRT / BRA / ITA ↑; GBR / FRA ↓ | Thị trường nguồn | PRT nổi bật về volume + tỷ lệ |
+| 4 | **`total_of_special_requests`** | 0,100 | 10,0% | 0 ↑; 1–2 trung bình; 3+ ↓ | Nhiều yêu cầu → ít hủy | Cam kết / nhu cầu cụ thể |
+| 5 | **`customer_type`** | 0,088 | 8,8% | Transient ↑; Group / Contract / Transient-Party ↓ | Loại khách | Transient rủi ro hơn Contract/Group |
+| 6 | **`distribution_channel`** | 0,076 | 7,6% | TA/TO ↑; Direct / Corporate ↓ | Kênh đặt | OTA vs Direct |
+| 7 | **`deposit_type`** | 0,055 | 5,5% | Non Refund ↑↑ (~95%); No Deposit ~TB | Chính sách cọc | Non Refund đặc thù (xem mục 5.6) |
+| 8 | **`previous_cancellations`** | 0,030 | 3,0% | Đúng 1 lần hủy trước ↑↑; 0 gần TB | Lịch sử | Tín hiệu phụ nhưng cực mạnh khi = 1 |
+| 9 | **`hotel`** | 0,018 | 1,8% | City Hotel ↑ nhẹ vs Resort | Loại KS | City hủy cao hơn Resort |
 
 **So với v1:** `lead_time` chiếm ~21% importance (trước đó không có); `market_segment` giảm tỷ trọng tương đối nhưng vẫn #1; `country` vẫn top 3.
 
