@@ -6,3 +6,8 @@ data/
 .ipynb_checkpoints/
 __pycache__/
 *.pyc
+
+# Script tiện ích / chạy báo cáo — giữ local, không đẩy GitHub
+scripts/
+notebooks/_generate_all_md.py
+models/Cancellation Predict Model v2/_run_11_probability_reports.py
