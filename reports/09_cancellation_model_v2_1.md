@@ -131,16 +131,26 @@ y_pred = 1  nếu  P(hủy) >= 0.28
 
 Ước lượng ma trận: **FN ≈ 225**, **FP ≈ 5.980** (so v2 @ 0,35: FN 469, FP 4.329).
 
-### 3.4 Phân phối P(hủy) trên test (Tuned)
+### 3.4 Confusion Matrix & ROC Curve
+
+
+![Confusion Matrix & ROC Curve — LightGBM v2.1](./figures/09_1/chart_01.png)
+
+AUC = 0,872. Ma trận phản ánh trade-off Recall cao / Precision trung bình ở ngưỡng 0,28.
+
+### 3.5 Phân phối P(hủy) trên test (Tuned)
 
 | Nhãn thực tế | n | Mean P(hủy) | Median P(hủy) | Std |
 |--------------|--:|------------:|--------------:|----:|
 | Không hủy | 11.906 | 0,329 | 0,282 | 0,277 |
 | Hủy | 4.657 | **0,746** | **0,811** | 0,216 |
 
+
+![Phân phối xác suất dự đoán P(hủy)](./figures/09_1/chart_02.png)
+
 So v2: median Không hủy tăng 0,23 → **0,28**; median Hủy tăng 0,75 → **0,81** — `scale_pos_weight` đẩy xác suất lên, ngưỡng 0,28 nằm gần median class Không hủy → FP cao hơn, FN thấp hơn.
 
-### 3.5 So sánh công bằng với v2 @ cùng ngưỡng 0,35
+### 3.6 So sánh công bằng với v2 @ cùng ngưỡng 0,35
 
 | Metric class Hủy | v2 @ 0,35 | v2.1 @ 0,35 |
 |------------------|----------:|------------:|
@@ -164,11 +174,21 @@ Sau One-Hot: **143 cột**. Tổng hợp theo biến gốc (top):
 | … | `arrival_month_mapped` | Tháng liên tục |
 | … | **`arrival_season`** | Có tín hiệu (gain ~14.921) nhưng không phải trụ chính |
 
+
+![Feature Importance (gain) — Top 20](./figures/09_1/chart_03.png)
+
 **Nhận xét:** `arrival_season` đóng góp hữu ích nhưng yếu hơn tháng / lead time / segment — phù hợp vai trò bổ sung, không thay thế `arrival_month_mapped`.
 
 ---
 
-## 5. SHAP — biến engineered
+## 5. SHAP — biến engineered & mở rộng
+
+Mẫu SHAP: **2.000** booking trên tập test (`TreeExplainer`).
+
+### 5.1 Mean |SHAP| — biến engineered & theo nhóm
+
+
+![SHAP mean |SHAP| engineered & theo nhóm](./figures/09_1/chart_04.png)
 
 | Feature | Mean \|SHAP\| | Nhóm |
 |---------|-------------:|------|
@@ -181,9 +201,56 @@ Sau One-Hot: **143 cột**. Tổng hợp theo biến gốc (top):
 | `is_family` | 0,036 | Financial Commitment |
 | `is_weekend_only` | thấp | Calendar & Seasonality |
 
-**`arrival_season` (One-Hot):** Summer mạnh nhất (mean \|SHAP\| 0,046), tiếp Winter / Autumn / Spring.
-
 **Theo nhóm:** Financial Commitment > Trip Structure > Trust & History — khớp hướng v2.
+
+### 5.2 SHAP Beeswarm — biến engineered
+
+
+![SHAP Beeswarm — biến engineered](./figures/09_1/chart_05.png)
+
+Mỗi chấm là một booking; trục ngang = đóng góp vào P(hủy); màu = giá trị feature. `history_cancel_rate` cao tập trung SHAP dương; `price_per_person` cao thường kéo SHAP âm.
+
+### 5.3 SHAP — `arrival_season` (One-Hot)
+
+
+![SHAP arrival_season](./figures/09_1/chart_06.png)
+
+| Feature | Mean \|SHAP\| |
+|---------|-------------:|
+| `arrival_season_Summer` | 0,046 |
+| `arrival_season_Winter` | 0,026 |
+| `arrival_season_Autumn` | 0,021 |
+| `arrival_season_Spring` | 0,018 |
+
+Summer là tín hiệu mùa mạnh nhất; vẫn yếu hơn các biến tài chính / lead time.
+
+### 5.4 Dependence plots (4 biến engineered mạnh)
+
+
+![SHAP Dependence plots](./figures/09_1/chart_07.png)
+
+Cho thấy quan hệ **giá trị feature → SHAP** (phi tuyến): ví dụ `price_per_person` thấp đẩy P(hủy) lên; `history_cancel_rate` > 0 tạo cụm SHAP dương rõ.
+
+### 5.5 Beeswarm toàn cục (top 15)
+
+
+![SHAP Beeswarm — Top 15 toàn cục](./figures/09_1/chart_08.png)
+
+Bổ sung góc nhìn ngoài biến engineered: `lead_time`, `country`, `market_segment` vẫn nằm trong nhóm tín hiệu mạnh nhất.
+
+### 5.6 Waterfall — 2 ví dụ booking
+
+
+![SHAP Waterfall — P(hủy) cao / thấp](./figures/09_1/chart_09.png)
+
+Giải thích **local**: booking P(hủy) cao bị đẩy bởi tổ hợp lead time / segment / lịch sử hủy; booking P(hủy) thấp được kéo xuống bởi tín hiệu “an toàn” (giá/người, special requests, kênh Direct, …).
+
+### 5.7 Mean |SHAP| top 15 toàn cục
+
+
+![SHAP bar — Top 15 toàn cục](./figures/09_1/chart_10.png)
+
+Đối chiếu với gain importance (mục 4): ranking có thể khác vì gain đo chất lượng split, SHAP đo đóng góp trung bình có dấu trên mẫu.
 
 ---
 
@@ -195,12 +262,14 @@ Sau One-Hot: **143 cột**. Tổng hợp theo biến gốc (top):
 2. **ROC-AUC 0,872** — ngang / nhỉnh hơn v2 (0,871).
 3. Artifact **draft → promote** giúp thử params mới mà không mất bản tốt.
 4. `arrival_season` + `scale_pos_weight` + ngưỡng 0,28 tạo thành bộ đòn bẩy Recall rõ ràng.
+5. Bộ SHAP mở rộng (dependence, waterfall, season, toàn cục) hỗ trợ giải thích nghiệp vụ tốt hơn v2.
 
 ### Hạn chế
 
 1. **Precision thấp hơn v2** (0,43 vs 0,49) → nhiều cảnh báo giả.
 2. **Accuracy 0,63** thấp hơn v2 (0,71) — không dùng Accuracy làm tiêu chí chính khi class lệch.
 3. Tune theo `roc_auc` không tối ưu trực tiếp Recall/Precision tại ngưỡng cố định.
+4. SHAP / gain **không phải nhân quả** — cần A/B trước khi đổi chính sách.
 
 ### Khuyến nghị
 
@@ -209,6 +278,7 @@ Sau One-Hot: **143 cột**. Tổng hợp theo biến gốc (top):
 | 1 | Dùng v2.1 khi mục tiêu là **không bỏ sót hủy** (overbooking / hold inventory) |
 | 2 | Giữ `RUN_TUNING=False` khi inference; chỉ bật khi muốn thử draft mới |
 | 3 | Nếu cần cân bằng Precision: dùng **v2 @ 0,35** hoặc v2.1 @ ngưỡng 0,35–0,50 |
+| 4 | Rule: `history_cancel_rate` > 0 + Online TA → xác nhận chặt (SHAP) |
 
 ---
 
@@ -216,8 +286,9 @@ Sau One-Hot: **143 cột**. Tổng hợp theo biến gốc (top):
 
 | Tài liệu | Nội dung |
 |----------|----------|
-| `models/.../09_cancellation_model_v2_1.ipynb` | Notebook đầy đủ |
+| `models/.../09_cancellation_model_v2_1.ipynb` | Notebook đầy đủ (SHAP mục 8–8b) |
 | `artifacts/best_params_v2_1.json` | Best params production |
+| `reports/figures/09_1/` | Hình báo cáo (chart_01 … chart_10) |
 | [09_cancellation_model_v2.md](09_cancellation_model_v2.md) | LightGBM v2 |
 | [13_cancellation_model_version_selection.md](13_cancellation_model_version_selection.md) | Lựa chọn giữa các phiên bản |
 | [08_cancellation_model_v1_2.md](08_cancellation_model_v1_2.md) | RF v1.2 |
