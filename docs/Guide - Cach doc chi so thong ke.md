@@ -1,375 +1,431 @@
-# Hướng dẫn đọc hiểu chỉ số thống kê
+# Hướng dẫn đọc và đánh giá chỉ số thống kê & kiểm định giả thuyết
 
-> **Phạm vi:** `05_hypothesis_testing.ipynb` (kiểm định giả thuyết) và `06_cancellation_model_v1.ipynb` (dự báo hủy phòng)  
-> **Biến mục tiêu:** `is_canceled` (0 = không hủy, 1 = hủy)  
-> **Dữ liệu tham chiếu:** `hotel_bookings_v5.csv` (~82.811 booking, tỷ lệ hủy ~28,12%)
-
----
-
-## Phân biệt hai notebook
-
-| | `05_hypothesis_testing.ipynb` | `06_cancellation_model_v1.ipynb` |
-|---|---|---|
-| **Mục đích** | Trả lời *"Biến X có liên quan đến hủy không?"* | Trả lời *"Booking này có khả năng hủy bao nhiêu %?"* |
-| **Loại phân tích** | Kiểm định giả thuyết (inferential) | Học máy / dự báo (predictive) |
-| **Đầu ra chính** | p-value, effect size, OR, kết luận H₀ | Accuracy, F1, ROC-AUC, confusion matrix |
-| **Câu hỏi kinh doanh** | Lead time có ảnh hưởng hủy không? | Booking #12345 có 72% khả năng hủy — có nên overbooking không? |
-
-> **Lưu ý:** `06_cancellation_model_v1.ipynb` hiện là notebook trống (theo thiết kế dự án sẽ dùng Logistic Regression / Random Forest). Phần **II** mô tả các chỉ số **dự kiến xuất hiện** khi notebook được triển khai, tham chiếu từ `04_correlation_analysis_is_canceled.md`.
+> **Phạm vi:**  
+> - `05_hypothesis_testing.ipynb` — kiểm định H1–H4 liên quan `is_canceled`  
+> - `05b_hypothesis_visualization.ipynb` — heatmap, box plot, time series hỗ trợ diễn giải  
+> **Biến mục tiêu (kiểm định):** `is_canceled` (0 = Không hủy, 1 = Hủy)  
+> **Dữ liệu:** `hotel_bookings_v5.csv` (~82.811 booking, tỷ lệ hủy **28,12%**)  
+> **α (alpha):** 0,05  
+> **Hình:** `reports/figures/05/` (từ notebook 05) và `reports/figures/05b/` (từ notebook 05b)
 
 ---
 
-# PHẦN I — `05_hypothesis_testing.ipynb` (Kiểm định giả thuyết)
+## Mục tiêu tài liệu
 
-## 1. Khái niệm nền
+Sau khi đọc xong, bạn có thể:
 
-### 1.1 Giả thuyết H₀ và H₁
+1. Đọc đúng **mọi chỉ số** kiểm định (p-value, U, χ², Cramér's V, rank-biserial *r*, OR, Pseudo R², residual, bootstrap CI…).
+2. Đọc **toàn bộ chart** trong `05` và `05b`.
+3. Phân biệt *có ý nghĩa thống kê* vs *ảnh hưởng thực tế mạnh/yếu*.
+4. Liên kết số liệu ↔ visual ↔ ý nghĩa kinh doanh.
+
+---
+
+# PHẦN I — Khái niệm nền & cách đọc chỉ số
+
+## 1. H₀, H₁ và quyết định
 
 | Ký hiệu | Ý nghĩa | Ví dụ (H1 — lead_time) |
 |---|---|---|
-| **H₀** | Giả thuyết không (không có hiệu ứng / độc lập) | Phân bố lead_time giống nhau giữa booking hủy và không hủy |
-| **H₁** | Giả thuyết đối (có hiệu ứng / phụ thuộc) | Hai phân bố lead_time khác nhau |
+| **H₀** | Giả thuyết không (không khác / độc lập) | Phân bố lead_time giống nhau giữa hủy và không hủy |
+| **H₁** | Giả thuyết đối (có khác / có liên quan) | Hai phân bố khác nhau |
 
-**Cách đọc kết luận trong notebook:**
-
-- **Bác bỏ H₀** → có bằng chứng thống kê (với α = 0,05) cho thấy biến **có liên quan** đến hủy.
-- **Không bác bỏ H₀** → không đủ bằng chứng để kết luận có liên quan (không đồng nghĩa "chắc chắn không liên quan").
-
-### 1.2 p-value (mức ý nghĩa)
-
-| p-value | Diễn giải |
-|---|---|
-| **p < 0,05** | Kết quả **khó xảy ra ngẫu nhiên** nếu H₀ đúng → thường coi là **có ý nghĩa thống kê** |
-| **p ≈ 0** (rất nhỏ) | Với n ≈ 82.811, p gần 0 là **bình thường** — không có nghĩa "quan hệ vô hạn" |
-| **p ≥ 0,05** | Không đủ bằng chứng để bác bỏ H₀ |
-
-**Cảnh báo quan trọng:** p-value chỉ nói *có hay không có association*, **không** nói association *mạnh hay yếu*. Luôn đọc kèm **effect size**.
-
-### 1.3 α (alpha) = 0,05
-
-Ngưỡng chấp nhận sai lầm loại I (bác bỏ H₀ oan). Notebook dùng **α = 0,05** (chuẩn 5%).
-
----
-
-## 2. H1 — Mann-Whitney U (`lead_time`)
-
-**Khi nào dùng:** So sánh biến **số liên tục** (lead_time) giữa **2 nhóm** nhị phân (hủy / không hủy). Không cần giả định phân phối chuẩn.
-
-| Chỉ số | Ý nghĩa | Cách đọc (ví dụ từ data) |
+| Kết luận (α = 0,05) | Cách nói đúng | Cách nói sai |
 |---|---|---|
-| **U** | Thống kê Mann-Whitney | Giá trị lớn; dùng để tính p-value, ít khi diễn giải trực tiếp |
-| **p-value** | Xác suất H₀ đúng | p ≈ 0 → bác bỏ H₀ |
-| **rank-biserial r** | Effect size (−1 đến +1) | r = **0,299** → mức **trung bình**; dương = nhóm hủy có lead_time cao hơn |
-| **Median / Mean** | Mô tả 2 nhóm | Không hủy: median **37** ngày; Hủy: median **79** ngày |
-| **Bootstrap 95% CI** | Khoảng tin cậy chênh median | CI dương, không chứa 0 → chênh median có ý nghĩa thực tế |
-
-**Quy ước \|r\| (rank-biserial):**
-
-| \|r\| | Mức |
-|---:|---|
-| ~0,1 | Nhỏ |
-| ~0,3 | Trung bình |
-| ~0,5+ | Lớn |
-
-**t-test (tham khảo trong notebook):** So sánh **mean** lead_time; kém robust hơn vì phân bố lệch. Mann-Whitney là test chính.
+| **Bác bỏ H₀** | Có bằng chứng thống kê cho association | “Chứng minh nhân quả 100%” |
+| **Không bác bỏ H₀** | Không đủ bằng chứng để bác bỏ H₀ | “Chắc chắn không liên quan” |
 
 ---
 
-## 3. H1b, H2, H3 — Chi-squared (biến phân loại)
-
-**Khi nào dùng:** Kiểm tra **độc lập** giữa biến phân loại (lead_time_bin, deposit_type, market_segment) và `is_canceled`.
+## 2. p-value và α
 
 | Chỉ số | Ý nghĩa | Cách đọc |
 |---|---|---|
-| **χ² (chi2)** | Độ lệch tổng giữa observed và expected | Càng lớn → càng lệch khỏi độc lập |
+| **p-value** | Xác suất thấy kết quả “cực đoan” như quan sát (hoặc hơn) nếu H₀ đúng | p < 0,05 → thường bác bỏ H₀ |
+| **α = 0,05** | Ngưỡng chấp nhận sai lầm loại I (bác bỏ H₀ oan) | Chuẩn dùng trong notebook |
+| **p ≈ 0** với n ≈ 82.811 | Rất phổ biến | **Không** đồng nghĩa “quan hệ vô hạn” |
+
+**Quy tắc vàng:** p chỉ trả lời *có/không association*; độ mạnh phải đọc **effect size**.
+
+---
+
+## 3. Bản đồ kiểm định trong notebook 05
+
+| Giả thuyết | Biến | Test chính | Effect size chính |
+|---|---|---|---|
+| **H1** | `lead_time` (liên tục) | Mann-Whitney U | Rank-biserial *r* + bootstrap CI |
+| **H1b** | `lead_time_bin` | Chi-squared | Cramér's V |
+| **H2** | `deposit_type` | Chi-squared (+ post-hoc z) | Cramér's V |
+| **H3** | `market_segment` | Chi-squared + residuals | Cramér's V |
+| **H4** | 3 biến đồng thời | Logistic + LR test | OR, Pseudo R² |
+
+---
+
+## 4. Mann-Whitney U (H1) — chỉ số
+
+Dùng khi so sánh biến **số** giữa **2 nhóm** nhị phân; không cần giả định chuẩn.
+
+| Chỉ số | Ý nghĩa | Cách đọc (H1 thực tế) |
+|---|---|---|
+| **U** | Thống kê Mann-Whitney | Ít diễn giải trực tiếp; dùng để ra p |
+| **p-value** | Ý nghĩa thống kê | p ≈ 0 → bác bỏ H₀ |
+| **rank-biserial r** | Effect size (−1…+1) | r = **0,2995** → mức **trung bình**; dương = nhóm hủy có lead_time cao hơn |
+| **Median / Mean** | Mô tả 2 nhóm | Median: 37 vs **79** ngày; Mean: 68,2 vs 104,9 |
+| **Bootstrap median diff + 95% CI** | Chênh median (hủy − không hủy) | Diff = **42** ngày; CI **[41, 44]** không chứa 0 → chênh thực tế rõ |
+
+**Quy ước \|r\|:** ~0,1 nhỏ · ~0,3 trung bình · ~0,5+ lớn.
+
+---
+
+## 5. Chi-squared (H1b, H2, H3) — chỉ số
+
+Kiểm tra **độc lập** giữa biến phân loại và `is_canceled`.
+
+| Chỉ số | Ý nghĩa | Cách đọc |
+|---|---|---|
+| **χ² (chi2)** | Độ lệch tổng observed vs expected | Càng lớn → càng lệch khỏi độc lập |
 | **df** | Bậc tự do | (số hàng − 1) × (số cột − 1) |
 | **p-value** | Ý nghĩa tổng thể | p < 0,05 → bác bỏ H₀ |
-| **Cramér's V** | Effect size (0 đến 1) | V = 0 → không association; V = 1 → association hoàn hảo |
-| **min expected** | Ô kỳ vọng nhỏ nhất | **< 5** → cảnh báo; kết quả chi-square kém tin cậy ở ô đó |
-| **cells expected < 5** | Số ô có E < 5 | Càng nhiều → càng cần thận trọng |
+| **Cramér's V** | Effect size (0…1) | 0 = không association; càng gần 1 càng mạnh |
+| **min expected** | Ô kỳ vọng nhỏ nhất | **< 5** → cảnh báo giả định |
+| **ô expected < 5** | Số ô E < 5 | Càng nhiều → càng thận trọng |
+| **Standardized residual** | Ô nào “đóng góp bất thường” | \|r\| > 2 ≈ lệch đáng kể so kỳ vọng |
 
-**Quy ước Cramér's V (bảng 2 cột như is_canceled):**
+**Quy ước Cramér's V (bảng 2 cột như is_canceled):** ~0,10 yếu · ~0,20 trung bình · ~0,30+ khá mạnh.
 
-| V | Mức |
-|---:|---|
-| 0,10 | Yếu |
-| 0,20 | Trung bình |
-| 0,30+ | Khá mạnh |
-
-**Ví dụ từ notebook:**
-
-| Biến | Cramér's V | Diễn giải |
-|---|---:|---|
-| market_segment | 0,219 | Mạnh nhất trong nhóm phân loại |
-| lead_time_bin | 0,213 | Khá mạnh |
-| deposit_type | 0,161 | Trung bình |
-
-### 3.1 Standardized residual (heatmap)
-
-Công thức: `(Observed − Expected) / √Expected`
-
-| \|residual\| | Ý nghĩa |
-|---:|---|
-| **< 2** | Ô đóng góp bình thường vào χ² |
-| **> 2** | Ô đóng góp **bất thường** — nhóm đó hủy nhiều/ít hơn kỳ vọng |
-
-**Ví dụ:** Online TA có residual dương lớn → hủy nhiều hơn expected; Corporate residual âm → hủy ít hơn expected.
-
-### 3.2 Observed vs Expected (biểu đồ cột + dấu ×)
-
-- **Cột màu** = số booking quan sát thực tế.
-- **Dấu ×** = số booking kỳ vọng nếu H₀ đúng (hai biến độc lập).
-- Khoảng cách lớn giữa cột và × → ô đó kéo χ² lên.
+**Cancel rate theo nhóm** = % hủy trong từng category — luôn đọc kèm V và residual.
 
 ---
 
-## 4. H2 — Post-hoc Z-test & Fisher's exact
+## 6. Post-hoc z-test (H2) — chỉ số
 
-Sau khi chi-square tổng thể bác bỏ H₀, so sánh **từng cặp** loại cọc.
+Sau khi chi-squared tổng thể có ý nghĩa, so sánh **từng cặp** tỷ lệ hủy.
 
 | Chỉ số | Ý nghĩa | Cách đọc |
 |---|---|---|
-| **z_stat** | Thống kê z so 2 tỷ lệ hủy | \|z\| lớn → chênh tỷ lệ lớn |
-| **p_value** | Ý nghĩa cặp đơn | p < 0,05 → 2 nhóm khác tỷ lệ hủy |
-| **p_bonferroni** | p sau điều chỉnh đa so sánh | **Dùng cột này** để kết luận (tránh false positive) |
-| **fisher_p** | Fisher's exact (ô nhỏ) | Thay chi-square khi sample nhỏ (vd. Refundable n=81) |
-| **odds_ratio** | Tỷ số odds giữa 2 nhóm | OR > 1 → nhóm A odds hủy cao hơn B |
-
-**Cách đọc bar chart post-hoc:** Thanh **đỏ** = Bonferroni p < 0,05; **xám** = không đủ ý nghĩa sau điều chỉnh.
+| **Chênh tỷ lệ (%)** | rate_A − rate_B | Dương = A hủy nhiều hơn B |
+| **z-stat** | Độ lớn chênh so sai số chuẩn | \|z\| lớn → chênh rõ |
+| **p / p Bonferroni** | Ý nghĩa sau chỉnh đa so sánh | Bonferroni p < 0,05 → cặp có ý nghĩa |
 
 ---
 
-## 5. H4 — Logistic Regression (mô hình đa biến)
+## 7. Logistic Regression (H4) — chỉ số
 
-**Mục đích:** Kiểm tra **đồng thời** nhiều biến; mỗi hệ số = hiệu ứng **khi đã kiểm soát** biến còn lại.
+Mô hình: `is_canceled ~ lead_time + deposit_type + market_segment`  
+Baseline: `deposit_type = No Deposit`, `market_segment = Direct` (tùy cách mã hóa trong notebook).
 
-### 5.1 Bảng statsmodels (Logit Results)
-
-| Cột | Ý nghĩa | Cách đọc |
+| Chỉ số | Ý nghĩa | Cách đọc |
 |---|---|---|
-| **coef** | Hệ số β (log-odds) | β > 0 → tăng log-odds hủy khi biến tăng |
-| **std err** | Sai số chuẩn của β | Càng nhỏ → ước lượng càng chính xác |
-| **z** | z = coef / std err | \|z\| lớn → hệ số khác 0 rõ |
-| **P>\|z\|** | p-value hệ số | **< 0,05** → biến có ý nghĩa trong mô hình |
-| **[0.025, 0.975]** | Khoảng tin cậy 95% của β | Không chứa 0 → ý nghĩa thống kê |
+| **coef (β)** | Thay đổi log-odds | Dương → tăng odds hủy |
+| **OR = exp(β)** | Odds ratio | OR > 1 tăng hủy; OR < 1 giảm hủy; OR = 1 không đổi |
+| **95% CI của OR** | Khoảng tin cậy | CI chứa 1 → thường không có ý nghĩa |
+| **p (từng hệ số)** | H₀: β = 0 khi đã kiểm soát biến khác | p < 0,05 → có ý nghĩa |
+| **Pseudo R² (McFadden)** | Mức fit tương đối vs null | Ở đây **0,0937** (~9,4%) — hợp lý với hành vi phức tạp |
+| **LR χ² / LLR p** | So mô hình đầy đủ vs null | p ≈ 0 → bác bỏ H₀ tổng thể |
 
-### 5.2 Odds Ratio (OR)
+**Ví dụ OR lead_time:** OR(+1 ngày) ≈ **1,005** → OR(+30 ngày) ≈ **1,157** (mỗi thêm ~1 tháng, odds hủy tăng ~15,7%).
 
-`OR = exp(coef)`
+---
 
-| OR | Diễn giải |
+## 8. Kết quả số tổng hợp (notebook 05)
+
+| H | Test | p | Effect size | Kết luận |
+|---|---|---|---:|---|
+| H1 | Mann-Whitney | ≈ 0 | r = **0,2995** | Bác bỏ H₀ |
+| H1b | Chi-squared | ≈ 0 | V = **0,2132** | Bác bỏ H₀ |
+| H2 | Chi-squared | ≈ 0 | V = **0,1614** | Bác bỏ H₀ |
+| H3 | Chi-squared | ≈ 0 | V = **0,2187** | Bác bỏ H₀ |
+| H4 | Logistic LR | ≈ 0 | Pseudo R² = **0,0937** | Bác bỏ H₀ |
+
+---
+
+# PHẦN II — Cách đọc chart trong `05_hypothesis_testing.ipynb`
+
+## Chart 01 — H1 Mann-Whitney: lead_time
+
+![H1 — Mann-Whitney lead_time](../reports/figures/05/chart_01.png)
+
+| Panel | Cách đọc visual |
 |---|---|
-| **OR = 1** | Không đổi odds hủy |
-| **OR > 1** | Tăng odds hủy |
-| **OR < 1** | Giảm odds hủy |
+| **Violin (trái trên)** | Hình dạng phân bố; chấm trắng = median. Nhóm “Đã hủy” median cao hơn, thân violin dày hơn ở lead_time lớn |
+| **KDE (phải trên)** | Hai đường mật độ chồng nhau. Đường hủy lệch phải → lead_time cao hơn |
+| **Bootstrap (trái dưới)** | Histogram chênh median. Đường 0 = H₀. CI đỏ nằm xa 0 về phía dương → chênh thực tế ổn định (~41–44 ngày) |
+| **Hộp số (phải dưới)** | U, p, r, median 2 nhóm, CI, kết luận |
 
-**Ví dụ lead_time:**
-
-- OR (+1 ngày) = **1,005** → mỗi thêm 1 ngày, odds hủy tăng ~0,5%.
-- OR (+30 ngày) = **1,158** → mỗi thêm 30 ngày, odds hủy tăng ~15,8%.
-
-**Baseline (mặc định):** `deposit_type = No Deposit`, `market_segment = Direct`. Các dummy khác so với baseline này.
-
-### 5.3 Chỉ số mô hình tổng thể
-
-| Chỉ số | Ý nghĩa | Cách đọc (ví dụ) |
-|---|---|---|
-| **Pseudo R² (McFadden)** | Độ giải thích tương đối | **0,094** → mô hình giải thích ~9,4% log-likelihood; **thấp–TB** là bình thường với hành vi khách |
-| **Log-Likelihood** | Độ khớp mô hình | Càng cao (ít âm) càng tốt |
-| **LL-Null** | Log-likelihood mô hình chỉ intercept | So sánh với LL đầy đủ |
-| **LLR p-value** | p của Likelihood Ratio Test | p ≈ 0 → mô hình đầy đủ **tốt hơn** mô hình null |
-| **LR χ²** | 2 × (LL − LL_null) | **9228,9**, df = 10 → mô hình có giá trị tổng thể |
-| **converged** | Hội tụ tối ưu | Phải **True** mới tin kết quả |
-
-### 5.4 Forest plot & đường dự đoán
-
-- **Forest plot:** OR + 95% CI; chấm **đỏ** = p < 0,05; đường đứt OR = 1.
-- **Đường dự đoán:** Xác suất hủy (%) theo lead_time khi giữ deposit_type và segment ở baseline → minh họa **hiệu ứng biên** của lead_time.
+**Liên kết chỉ số:** r = 0,30 (trung bình) + CI không chứa 0 → không chỉ “p nhỏ vì n lớn”, mà chênh median ~**42 ngày** có ý nghĩa thực tế.
 
 ---
 
-## 6. Dashboard tổng hợp (`05_hypothesis_testing.ipynb`)
+## Chart 02 — H2 Chi-squared: deposit_type
 
-| Biểu đồ | Trục / nội dung | Cách đọc |
-|---|---|---|
-| **Effect size** | \|r\|, Cramér's V, Pseudo R² | So **tương đối** mức ảnh hưởng (không so trực tiếp đơn vị khác nhau) |
-| **−log10(p)** | Biến đổi p-value | Càng cao → càng ý nghĩa; đường đứt = ngưỡng α = 0,05 |
-| **Text box tổng hợp** | Tất cả test H1–H4 | Tra cứu nhanh U, χ², V, LR test |
+![H2 — deposit_type](../reports/figures/05/chart_02.png)
 
----
-
-## 7. Checklist đọc `05_hypothesis_testing.ipynb`
-
-1. Xem **p-value** → có bác bỏ H₀ không?
-2. Xem **effect size** (r, V, Pseudo R²) → mạnh hay yếu?
-3. Với chi-square → kiểm **min expected** và residual heatmap.
-4. Với logistic → đọc **OR + CI**, không chỉ p.
-5. Nhớ: association **≠** nhân quả (đặc biệt `deposit_type_Non Refund`).
-
----
-
-# PHẦN II — `06_cancellation_model_v1.ipynb` (Dự báo)
-
-> Notebook hiện **chưa có code**. Phần dưới mô tả các chỉ số **theo thiết kế dự án** (Logistic Regression / Random Forest, feature Tier 1–2, loại leakage) để bạn đọc khi notebook được triển khai.
-
-## 1. Mục tiêu khác với hypothesis
-
-| hypothesis | prediction model |
+| Panel | Cách đọc |
 |---|---|
-| "lead_time có liên quan hủy không?" | "Booking này có 73% khả năng hủy" |
-| p-value, Cramér's V | Accuracy, F1, ROC-AUC |
-| Một vài biến kiểm định | Nhiều feature, train/test split |
+| **Stacked 100% (trái trên)** | Tỷ lệ hủy trong từng loại cọc. **Non Refund** gần như toàn cam (~95%) |
+| **Observed vs Expected (phải trên)** | Cột = quan sát; dấu **x** = kỳ vọng nếu độc lập. Lệch xa x = ô đóng góp vào χ² |
+| **Residual heatmap (trái dưới)** | Đỏ = nhiều hơn kỳ vọng; xanh = ít hơn. \|r\| > 2 = bất thường. Non Refund × Đã hủy ≈ **+39** |
+| **Hộp số** | χ², df, p, V, min expected, kết luận |
+
+**Cảnh báo diễn giải:** Non Refund tỷ lệ hủy cực cao có thể là **reverse causality** / cách gán nhãn — association ≠ nhân quả.
 
 ---
 
-## 2. Confusion Matrix (ma trận nhầm lẫn)
+## Chart 03 — H2 Post-hoc z-test (cặp deposit_type)
 
-Dự đoán nhị phân: ngưỡng mặc định thường **0,5** (p(hủy) ≥ 0,5 → dự đoán hủy).
+![H2 — Post-hoc z-test](../reports/figures/05/chart_03.png)
 
-```
-                    Thực tế
-                 Không hủy    Hủy
-Dự đoán  Không hủy   TN        FN
-         Hủy         FP        TP
-```
-
-| Ô | Tên | Ý nghĩa kinh doanh |
-|---|---|---|
-| **TP** | True Positive | Dự đoán hủy, **đúng** là hủy |
-| **TN** | True Negative | Dự đoán không hủy, **đúng** |
-| **FP** | False Positive | Dự đoán hủy, **sai** (khách vẫn đến) → overestimate risk |
-| **FN** | False Negative | Dự đoán không hủy, **sai** (khách hủy) → **nguy hiểm** cho overbooking |
-
-**Với tỷ lệ hủy ~28%:** Ma trận **lệch class** — model dự đoán "không hủy" cho tất cả vẫn có accuracy ~72% nhưng **vô dụng**.
-
----
-
-## 3. Chỉ số phân loại chính
-
-| Chỉ số | Công thức | Cách đọc | Ưu tiên khi |
-|---|---|---|---|
-| **Accuracy** | (TP+TN) / tổng | % dự đoán đúng | Class cân bằng; **dễ misleading** khi lệch 28/72 |
-| **Precision** | TP / (TP+FP) | Trong số dự đoán hủy, bao nhiêu % đúng | Giảm **false alarm** (đừng penalize oan) |
-| **Recall** | TP / (TP+FN) | Trong số thực sự hủy, bắt được bao nhiêu % | Giảm **bỏ sót** booking sẽ hủy |
-| **F1-score** | 2×P×R / (P+R) | Cân bằng Precision & Recall | Metric tổng hợp chính khi class lệch |
-| **Specificity** | TN / (TN+FP) | Bắt đúng booking không hủy | Ít dùng riêng lẻ |
-
-**Gợi ý cho hotel cancellation:**
-
-- Nếu mục tiêu **tránh overbooking** → ưu tiên **Recall** cao (bắt được booking sẽ hủy).
-- Nếu mục tiêu **không làm phiền khách chắc chắn đến** → cân bằng Precision.
-
----
-
-## 4. ROC-AUC và PR-AUC
-
-### 4.1 ROC-AUC
-
-- **ROC curve:** Trục X = False Positive Rate; trục Y = True Positive Rate (Recall) khi thay ngưỡng.
-- **AUC** (Area Under Curve): 0,5 = đoán ngẫu nhiên; 1,0 = hoàn hảo.
-
-| AUC | Diễn giải |
-|---:|---|
-| 0,50 | Không phân biệt được hủy / không hủy |
-| 0,70–0,80 | Chấp nhận được |
-| 0,80+ | Tốt |
-| 0,90+ | Rất tốt (hiếm với dữ liệu hành vi thực) |
-
-### 4.2 PR-AUC (Precision-Recall AUC)
-
-- **Quan trọng hơn ROC** khi class thiểu số (hủy ~28%).
-- Baseline PR-AUC ≈ tỷ lệ hủy (~0,28) — model phải **vượt** ngưỡng này mới có giá trị.
-
----
-
-## 5. Xác suất dự đoán & calibration
-
-| Chỉ số | Ý nghĩa |
+| Visual | Ý nghĩa |
 |---|---|
-| **predict_proba** | Xác suất hủy ∈ [0, 1] cho từng booking |
-| **Log Loss** | Phạt dự đoán sai và **quá tự tin**; càng thấp càng tốt |
-| **Brier Score** | Sai số bình phương xác suất; 0 = hoàn hảo |
-| **Calibration plot** | Dự đoán 30% hủy có thực sự hủy ~30% không? |
+| **Thanh đỏ** | Bonferroni p < 0,05 — cặp khác biệt có ý nghĩa |
+| **Thanh xám** | Không có ý nghĩa sau Bonferroni |
+| **Hướng thanh** | Phải = group_a hủy nhiều hơn; trái = ít hơn |
+| **Độ dài** | Độ lớn chênh tỷ lệ (%) |
 
-**Cách dùng:** Xác suất 0,7 → có thể trigger chính sách cọc / theo dõi; cần calibration tốt mới tin số tuyệt đối.
+**Đọc nhanh:** No Deposit vs Non Refund và Refundable vs Non Refund = **có ý nghĩa**; No Deposit vs Refundable ≈ **không khác** (27,3% vs 28,4%).
 
 ---
 
-## 6. Train vs Test & overfitting
+## Chart 04 — H3 Chi-squared: market_segment
 
-| Chỉ số | Cách đọc |
+![H3 — market_segment](../reports/figures/05/chart_04.png)
+
+Cùng layout 4 panel như Chart 02.
+
+**Điểm nhìn chính trên residual:**
+
+| Ô | Residual (xấp xỉ) | Ý nghĩa |
+|---|---:|---|
+| Online TA × Đã hủy | **+31,4** | Hủy nhiều hơn kỳ vọng rất mạnh |
+| Offline TA/TO × Đã hủy | **−27,9** | Hủy ít hơn kỳ vọng |
+| Direct × Đã hủy | **−26,5** | Hủy ít hơn kỳ vọng |
+| Corporate × Đã hủy | **−17,5** | Hủy ít hơn kỳ vọng |
+
+**V = 0,2187** — association phân loại **mạnh nhất** trong các chi-squared. Lưu ý 2 ô expected < 5 (Undefined) → không diễn giải residual nhóm đó.
+
+---
+
+## Chart 05 — H1b Chi-squared: lead_time_bin
+
+![H1b — lead_time_bin](../reports/figures/05/chart_05.png)
+
+| Bin | Tỷ lệ hủy | Residual “Đã hủy” (xấp xỉ) |
+|---|---:|---:|
+| 0–30 | **16,8%** | −38,7 (hủy **ít** hơn kỳ vọng) |
+| 31–60 | 32,2% | +8,7 |
+| 61–90 | 33,2% | +9,1 |
+| 91–180 | 35,6% | +18,6 |
+| >180 | **41,7%** | +26,5 (hủy **nhiều** hơn kỳ vọng) |
+
+**Cách đọc stacked bar:** phần cam tăng dần khi lead_time dài hơn. Bước nhảy lớn nhất: **0–30 → 31–60** (gần gấp đôi).
+
+---
+
+## Chart 06 — H4 Logistic Regression đa biến
+
+![H4 — Logistic](../reports/figures/05/chart_06.png)
+
+| Panel | Cách đọc |
 |---|---|
-| **Train accuracy / F1** | Hiệu năng trên dữ liệu học |
-| **Test accuracy / F1** | Hiệu năng **thực tế** trên dữ liệu mới |
-| **Gap train − test** | Gap lớn (>5–10 pp F1) → **overfitting** |
+| **Forest plot (trái)** | Điểm = OR; thanh ngang = 95% CI. Đường đứt tại **OR = 1**. **Đỏ** = p < 0,05; xám = không có ý nghĩa. Phải của 1 = tăng hủy; trái = giảm hủy |
+| **Đường dự đoán (giữa)** | P(hủy) tăng theo lead_time khi giữ baseline cố định. Annotation OR(+30 ngày) ≈ 1,16 |
+| **Hộp số (phải)** | n, Pseudo R², LR test, OR lead_time, danh sách biến có ý nghĩa |
 
-**Quy tắc:** Luôn đánh giá trên **test set** hoặc **cross-validation** — không tin metric train.
-
----
-
-## 7. Feature importance & SHAP
-
-Dự kiến trong notebook (theo `04_correlation_analysis_is_canceled.md`):
-
-| Phương pháp | Ý nghĩa | Cách đọc |
-|---|---|---|
-| **Coefficient (Logistic)** | Hướng ảnh hưởng (+/−) | Giống OR trong hypothesis nhưng với nhiều feature hơn |
-| **Feature importance (Random Forest)** | Độ quan trọng tương đối | Cao = biến tách class tốt; **không** cho hướng +/− |
-| **SHAP values** | Đóng góp từng feature vào **từng dự đoán** | Giải thích "vì sao booking này 78% hủy" |
-
-**Feature dự kiến (Tier 1–2):**
-
-- P1: `lead_time`, `deposit_type`, `market_segment × distribution_channel`
-- P2: `previous_cancellations`, `is_repeated_guest`, `total_of_special_requests`, …
-
-**Tuyệt đối loại (leakage):** `reservation_status`, `revenue`, `Occupancy_Rate`, `RevPAR` — cho metric ảo cao nhưng không dùng được production.
+**OR đáng nhớ:** Online TA > 1 (rủi ro cao hơn baseline); Offline/Corporate/Groups < 1; Non Refund OR rất lớn (cần thận trọng như H2).
 
 ---
 
-## 8. So sánh hai mô hình dự kiến
+## Chart 07 — Dashboard effect size tổng hợp
 
-| | Logistic Regression | Random Forest |
-|---|---|---|
-| **Ưu điểm** | OR dễ diễn giải; nhanh | Bắt phi tuyến; interaction tự động |
-| **Metric chính** | coef, OR, AIC/BIC | Feature importance, OOB score |
-| **Nhược điểm** | Giả định log-linear | Khó giải thích; dễ overfit |
+![Dashboard effect size](../reports/figures/05/chart_07.png)
 
-**Cách chọn:** So **test F1** và **PR-AUC** trên cùng split; model cao hơn và ổn định hơn thắng.
-
----
-
-## 9. Checklist đọc `06_cancellation_model_v1.ipynb` (khi có code)
-
-1. **Confusion matrix** trên **test** — TN, TP, FP, FN có hợp lý không?
-2. **F1 & PR-AUC** — không chỉ accuracy.
-3. **Train vs test gap** — có overfit không?
-4. **Feature list** — có biến leakage không?
-5. **SHAP / importance** — có khớp insight từ `05_hypothesis_testing.ipynb` (lead_time, segment, deposit)?
-6. **Ngưỡng** — 0,5 có phù hợp mục tiêu kinh doanh không?
-
----
-
-# PHẦN III — Liên kết hai notebook
-
-```
-EDA / Correlation
-       │
-       ├── 05_hypothesis_testing.ipynb          → Biến nào có association? (p, V, OR)
-       │         │
-       │         └── Xác nhận: lead_time, deposit_type, market_segment
-       │
-       └── Cancellation_Prediction     → Dự báo xác suất hủy từng booking
-                 Model_v1.ipynb              (F1, AUC, confusion matrix)
-```
-
-| Phát hiện hypothesis | Kỳ vọng trong model |
+| Panel | Cách đọc |
 |---|---|
-| lead_time median hủy cao hơn (r = 0,299) | Feature importance / SHAP lead_time cao |
-| market_segment V = 0,219 | Segment (hoặc interaction) quan trọng |
-| deposit_type V = 0,161 | deposit_type trong top features |
-| Pseudo R² = 0,094 (3 biến) | Model đầy đủ Tier 1–2 có thể đạt F1 / AUC cao hơn |
+| **Trái — Effect size** | So sánh **độ mạnh tương đối** (không so tuyệt đối giữa metric khác đơn vị). lead_time *r* cao nhất; Pseudo R² thấp hơn vì là metric khác |
+| **Giữa — −log10(p)** | Càng dài càng “p nhỏ”. Đường α = 0,05. Tất cả vượt xa ngưỡng → mọi test bác bỏ H₀ |
+| **Phải — Hộp tổng hợp** | Tóm tắt U/χ²/V/r/Pseudo R² và kết luận chung |
 
-**Không mâu thuẫn:** hypothesis chứng minh **có quan hệ**; prediction model đo **khả năng dự báo đúng** trên dữ liệu mới — hai mục tiêu bổ sung cho nhau.
+**Bài học visual:** Khi mọi p đều ≈ 0 (n lớn), **panel effect size** mới giúp xếp hạng mức ảnh hưởng thực tế.
+
+---
+
+# PHẦN III — Cách đọc chart trong `05b_hypothesis_visualization.ipynb`
+
+Notebook 05b **không chạy test**, mà cung cấp visual mô tả để hiểu pattern hủy / ADR / thời gian — bổ sung cho kết luận kiểm định.
+
+## A. Heatmaps
+
+### Chart 01 — Cancellation rate: market_segment × distribution_channel
+
+![Heatmap cancel rate segment × channel](../reports/figures/05b/chart_01.png)
+
+| Thành phần | Cách đọc |
+|---|---|
+| **Màu** | Xanh = tỷ lệ hủy thấp; đỏ = cao |
+| **Số trong ô** | % hủy của cặp segment × channel |
+| **Ô trống** | Không có / quá ít dữ liệu |
+
+**Liên kết H3:** Online TA × TA/TO và Groups × TA/TO thường đỏ (~35–36%) — khớp residual Online TA cao. Direct × nhiều channel xanh hơn — khớp Direct hủy thấp hơn kỳ vọng.
+
+---
+
+### Chart 02 — Mean ADR: tháng × năm
+
+![Heatmap ADR month × year](../reports/figures/05b/chart_02.png)
+
+Đọc theo **màu + số**: tháng cao điểm (hè) thường ADR cao hơn; so theo cột năm để thấy xu hướng theo thời gian. Dùng để hiểu bối cảnh giá, không phải kết luận H1–H4 trực tiếp.
+
+---
+
+### Chart 03 — Mean ADR: reserved_room_type × hotel
+
+![Heatmap ADR room × hotel](../reports/figures/05b/chart_03.png)
+
+So giá trung bình theo hạng phòng và loại khách sạn. Ô đỏ/đậm = ADR cao hơn. Hữu ích khi giải thích khác biệt City vs Resort.
+
+---
+
+## B. Box plots
+
+### Cách đọc box plot (chung)
+
+| Thành phần | Ý nghĩa |
+|---|---|
+| **Đường giữa hộp** | Median |
+| **Hộp** | IQR (Q1–Q3) — 50% giữa |
+| **Râu** | Khoảng điển hình ngoài IQR |
+| **Điểm rời** | Outlier |
+
+So 2+ nhóm: nhìn **median lệch** và **hộp dịch lên/xuống** trước, outlier sau.
+
+---
+
+### Chart 04 — lead_time theo is_canceled *(liên kết trực tiếp H1)*
+
+![Box plot lead_time](../reports/figures/05b/chart_04.png)
+
+**Cách đọc:** Hộp “Đã hủy” cao hơn rõ (median ~80 vs ~37). Khớp Chart 01 của notebook 05 và r = 0,30. Nhiều outlier lead_time rất dài ở cả hai nhóm → nên dùng Mann-Whitney (robust) thay vì chỉ tin mean/t-test.
+
+---
+
+### Chart 05 — ADR theo tháng đến
+
+![Box plot ADR theo tháng](../reports/figures/05b/chart_05.png)
+
+Median/IQR ADR thay đổi theo mùa; tháng hè thường cao hơn. Đọc pattern mùa vụ giá.
+
+---
+
+### Chart 06 — ADR theo ngày trong tuần
+
+![Box plot ADR theo day_of_week](../reports/figures/05b/chart_06.png)
+
+So median ADR giữa các ngày. Chênh nhỏ → ngày trong tuần ít phân hóa giá hơn tháng/mùa.
+
+---
+
+### Chart 07 — ADR theo room_match
+
+![Box plot ADR theo room_match](../reports/figures/05b/chart_07.png)
+
+So ADR khi phòng đặt khớp / không khớp phòng nhận. Nhìn median và độ phân tán để thấy nhóm nào giá cao hơn hoặc biến thiên mạnh hơn.
+
+---
+
+### Chart 08 — ADR theo customer_type
+
+![Box plot ADR theo customer_type](../reports/figures/05b/chart_08.png)
+
+So Transient / Transient-Party / Contract / Group. Hữu ích khi nối với insight segment/customer trong EDA và model.
+
+---
+
+## C. Time series
+
+### Chart 09 — Tỷ lệ hủy theo year_month
+
+![Time series cancel rate](../reports/figures/05b/chart_09.png)
+
+| Visual | Cách đọc |
+|---|---|
+| **Đường đỏ** | Cancellation rate theo tháng đến |
+| **Đường đứt ngang** | Overall ~**28,1%** |
+| **Trên / dưới đường đứt** | Tháng rủi ro cao / thấp hơn trung bình |
+
+Thấy biến động mạnh theo thời gian (đáy ~2015-11, đỉnh tăng về 2017) — kiểm định H1–H4 là association **tổng thể**, không thay thế phân tích mùa/năm.
+
+---
+
+### Chart 10 — Mean ADR theo year_month
+
+![Time series ADR](../reports/figures/05b/chart_10.png)
+
+Đọc xu hướng và mùa vụ của giá trung bình theo timeline. Thường có chu kỳ hè cao – cuối năm thấp hơn.
+
+---
+
+### Chart 11 — Dual-axis: Cancellation rate vs Mean ADR
+
+![Dual axis cancel vs ADR](../reports/figures/05b/chart_11.png)
+
+| Trục | Chuỗi |
+|---|---|
+| Trái (đỏ) | Cancellation rate (%) |
+| Phải (xanh) | Mean ADR (€) |
+
+**Cách đọc:** Hai đường tăng/giảm cùng hướng theo mùa → gợi ý đồng biến theo thời gian (không phải chứng minh nhân quả). Dùng để đặt câu hỏi theo dõi thêm, không thay thế OR/logistic.
+
+---
+
+### Chart 12 — Mean ADR theo tháng, tách theo hotel
+
+![Time series ADR by hotel](../reports/figures/05b/chart_12.png)
+
+Hai (hoặc nhiều) đường theo `hotel`. So mức giá và biên độ mùa vụ giữa City Hotel vs Resort Hotel trên cùng timeline.
+
+---
+
+# PHẦN IV — Liên kết chỉ số ↔ chart ↔ quyết định
+
+## Checklist đọc `05_hypothesis_testing.ipynb`
+
+1. Đọc **H₀ / H₁** của từng mục.
+2. Xem **p-value** → có bác bỏ H₀ không?
+3. Bắt buộc xem **effect size** (r / V / OR / Pseudo R²) — không dừng ở p ≈ 0.
+4. Với chi-squared: kiểm **min expected** và **residual heatmap**.
+5. Với H2: đọc thêm **post-hoc** (cặp nào thật sự khác).
+6. Với H4: đọc **OR + CI** trên forest plot, không chỉ Pseudo R².
+7. Nhớ: association **≠** nhân quả (đặc biệt Non Refund).
+
+## Checklist đọc `05b_hypothesis_visualization.ipynb`
+
+1. Heatmap hủy: tìm **ô đỏ / xanh** và nối với residual H3.
+2. Box lead_time: xác nhận median hủy cao hơn (khớp H1).
+3. Time series hủy: xem tháng nào lệch khỏi 28,1%.
+4. Dual-axis: mô tả đồng biến theo thời gian, không kết luận nhân quả giá → hủy.
+
+## Bảng “hỏi gì → nhìn đâu?”
+
+| Câu hỏi | Chỉ số | Chart |
+|---|---|---|
+| Lead time có liên quan hủy không? | H1: p, r, CI | `05` Chart 01; `05b` Chart 04 |
+| Lead time dài bao nhiêu thì hủy tăng? | H1b: V + cancel % theo bin | `05` Chart 05 |
+| Loại cọc nào khác biệt? | H2: V + post-hoc | `05` Chart 02–03 |
+| Segment nào đóng góp lệch mạnh? | Residual \|r\| > 2 | `05` Chart 04; `05b` Chart 01 |
+| Sau khi kiểm soát lẫn nhau, biến nào còn ý nghĩa? | H4: OR, p, LR test | `05` Chart 06 |
+| Cái nào “mạnh” hơn khi mọi p đều ≈ 0? | Effect size ranking | `05` Chart 07 |
+| Hủy biến động theo thời gian thế nào? | — | `05b` Chart 09, 11 |
+| ADR / mùa / phòng trông ra sao? | — | `05b` Chart 02–03, 05–08, 10, 12 |
+
+## Ý nghĩa kinh doanh rút từ kiểm định + visual
+
+| Ưu tiên | Hành động gợi ý | Cơ sở |
+|---|---|---|
+| Cao | Theo dõi booking **lead_time > 30 ngày**, đặc biệt **> 180** | H1, H1b + Chart 05 |
+| Cao | Rà soát / forecast riêng **Online TA** | H3 residual + heatmap 05b Chart 01 |
+| Trung bình | Phân tích sâu **Non Refund** (nhân quả vs nhãn) | H2 + post-hoc |
+| Trung bình | Ưu tiên giữ chỗ ổn định hơn cho **Corporate / Direct / Offline** | H3, H4 OR < 1 |
+| Bối cảnh | Theo dõi tháng hủy lệch xa 28,1% | 05b Chart 09 |
 
 ---
 
@@ -377,10 +433,13 @@ EDA / Correlation
 
 | File | Nội dung |
 |---|---|
-| `05_hypothesis_testing_is_canceled.md` | Báo cáo kết quả kiểm định |
-| `04_correlation_analysis_is_canceled.md` | Feature tier & leakage |
-| `02_eda_stage1_cancellation_analysis.md` | Insight trực quan cancellation |
+| `notebooks/05_hypothesis_testing.ipynb` | Kiểm định H1–H4 |
+| `notebooks/05b_hypothesis_visualization.ipynb` | Heatmap / box / time series |
+| `reports/05_hypothesis_testing_is_canceled.md` | Báo cáo kết quả kiểm định |
+| `reports/figures/05/chart_01.png` … `chart_07.png` | Hình kiểm định |
+| `reports/figures/05b/chart_01.png` … `chart_12.png` | Hình visualization |
+| `docs/Guide - Cach doc va danh gia mo hinh du doan.md` | Đọc chỉ số & chart mô hình dự đoán |
 
 ---
 
-*Cập nhật: 3/7/2026 — hướng dẫn đọc chỉ số (key dedup mới, 82.811 booking; v5 tái tạo từ v4 + day_of_week).*
+*Cập nhật: 13/7/2026 — hướng dẫn đọc chỉ số thống kê & kiểm định giả thuyết (kèm hình từ `05` và `05b`).*
