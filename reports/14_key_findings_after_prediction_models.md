@@ -2,9 +2,9 @@
 
 > **Loại:** Tổng hợp executive — Segment cancellation · Feature importance · Insight EDA & Hypothesis  
 > **Dữ liệu:** `hotel_bookings_v5.csv` · **82.811** booking · tỷ lệ hủy **28,12%**  
-> **Phạm vi mô hình:** RF **v1 → v1.1 → v1.2** · LightGBM **v2 → v2.1**  
-> **Nguồn chính:** `02`/`03` EDA · `04` Correlation · `05` Hypothesis · `06`–`09`/`09_1` Model · `12` BRD Gap · `13` Version selection  
-> **Cập nhật:** 13/07/2026
+> **Phạm vi mô hình:** RF **v1 → v1.1 → v1.2** · LightGBM **v2 → v2.1 → v2.2**  
+> **Nguồn chính:** `02`/`03` EDA · `04` Correlation · `05` Hypothesis · `06`–`09`/`09_1`/`09` v2.2 Model · `12` BRD Gap · `13` Version selection  
+> **Cập nhật:** 19/07/2026
 
 ---
 
@@ -18,12 +18,13 @@ Qua năm phiên bản mô hình, dự án **hội tụ cùng một bộ driver h
 4. **Quốc gia / lịch sử** — `country_PRT` và `history_cancel_rate` / `previous_cancellations` là tín hiệu mạnh.
 5. **Mùa cao điểm + lead dài + Online TA** = hotspot doanh thu mất (BRD Gap).
 
-**Hiệu năng mô hình (tóm tắt):** RF v1 AUC **0,73** → v1.2 **0,84** → LightGBM v2 **0,871** (Precision tốt nhất) → v2.1 AUC **0,872** với Recall **0,952** (ít bỏ sót hủy nhất).
+**Hiệu năng mô hình (tóm tắt):** RF v1 AUC **0,73** → v1.2 **0,84** → LightGBM v2 **0,871** → v2.1 AUC **0,872** với Recall **0,952** (ít bỏ sót hủy nhất) → **v2.2 AUC 0,896** với Precision **0,577** / FP **2.939** khi Recall ≥ 0,85 (chế độ giảm false alarm tốt nhất).
 
 | Mục tiêu vận hành | Bản khuyến nghị | Lý do |
 |---|---|---|
-| Scoring / xếp hạng rủi ro cân bằng | **LightGBM v2** @ 0,35 | AUC 0,871 · Precision 0,49 · FP thấp hơn RF |
+| Scoring / giảm FP (Recall ≥ 0,85) | **LightGBM v2.2** @ 0,25 | AUC 0,896 · Precision 0,577 · FP 2.939 |
 | Inventory protection / overbooking | **LightGBM v2.1** @ 0,28 | Recall 0,952 · FN thấp nhất |
+| Fallback pipeline cũ (không FE v2.2) | **LightGBM v2** @ 0,35 | AUC 0,871 · Precision 0,49 |
 | Baseline dễ giải thích (Gini) | **RF v1.2** @ 0,35 | AUC 0,840 · SHAP đầy đủ |
 
 > Chi tiết chọn bản: [`13_cancellation_model_version_selection.md`](13_cancellation_model_version_selection.md).
@@ -37,8 +38,10 @@ Qua năm phiên bản mô hình, dự án **hội tụ cùng một bộ driver h
 | **v1** | Random Forest | 6 cat | 0,50 | 0,734 | 0,85 | 0,39 | 0,54 | 0,59 | 714 / 6.055 |
 | **v1.1** | Random Forest | 9 | 0,35 | 0,831 | 0,94 | 0,41 | ~0,57 | ~0,60 | 273 / 6.354 |
 | **v1.2** | RF + SHAP | 16 | 0,35 | 0,840 | 0,94 | 0,42 | 0,58 | 0,62 | 289 / 6.013 |
-| **v2** | LightGBM + SHAP | 16 | 0,35 | **0,871** | 0,90 | **0,49** | **0,64** | **0,71** | 469 / **4.329** |
-| **v2.1** | LightGBM + SHAP | 17 | **0,28** | **0,872** | **0,952** | 0,43 | 0,59 | 0,63 | **~225** / ~5.980 |
+| **v2** | LightGBM + SHAP | 16 | 0,35 | 0,871 | 0,90 | 0,49 | 0,64 | 0,71 | 469 / 4.329 |
+| **v2.1** | LightGBM + SHAP | 17 | **0,28** | 0,872 | **0,952** | 0,43 | 0,59 | 0,63 | **~225** / ~5.980 |
+| v2.1 giảm FP | LightGBM (cùng model) | 17 | 0,51 | 0,872 | 0,853 | 0,545 | 0,665 | 0,759 | 684 / 3.312 |
+| **v2.2** | LightGBM + FE + cal. | **~27** | **0,25** | **0,896** | 0,861 | **0,577** | **~0,69** | **~0,78** | 649 / **2.939** |
 
 ### Bài học theo từng bước
 
@@ -48,6 +51,7 @@ Qua năm phiên bản mô hình, dự án **hội tụ cùng một bộ driver h
 | v1.1 → v1.2 | 9 biến engineered (giá, đêm, lịch sử, tháng…) | AUC +0,009; SHAP giải thích được hướng tác động |
 | v1.2 → v2 | Đổi LightGBM + Optuna | AUC +0,031; Precision +7 pp; FP giảm mạnh |
 | v2 → v2.1 | `scale_pos_weight` ×1,5 · ngưỡng 0,28 · `arrival_season` | Recall +5,3 pp; FN giảm ~50%; trade-off Precision |
+| v2.1 → **v2.2** | FE booking-time mới · isotonic calibration · ngưỡng train-val | AUC **+0,024** · FP −11% vs @0,51 · Rec vẫn ≥ 0,85 |
 
 **Đọc nghiệp vụ:** Không có “một metric thắng tất cả”. AUC cao không đủ nếu FN đắt; Recall cao không đủ nếu FP đắt. Chọn ngưỡng / bản theo chi phí sai lầm.
 
@@ -112,7 +116,7 @@ Qua năm phiên bản mô hình, dự án **hội tụ cùng một bộ driver h
 | Online TA × TA/TO + lead > 60 + Jul–Aug | 8.574 | **45,77%** | **26,24%** |
 | Toàn hệ thống | 82.811 | 28,12% | 100% |
 
-**Kết luận segment:** ~9% booking (tổ hợp 3 chiều) gánh **>22%** doanh thu mất — đúng định nghĩa hotspot. Mô hình v2/v2.1 ưu tiên đúng các trục này (`lead_time`, Online TA, mùa/`arrival_month`).
+**Kết luận segment:** ~9% booking (tổ hợp 3 chiều) gánh **>22%** doanh thu mất — đúng định nghĩa hotspot. Mô hình v2/v2.1/v2.2 ưu tiên đúng các trục này (`lead_time`, Online TA, mùa/`arrival_month`); v2.2 còn làm nổi `required_car_parking_spaces` và `special_requests_per_night`.
 
 ---
 
@@ -127,7 +131,8 @@ Qua năm phiên bản mô hình, dự án **hội tụ cùng một bộ driver h
 | Quốc gia | `country_PRT` | PRT ↑ · GBR/DEU thường ↓ |
 | Cam kết | `total_of_special_requests`, deposit | Nhiều request ↓ · Non Refund ↑↑ (cẩn trọng) |
 | Engineered | `price_per_person`, `history_cancel_rate`, `total_nights` | Giá thấp / lịch sử hủy cao → rủi ro ↑ (theo SHAP v2/v2.1) |
-| Lịch | `arrival_month_mapped`, `arrival_season` (v2.1) | Bổ sung mùa; không thay lead_time |
+| Lịch | `arrival_month_mapped`, `arrival_season` (v2.1+) | Bổ sung mùa; không thay lead_time |
+| Cam kết chỗ đậu / request (v2.2) | `required_car_parking_spaces`, `special_requests_per_night` | Parking / nhiều request → thường **giảm** hủy (SHAP) |
 
 ### 4.2 Top importance theo phiên bản
 
@@ -185,6 +190,16 @@ Qua năm phiên bản mô hình, dự án **hội tụ cùng một bộ driver h
 
 `arrival_season`: Summer có mean \|SHAP\| cao nhất trong bốn mùa (~0,046) — vai trò **bổ sung**, không thay month/lead_time.
 
+#### LightGBM v2.2 — Gain + SHAP (bản mới nhất, 07/2026)
+
+![Feature importance gain v2.2](./figures/09_v2_2/chart_03.png)
+
+**Gain top:** `required_car_parking_spaces` → `lead_time` → Online TA → `price_per_person` → `special_requests_per_night` → `lead_time_per_night` → PRT → `log_lead_time` → Offline TA/TO → `is_online_ta`
+
+![SHAP beeswarm v2.2](./figures/09_v2_2/chart_05.png)
+
+**Đọc nhanh SHAP v2.2:** parking spaces và special requests kéo **giảm** P(hủy); PRT / Online TA / lead dài vẫn **tăng** rủi ro — cùng họ driver với v2.1 nhưng ranking tinh chỉnh nhờ FE mới + calibration.
+
 ### 4.3 Chuỗi tiến hóa insight feature
 
 ```text
@@ -197,6 +212,8 @@ v1.2:   Engineered (lead/night, history, price) vào top — giải thích sâu 
 v2:     LightGBM đẩy price_per_person + month lên; Precision tốt hơn
    ↓
 v2.1:   Giữ cùng driver; tối ưu Recall; season bổ sung mùa vụ
+   ↓
+v2.2:   FE mới (parking, meal, room type, …) + calibration → AUC↑, FP↓ @ Rec≥0.85
 ```
 
 **Đối chiếu leakage:** Mọi bản **loại** `reservation_status`, `revenue`, `Occupancy_Rate`, `RevPAR` — metric cao ảo nhưng không dùng được production (`04_correlation_analysis_is_canceled.md`).
@@ -258,7 +275,7 @@ Từ [`04_correlation_analysis_is_canceled.md`](04_correlation_analysis_is_cance
 flowchart LR
   EDA["EDA Stage 1/2<br/>Segment · Lead · ADR"] --> HT["Hypothesis H1–H4<br/>r / V / OR"]
   HT --> FE["Feature list<br/>+ engineering"]
-  FE --> M["Models v1→v2.1<br/>Importance + SHAP"]
+  FE --> M["Models v1→v2.2<br/>Importance + SHAP"]
   M --> ACT["Hành động RM<br/>Cọc · Follow-up · Overbook"]
 ```
 
@@ -267,6 +284,7 @@ flowchart LR
 | Lead_time > 30 / > 180 | `#1` Gain/Gini; SHAP dương khi cao | Follow-up / xác nhận sớm; hạn chế overbook mù |
 | Online TA (× TA/TO) | Top feature mọi bản | Forecast riêng; chính sách cọc tiered |
 | Special requests = 0 | Importance cao; SHAP: nhiều request ↓ hủy | Ưu tiên chăm sóc booking 0 request + lead dài |
+| Parking / cam kết chỗ đậu | Gain/SHAP #1 ở **v2.2** | Booking có parking → ưu tiên giữ; ít rủi ro hủy |
 | PRT / lịch sử hủy | Top SHAP; history đuôi dài | Flag rủi ro tái hủy |
 | Mùa hè + ADR cao | Month/season + price_per_person | Bảo vệ inventory Jul–Aug; mô phỏng cọc (BRD) |
 | Corporate / Direct / Offline | OR < 1; residual âm | Ưu tiên giữ chỗ ổn định hơn |
@@ -276,8 +294,8 @@ flowchart LR
 | Ưu tiên | Hành động | Cơ sở |
 |---|---|---|
 | **P0** | Giám sát & chính sách riêng **Online TA × lead > 60 × mùa cao điểm** | EDA + BRD hotspot + SHAP |
-| **P0** | Dùng **v2.1** khi cần không bỏ sót hủy; **v2** khi cần ít false alarm | Version selection |
-| **P1** | Trigger theo **P(hủy)** + giải thích SHAP (lead, segment, history, price) | Model v2/v2.1 |
+| **P0** | Dùng **v2.1 @ 0,28** khi cần không bỏ sót hủy; **v2.2 @ 0,25** khi cần ít false alarm (Rec ≥ 0,85) | Version selection (cập nhật 19/07/2026) |
+| **P1** | Trigger theo **P(hủy)** + giải thích SHAP (lead, segment, parking, history, price) | Model v2.1 / **v2.2** |
 | **P1** | Mô phỏng / mở rộng **cọc có điều kiện** cho Online TA lead dài | BRD deposit simulation |
 | **P2** | Phân tích sâu Non Refund (nhãn vs nhân quả) trước khi dùng làm đòn bẩy chính sách | H2 + residual cực đoan |
 
@@ -287,9 +305,10 @@ flowchart LR
 
 1. **Association ≠ causation** — đặc biệt `deposit_type_Non Refund`.  
 2. **n lớn → p ≈ 0** — luôn kèm effect size / importance / SHAP.  
-3. **Recall cao ≠ Precision cao** — v2.1 chấp nhận nhiều FP.  
+3. **Recall cao ≠ Precision cao** — v2.1 @ 0,28 chấp nhận nhiều FP; v2.2 cân bằng hơn ở Rec ≥ 0,85.  
 4. **Pseudo R² logistic ~0,09** — còn nhiều yếu tố ngoài 3 biến H4; mô hình ML đầy đủ bổ sung.  
-5. Findings dựa `hotel_bookings_v5` (Portugal hotels, 2015–2017) — ngoại suy thị trường khác cần thận trọng.
+5. Findings dựa `hotel_bookings_v5` (Portugal hotels, 2015–2017) — ngoại suy thị trường khác cần thận trọng.  
+6. **`required_car_parking_spaces` rất mạnh ở v2.2** — hữu ích vận hành nhưng cần kiểm tra ổn định theo khách sạn / chính sách chỗ đậu.
 
 ---
 
@@ -303,11 +322,13 @@ flowchart LR
 | [`04_correlation_analysis_is_canceled.md`](04_correlation_analysis_is_canceled.md) | Feature tier & leakage |
 | [`05_hypothesis_testing_is_canceled.md`](05_hypothesis_testing_is_canceled.md) | H1–H4 effect size |
 | [`06_cancellation_model_v1.md`](06_cancellation_model_v1.md) … [`09_cancellation_model_v2_1.md`](09_cancellation_model_v2_1.md) | Metrics & importance từng bản |
+| [`09_cancellation_model_v2_2.md`](09_cancellation_model_v2_2.md) | v2.2 metrics, calibration, SHAP, quyết định ship |
+| [`09_fp_reduction_v2_1.md`](09_fp_reduction_v2_1.md) | Policy giảm FP cũ (v2.1 @ 0,51) — baseline so với v2.2 |
 | [`12_brd_gap_analysis.md`](12_brd_gap_analysis.md) | Hotspot 3 chiều & doanh thu mất |
-| [`13_cancellation_model_version_selection.md`](13_cancellation_model_version_selection.md) | Chọn bản theo mục tiêu |
+| [`13_cancellation_model_version_selection.md`](13_cancellation_model_version_selection.md) | Chọn bản theo mục tiêu (đã gồm v2.2) |
 | [`../docs/Guide - Cach doc va danh gia mo hinh du doan.md`](../docs/Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20du%20doan.md) | Cách đọc metric/chart mô hình |
 | [`../docs/Guide - Cach doc chi so thong ke.md`](../docs/Guide%20-%20Cach%20doc%20chi%20so%20thong%20ke.md) | Cách đọc kiểm định & visual |
 
 ---
 
-*Báo cáo tổng hợp key findings sau chuỗi mô hình dự đoán hủy phòng (v1–v2.1), đối chiếu EDA và hypothesis testing. Cập nhật: 13/07/2026.*
+*Báo cáo tổng hợp key findings sau chuỗi mô hình dự đoán hủy phòng (v1–v2.2), đối chiếu EDA và hypothesis testing. Cập nhật: 19/07/2026.*
