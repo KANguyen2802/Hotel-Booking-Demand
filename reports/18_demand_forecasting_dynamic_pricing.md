@@ -25,9 +25,27 @@ Dự báo demand tháng cho dynamic pricing theo pipeline **statsmodels**:
 
 ## 1. Series & decomposition
 
+### 1.1 Monthly demand (overall + by hotel)
+
 ![Monthly demand](./figures/18/01_monthly_demand_overall.png)
 
+**Insight**
+
+- Chuỗi **26 tháng** (2015-07 → 2017-08), tổng **59.527** stay bookings — đủ thấy chu kỳ năm nhưng ngắn cho model phức tạp.  
+- Demand có **biên độ mùa rõ**: thấp hơn đầu năm / cuối năm, cao hơn quanh mùa hè và shoulder.  
+- **City Hotel** và **Resort Hotel** không cùng biên độ → nếu làm rate calendar theo property nên forecast tách riêng.  
+- **Hàm ý:** dynamic pricing theo tháng là hướng đúng; đừng dùng rolling average làm primary (dễ làm mượt peak).
+
+### 1.2 Seasonal decompose
+
 ![Seasonal decompose](./figures/18/02_seasonal_decompose.png)
+
+**Insight**
+
+- Thành phần **seasonal** (period=12) tách rõ khỏi trend/residual — xác nhận seasonality năm là tín hiệu chính.  
+- **Trend** tăng nhẹ qua mẫu (một phần do 2015 chỉ có H2, 2017 cắt Aug) — cẩn trọng khi ngoại suy.  
+- Residual còn biến động → còn room cho AR/MA sau khi khác biệt chuỗi.  
+- **Hàm ý:** ưu tiên model có seasonal term (SARIMAX / HW / Seasonal Naive), không dùng ARIMA thuần.
 
 ---
 
@@ -42,11 +60,26 @@ Dự báo demand tháng cho dynamic pricing theo pipeline **statsmodels**:
 
 **Chọn differencing:** `d=1`, `D=0` (ưu tiên phương án ít “đốt” mẫu hơn khi cả ADF+KPSS đạt trên chuỗi ngắn).
 
+**Insight**
+
+- Level **không stationary** (ADF chưa reject + KPSS reject) → không fit ARIMA trên level thô.  
+- `diff1` đạt cả hai test với n=25 — lựa chọn ổn định nhất cho mẫu ngắn.  
+- `seasonal_diff12` làm ADF “quá đẹp” nhưng KPSS fail và n chỉ còn 14 → rủi ro over-differencing.  
+- **Hàm ý:** giữ `d=1`, mô hình hóa mùa bằng seasonal AR/MA `(P,0,Q,12)` thay vì ép `D=1`.
+
+### 2.1 ACF / PACF sau differencing
+
 ![ACF/PACF](./figures/18/03_acf_pacf.png)
+
+**Insight**
+
+- ACF/PACF trên chuỗi đã diff giúp gợi ý bậc `q` / `p`; spike gần lag mùa gợi ý `P`/`Q`.  
+- Với n nhỏ, đồ thị chỉ mang tính **định hướng** — quyết định cuối dựa trên **AIC grid + holdout**.  
+- **Hàm ý:** kết hợp rule-of-thumb ACF/PACF với grid `p,q∈{0,1,2}`, `P,Q∈{0,1}` thay vì chọn tay một order duy nhất.
 
 ---
 
-## 3. SARIMAX selection (train AIC)
+## 3. SARIMAX selection & residual diagnostics
 
 Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
@@ -55,7 +88,13 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
 (Grid lưu tại [`sarimax_aic_grid.csv`](./figures/18/sarimax_aic_grid.csv).)
 
-### Residual diagnostics (train)
+**Insight (model selection)**
+
+- Order thắng AIC có cả **MA(2)** và **seasonal AR/MA** — phù hợp residual còn autocorrelation sau diff1.  
+- Train chỉ 20 điểm → AIC hữu ích để loại model kém, nhưng **không đủ** để chọn model pricing cuối.  
+- Holt–Winters seasonal **không fit được trên train** (cần ≥24 tháng) → fallback **Holt trend**; full sample mới dùng HW seasonal.
+
+### 3.1 Residual diagnostics (train)
 
 ![SARIMAX diagnostics](./figures/18/04_sarimax_diagnostics.png)
 
@@ -64,15 +103,29 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 | SARIMAX | 0,17 | 0,18 |
 | Holt trend (train fallback) | 0,32 | 0,28 |
 
-→ Không bác bỏ white-noise residuals ở α=0,05 (lag 6/12).
+**Insight**
 
-**Lưu ý HW:** train chỉ 20 tháng (< 2×12) → statsmodels không khởi tạo seasonal HW được → dùng **Holt trend-only** trên holdout; full sample (26 tháng) fit được **Holt–Winters seasonal**.
+- Ljung–Box lag 6/12 **không bác bỏ** white-noise residuals (p > 0,05) → fit train “sạch” về autocorrelation.  
+- Histogram / Q–Q trên mẫu ngắn dễ lệch; ưu tiên Ljung–Box + holdout hơn vẻ đẹp đồ thị.  
+- Residual std vẫn lớn (~428 bookings) → khoảng tin cậy forecast sẽ rộng.  
+- **Hàm ý:** diagnostics đạt → được phép dùng SARIMAX cho interval; nhưng vẫn phải so holdout với Naive.
 
 ---
 
 ## 4. Holdout accuracy (6 tháng)
 
+### 4.1 Holdout forecasts + 95% PI
+
 ![Holdout forecasts + PI](./figures/18/05_holdout_forecasts.png)
+
+**Insight**
+
+- Seasonal Naive bám actual tốt trên 6 tháng cuối; SARIMAX lệch hơn ở vài tháng nhưng **PI 95% bao phủ 100%** actual.  
+- PI rất rộng → SARIMAX hữu ích hơn như **dải rủi ro** hơn là point forecast cho pricing.  
+- Holt trend thiếu mùa → kém ở tháng có seasonality mạnh.  
+- **Hàm ý:** point forecast pricing dùng Naive; SARIMAX dùng để cảnh báo biên không chắc chắn.
+
+### 4.2 Holdout MAPE
 
 ![Holdout MAPE](./figures/18/05_holdout_metrics.png)
 
@@ -82,9 +135,12 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 | Holt trend | 221,9 | 250,7 | 8,1% |
 | SARIMAX(0,1,2)(1,0,1)₁₂ | 251,8 | 285,3 | 9,1% |
 
-- **Best holdout:** Seasonal Naive (MAPE 6,9%).  
-- SARIMAX **95% PI coverage** trên holdout: **100%** (interval rộng — đúng với chuỗi ngắn).  
-- AIC tốt trên train ≠ thắng holdout: với n≈26, **ưu tiên out-of-sample MAPE** cho pricing.
+**Insight**
+
+- **Best holdout = Seasonal Naive (MAPE 6,9%)** — thắng nhẹ Holt (8,1%) và SARIMAX (9,1%).  
+- AIC tốt trên train **không** chuyển thành thắng ngoài mẫu trên chuỗi ~26 điểm.  
+- Gap MAPE ~2 điểm % là có ý nghĩa với revenue calendar (hàng trăm booking/tháng).  
+- **Hàm ý:** primary model cho rate calendar = Seasonal Naive; giữ SARIMAX làm đối chứng + PI.
 
 ---
 
@@ -106,6 +162,13 @@ SARIMAX / Holt–Winters giữ làm đối chứng + interval.
 
 File: [`forecast_next_6m.csv`](./figures/18/forecast_next_6m.csv)
 
+**Insight**
+
+- Ba model **đồng thuận hướng mùa**: Oct cao hơn; Dec–Jan thấp hơn.  
+- SARIMAX thường cao hơn Naive ở Nov–Jan; HW seasonal thấp hơn ở Nov — dùng divergence như tín hiệu bất định.  
+- PI rộng dần theo horizon (đúng kỳ vọng) → càng xa càng không nên harden BAR chỉ dựa point forecast.  
+- **Hàm ý:** Sep–Oct giữ BAR / tactical weekend; Dec–Jan chuẩn bị promo; luôn đọc kèm PI.
+
 ---
 
 ## 6. Pricing stance
@@ -120,6 +183,14 @@ File: [`forecast_next_6m.csv`](./figures/18/forecast_next_6m.csv)
 | 2017-12 | 2.027 | 0,83 | **STIMULATE** |
 | 2018-01 | 1.966 | 0,80 | **STIMULATE** |
 | 2018-02 | 2.269 | 0,98 | NEUTRAL |
+
+**Insight**
+
+- **Dec / Jan** rõ ràng **STIMULATE** (pressure 0,80–0,83) — promo, early-bird, package.  
+- **Oct** gần ngưỡng PROTECT (1,13) — hạn chế dump OTA, weekend premium chọn lọc (nối notebook 17).  
+- Sep / Nov / Feb ở vùng **NEUTRAL** — hold BAR, chỉnh tactical theo lead-time / channel.  
+- Stance = `0,5·season_index + 0,5·demand_forecast` → kết hợp tín hiệu lịch sử mùa với volume forecast.  
+- **Hàm ý playbook:** Dec–Jan kích cầu; Oct bảo vệ inventory; nối ADR season/weekend từ [`17_adr_strategy_analysis.md`](17_adr_strategy_analysis.md).
 
 ---
 
