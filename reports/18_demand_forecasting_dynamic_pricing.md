@@ -194,7 +194,53 @@ File: [`forecast_next_6m.csv`](./figures/18/forecast_next_6m.csv)
 
 ---
 
-## 7. KPI
+## 7. Gợi ý chiến lược
+
+Kết hợp **demand forecast (nb 18)** với **ADR seasonality / weekend / lead-time (nb 17)** để ra playbook pricing–inventory theo tháng.
+
+### 7.1 Thông điệp điều hành
+
+1. **Primary forecast = Seasonal Naive** (holdout MAPE 6,9%) — dùng làm volume signal cho rate calendar; SARIMAX chỉ hỗ trợ **dải rủi ro (95% PI)**.  
+2. **Mùa vẫn thống trị**: Dec–Jan STIMULATE; Oct gần PROTECT; Sep/Nov/Feb NEUTRAL — ưu tiên lịch tháng trước day-of-week.  
+3. **Khi PI rộng / model lệch nhau** (vd. Nov): không harden BAR mạnh; giữ linh hoạt channel & length-of-stay.  
+4. **Nối ADR nb 17**: peak ADR Jul–Aug (+115% vs Jan); weekend premium chọn lọc (May/Sep); early-bird floor ở mùa cao.  
+5. **Tách City vs Resort** khi triển khai thật — biên độ demand khác nhau; có thể cần model/stance riêng từng property.
+
+### 7.2 Playbook theo stance forecast
+
+| Tháng (minh họa) | Stance | Gợi ý chiến lược |
+|---|---|---|
+| **2017-09** | NEUTRAL | Hold BAR; weekend premium nhẹ (Sep historically mạnh ở nb 17); ưu tiên Direct lead 31–180 |
+| **2017-10** | NEUTRAL → gần PROTECT | Hạn chế dump OTA/Groups; bảo vệ inventory cuối tuần; hạn chế deep discount |
+| **2017-11** | NEUTRAL | Tactical promo mid-week; theo dõi PI — nếu demand thực thấp hơn Naive thì nới promo |
+| **2017-12** | **STIMULATE** | Package / early-bird / F&B bundle; mid-week deal Tue–Wed; không cắt sâu BAR peak weekend |
+| **2018-01** | **STIMULATE** | Campaign kích cầu mạnh nhất cửa sổ; length-of-stay promo; giữ floor tránh race-to-bottom OTA |
+| **2018-02** | NEUTRAL | Chuyển dần từ promo → hold BAR; chuẩn bị ladder tăng dần vào shoulder |
+
+### 7.3 Playbook theo lever
+
+| Lever | Hành động đề xuất |
+|---|---|
+| **Rate calendar** | Dec–Jan: promo có kiểm soát; Oct: harden BAR; Apr–Aug (từ nb 17): ladder tăng — dùng Naive volume để chỉnh depth giảm giá |
+| **Weekend premium** | Áp chọn lọc May/Sep (+6–8 € nb 17); Oct shoulder: surcharge cuối tuần nếu pickup mạnh; Jul–Aug: không cần weekend premium lớn (ADR nền đã cao) |
+| **Booking window** | Peak/shoulder: bảo vệ BAR last-minute; STIMULATE months: early-bird có floor; hạn chế Groups lead dài đẩy ADR xuống |
+| **Inventory** | Oct gần protect: giữ room class cao cuối tuần; Dec–Jan: mở bán linh hoạt hơn, ưu tiên Direct |
+| **Channel mix** | STIMULATE: tăng visibility OTA có kiểm soát commission; NEUTRAL/PROTECT: đẩy Direct, giảm dump rate |
+| **Hủy / overbooking** | Nối [`15_policy_scenario.md`](15_policy_scenario.md), [`16_overbooking_policy.md`](16_overbooking_policy.md): tháng STIMULATE chấp nhận overbook thận trọng hơn; tháng gần PROTECT siết cọc/hủy |
+| **Model ops** | Mỗi quý: re-fit holdout; nếu Naive thua SARIMAX ≥2 điểm MAPE trong 2 cửa sổ liên tiếp → đổi primary; bổ sung exog khi có ≥36 tháng |
+
+### 7.4 Ưu tiên triển khai (90 ngày)
+
+| Ưu tiên | Việc làm | Kết quả kỳ vọng |
+|---|---|---|
+| P0 | Lock rate calendar Dec–Jan (STIMULATE) + Oct (gần protect) theo bảng 7.2 | Tránh discount sai mùa / bỏ lỡ kích cầu thấp điểm |
+| P1 | Gắn pickup tuần với Naive forecast: nếu pickup << forecast → nới promo sớm 2–3 tuần | Giảm void inventory cuối tháng yếu |
+| P2 | Facet City vs Resort: stance + BAR riêng | Tránh một policy “one-size” làm lệch RevPAR |
+| P3 | Dashboard: actual vs Naive vs SARIMAX PI theo tháng | Cảnh báo sớm khi demand lệch dải 95% |
+
+---
+
+## 8. KPI
 
 | Metric | Value |
 |---|---|
@@ -209,11 +255,12 @@ File: [`forecast_next_6m.csv`](./figures/18/forecast_next_6m.csv)
 
 ---
 
-## 8. Giới hạn (statsmodels + dữ liệu ngắn)
+## 9. Giới hạn (statsmodels + dữ liệu ngắn)
 
 - Chỉ ~26 điểm → seasonal HW không fit trên train holdout; SARIMAX PI rất rộng.  
 - AIC trên train không đảm bảo thắng Naive ngoài mẫu.  
 - Dataset lệch năm (2015 H2 / 2017 cắt Aug) — forecast 2018 mang tính minh họa.  
+- Gợi ý chiến lược ở mục 7 là **recommend-only** trên proxy lịch sử; cần validate với pickup thực tế và chi phí channel.  
 - Bước tiếp: thêm năm dữ liệu, hoặc SARIMAX + exog (`lead_time`, channel mix); nối ADR playbook ở [`17_adr_strategy_analysis.md`](17_adr_strategy_analysis.md).
 
 ---
