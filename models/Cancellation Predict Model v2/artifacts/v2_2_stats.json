@@ -1,0 +1,25 @@
+{
+  "mcnemar_vs_v21_0_51": {
+    "n01_Awrong_Bright": 995,
+    "n10_Aright_Bwrong": 587,
+    "p_value": 7.8176621265494235e-25
+  },
+  "bootstrap_delta_auc_v22_minus_v21": {
+    "delta_auc_mean": 0.02381010445323308,
+    "ci95_low": 0.021181132720838033,
+    "ci95_high": 0.02616880796400237,
+    "n_boot": 500
+  },
+  "fpr_two_proportion": {
+    "fpr_v21_0_51": 0.2781790693767848,
+    "fpr_v22": 0.24685032756593314,
+    "z": -5.493604597608362,
+    "p_value": 3.9381168104313247e-08,
+    "n_negatives": 11906
+  },
+  "cv_roc_auc": {
+    "v21": 0.8659652803720893,
+    "v22": 0.8895529642290813
+  },
+  "decision": "SHIP_CANDIDATE"
+}

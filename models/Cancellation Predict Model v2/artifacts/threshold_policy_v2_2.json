@@ -1,0 +1,83 @@
+{
+  "policy_name": "v2_2_global_t=0.25",
+  "rule_type": "global",
+  "thresholds": {
+    "t": 0.25
+  },
+  "constraint": {
+    "min_recall_cancel": 0.85
+  },
+  "test_metrics": {
+    "threshold": 0.25,
+    "roc_auc": 0.8957005417968634,
+    "recall_cancel": 0.8606398969293536,
+    "precision_cancel": 0.5769396861954801,
+    "f1_cancel": 0.6907962771458118,
+    "accuracy": 0.7833725774316247,
+    "tn": 8967,
+    "fp": 2939,
+    "fn": 649,
+    "tp": 4008,
+    "system": "v2_2_calibrated"
+  },
+  "baselines": {
+    "v2_at_0.35": {
+      "threshold": 0.35,
+      "roc_auc": 0.871152052108419,
+      "recall_cancel": 0.8992913893064205,
+      "precision_cancel": 0.4916647100258277,
+      "f1_cancel": 0.6357495256166983,
+      "accuracy": 0.7102578035380064,
+      "tn": 7576,
+      "fp": 4330,
+      "fn": 469,
+      "tp": 4188
+    },
+    "v2_1_at_0.28": {
+      "threshold": 0.28,
+      "roc_auc": 0.8719555961971237,
+      "recall_cancel": 0.9516856345286665,
+      "precision_cancel": 0.425826287471176,
+      "f1_cancel": 0.5883836707600398,
+      "accuracy": 0.6256113023003079,
+      "tn": 5930,
+      "fp": 5976,
+      "fn": 225,
+      "tp": 4432
+    },
+    "v2_1_at_0.51": {
+      "threshold": 0.51,
+      "roc_auc": 0.8719555961971237,
+      "recall_cancel": 0.8531243289671462,
+      "precision_cancel": 0.5453671928620453,
+      "f1_cancel": 0.6653826829676771,
+      "accuracy": 0.7587393588118094,
+      "tn": 8594,
+      "fp": 3312,
+      "fn": 684,
+      "tp": 3973
+    }
+  },
+  "selection": {
+    "protocol": "CalibratedClassifierCV isotonic cv=3; threshold on 15% train val; refit full train",
+    "val_metrics": {
+      "threshold": 0.25,
+      "roc_auc": 0.8900011753309164,
+      "recall_cancel": 0.854688618468146,
+      "precision_cancel": 0.5719760479041917,
+      "f1_cancel": 0.6853207059836418,
+      "accuracy": 0.7793318575166029,
+      "tn": 5357,
+      "fp": 1787,
+      "fn": 406,
+      "tp": 2388
+    }
+  },
+  "n_test": 16563,
+  "data": "hotel_bookings_v5.csv",
+  "split": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "stratify": true
+  }
+}

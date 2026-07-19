@@ -1,0 +1,82 @@
+[
+  {
+    "feature": "num__required_car_parking_spaces",
+    "mean_abs_shap": 0.9147124155179001
+  },
+  {
+    "feature": "cat__country_PRT",
+    "mean_abs_shap": 0.694037141873512
+  },
+  {
+    "feature": "cat__market_segment_Online TA",
+    "mean_abs_shap": 0.4328686521346982
+  },
+  {
+    "feature": "num__lead_time",
+    "mean_abs_shap": 0.3537826492189882
+  },
+  {
+    "feature": "num__price_per_person",
+    "mean_abs_shap": 0.33217703368524104
+  },
+  {
+    "feature": "num__special_requests_per_night",
+    "mean_abs_shap": 0.3192028632485493
+  },
+  {
+    "feature": "cat__market_segment_Offline TA/TO",
+    "mean_abs_shap": 0.30408652766368544
+  },
+  {
+    "feature": "num__booking_changes",
+    "mean_abs_shap": 0.20104815907044443
+  },
+  {
+    "feature": "cat__customer_type_Transient",
+    "mean_abs_shap": 0.1971445254015127
+  },
+  {
+    "feature": "num__is_online_ta",
+    "mean_abs_shap": 0.15841448131113273
+  },
+  {
+    "feature": "num__total_of_special_requests",
+    "mean_abs_shap": 0.1459898716137624
+  },
+  {
+    "feature": "num__lead_time_per_night",
+    "mean_abs_shap": 0.14394276949812
+  },
+  {
+    "feature": "num__log_lead_time",
+    "mean_abs_shap": 0.1375090204801072
+  },
+  {
+    "feature": "num__total_guests",
+    "mean_abs_shap": 0.12035316880033635
+  },
+  {
+    "feature": "num__arrival_month_mapped",
+    "mean_abs_shap": 0.10569704357742697
+  },
+  {
+    "feature": "cat__country_GBR",
+    "mean_abs_shap": 0.10237480220689038
+  },
+  {
+    "feature": "num__history_cancel_rate",
+    "mean_abs_shap": 0.0929169300235822
+  },
+  {
+    "feature": "cat__country_DEU",
+    "mean_abs_shap": 0.09032642514203004
+  },
+  {
+    "feature": "num__is_repeated_guest",
+    "mean_abs_shap": 0.0813510856553594
+  },
+  {
+    "feature": "cat__country_FRA",
+    "mean_abs_shap": 0.07855991351721979
+  }
+]
