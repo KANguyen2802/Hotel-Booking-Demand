@@ -12,6 +12,7 @@
 |---------------------|----------------------|------------|
 | **Xếp hạng rủi ro / scoring cân bằng** (AUC + Precision) | **LightGBM v2** | AUC 0,871 · Precision Hủy 0,49 · FP thấp hơn RF |
 | **Không bỏ sót hủy** (inventory protection / overbooking) | **LightGBM v2.1** | Recall 0,952 @ 0,28 · FN thấp nhất chuỗi |
+| **Giảm false alarm (FP), Recall ≥ 0,85** | **LightGBM v2.1 @ 0,51** | FP 3.312 (−45% so @ 0,28) · xem kịch bản E / báo cáo 09 FP reduction |
 | **Baseline RF dễ diễn giải (Gini)** | RF v1.2 | AUC 0,840 · Recall 0,94 @ 0,35 · SHAP đầy đủ |
 | **Không khuyến nghị làm production chính** | RF v1.1 | Bị v1.2 và LightGBM vượt về AUC |
 
@@ -113,6 +114,16 @@ v1.2 thắng v1.1 trên AUC (+0,009) với cùng ngưỡng 0,35 và Recall ~0,94
   - ngưỡng **0,35** → gần v2 về Recall nhưng vẫn cao hơn (0,927)
   - ngưỡng **0,50** → F1 tốt hơn (0,661)
 
+### Kịch bản E — Giảm false alarm (FP), giữ Recall ≥ 0,85
+
+- **Chọn: LightGBM v2.1 @ ngưỡng 0,51** (policy `global_t=0.51`)
+- Ưu tiên: giảm FP (~5.976 → **3.312**, −45%) trong khi Recall Hủy vẫn ≥ 0,85 (đạt **0,853**)
+- Precision Hủy tăng 0,426 → **0,545**; trade-off FN tăng (225 → 684)
+- Đã so sánh dual-score (v2 ∧ v2.1) và ngưỡng theo segment (Online TA vs khác) — **không thắng** global @ 0,51 trên test
+- Artifact: `artifacts/fp_reduction_policy_v2_1.json`
+- Báo cáo: [`09_fp_reduction_v2_1.md`](09_fp_reduction_v2_1.md)
+- **Không** thay kịch bản B: khi cần inventory protection vẫn dùng v2.1 @ **0,28**
+
 ---
 
 ## 5. Khuyến nghị triển khai
@@ -120,15 +131,17 @@ v1.2 thắng v1.1 trên AUC (+0,009) với cùng ngưỡng 0,35 và Recall ~0,94
 | Ưu tiên | Hành động | Phiên bản |
 |--------|-----------|-----------|
 | 1 | Production scoring mặc định (cân bằng) | **v2** |
-| 2 | Mode “bảo vệ phòng trống” / hold chặt | **v2.1** |
-| 3 | Báo cáo / giải thích cho stakeholder quen RF | **v1.2** (tham chiếu) |
-| 4 | Không dùng v1 / v1.1 làm production chính | — |
+| 2 | Mode “bảo vệ phòng trống” / hold chặt | **v2.1 @ 0,28** |
+| 3 | Mode giảm cảnh báo giả (Recall ≥ 0,85) | **v2.1 @ 0,51** (policy FP reduction) |
+| 4 | Báo cáo / giải thích cho stakeholder quen RF | **v1.2** (tham chiếu) |
+| 5 | Không dùng v1 / v1.1 làm production chính | — |
 
 **Quy tắc vận hành đề xuất:**
 
-1. Lưu song song hai ngưỡng / hai model: **v2 (Precision)** và **v2.1 (Recall)**.
+1. Lưu song song các mode: **v2 (Precision)**, **v2.1 @ 0,28 (Recall max)**, **v2.1 @ 0,51 (giảm FP)**.
 2. Đo chi phí thực tế của FP (giảm trải nghiệm khách / yêu cầu cọc thừa) vs FN (phòng trống / mất doanh thu).
 3. Chỉ promote params mới khi CV ROC-AUC (hoặc metric nghiệp vụ đã chốt) **tốt hơn** artifact hiện tại — cơ chế draft đã có ở v2.1.
+4. Policy giảm FP chỉ đổi ngưỡng quyết định — không thay `best_params_v2_1.json`.
 
 ---
 
@@ -141,3 +154,4 @@ v1.2 thắng v1.1 trên AUC (+0,009) với cùng ngưỡng 0,35 và Recall ~0,94
 | v1.2 | [08_cancellation_model_v1_2.md](08_cancellation_model_v1_2.md) | `08_cancellation_model_v1_2.ipynb` |
 | v2 | [09_cancellation_model_v2.md](09_cancellation_model_v2.md) | `09_cancellation_model_v2.ipynb` |
 | **v2.1** | [09_cancellation_model_v2_1.md](09_cancellation_model_v2_1.md) | `09_cancellation_model_v2_1.ipynb` + `best_params_v2_1.json` |
+| **FP reduction (E)** | [09_fp_reduction_v2_1.md](09_fp_reduction_v2_1.md) | `09_fp_reduction_threshold_dual_score.ipynb` + `fp_reduction_policy_v2_1.json` |

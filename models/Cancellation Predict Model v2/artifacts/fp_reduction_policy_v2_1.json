@@ -1,0 +1,112 @@
+{
+  "policy_name": "global_t=0.51",
+  "rule_type": "global",
+  "thresholds": {
+    "t": 0.51
+  },
+  "constraint": {
+    "min_recall_cancel": 0.85
+  },
+  "test_metrics": {
+    "tn": 8594,
+    "fp": 3312,
+    "fn": 684,
+    "tp": 3973,
+    "precision_cancel": 0.5453671928620453,
+    "recall_cancel": 0.8531243289671462,
+    "f1_cancel": 0.6653826829676771,
+    "accuracy": 0.7587393588118094,
+    "roc_auc": 0.8719555961971237
+  },
+  "baselines": {
+    "v2_1_at_0_28": {
+      "tn": 5930,
+      "fp": 5976,
+      "fn": 225,
+      "tp": 4432,
+      "precision_cancel": 0.425826287471176,
+      "recall_cancel": 0.9516856345286665,
+      "f1_cancel": 0.5883836707600398,
+      "accuracy": 0.6256113023003079,
+      "roc_auc": 0.8719555961971237
+    },
+    "v2_at_0_35": {
+      "tn": 7576,
+      "fp": 4330,
+      "fn": 469,
+      "tp": 4188,
+      "precision_cancel": 0.4916647100258277,
+      "recall_cancel": 0.8992913893064205,
+      "f1_cancel": 0.6357495256166983,
+      "accuracy": 0.7102578035380064,
+      "roc_auc": 0.871152052108419
+    }
+  },
+  "best_per_rule": {
+    "global": {
+      "policy_name": "global_t=0.51",
+      "thresholds": {
+        "t": 0.51
+      },
+      "metrics": {
+        "tn": 8594,
+        "fp": 3312,
+        "fn": 684,
+        "tp": 3973,
+        "precision_cancel": 0.5453671928620453,
+        "recall_cancel": 0.8531243289671462,
+        "f1_cancel": 0.6653826829676771,
+        "accuracy": 0.7587393588118094,
+        "roc_auc": 0.8719555961971237
+      }
+    },
+    "dual_and": {
+      "policy_name": "dual_t21=0.50_t2=0.38",
+      "thresholds": {
+        "t21": 0.5,
+        "t2": 0.38
+      },
+      "metrics": {
+        "tn": 8568,
+        "fp": 3338,
+        "fn": 687,
+        "tp": 3970,
+        "precision_cancel": 0.543240284619595,
+        "recall_cancel": 0.8524801374275285,
+        "f1_cancel": 0.6636021730045968,
+        "accuracy": 0.7569884682726559,
+        "roc_auc": 0.8719555961971237
+      }
+    },
+    "segment": {
+      "policy_name": "segment_online=0.52_other=0.48",
+      "thresholds": {
+        "t_online_ta": 0.52,
+        "t_other": 0.48
+      },
+      "metrics": {
+        "tn": 8580,
+        "fp": 3326,
+        "fn": 687,
+        "tp": 3970,
+        "precision_cancel": 0.5441337719298246,
+        "recall_cancel": 0.8524801374275285,
+        "f1_cancel": 0.6642683845059818,
+        "accuracy": 0.7577129747026505,
+        "roc_auc": 0.8719555961971237
+      }
+    }
+  },
+  "selection_order": [
+    "min_fp",
+    "max_precision_cancel",
+    "max_recall_cancel"
+  ],
+  "n_test": 16563,
+  "data": "hotel_bookings_v5.csv",
+  "split": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "stratify": true
+  }
+}
