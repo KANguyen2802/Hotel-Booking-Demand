@@ -24,7 +24,7 @@
 
 ![So sánh FP / Recall / Precision](./figures/09_v2_2/chart_06.png)
 
-**Nhận xét chart_06:** Ba cột metric cho thấy trade-off rõ giữa các mode. v2.1@0,28 thắng Recall nhưng FP cao nhất; v2.1@0,51 đã giảm FP nhưng vẫn thua **v2.2** trên cả FP, Precision và AUC. Đường đỏ Recall = 0,85 xác nhận v2.2 vẫn nằm trên ràng buộc nghiệp vụ đã chốt ở báo cáo FP reduction.
+**Nhận xét:** Ba cột metric cho thấy trade-off rõ giữa các mode. v2.1@0,28 thắng Recall nhưng FP cao nhất; v2.1@0,51 đã giảm FP nhưng vẫn thua **v2.2** trên cả FP, Precision và AUC. Đường đỏ Recall = 0,85 xác nhận v2.2 vẫn nằm trên ràng buộc nghiệp vụ đã chốt ở báo cáo FP reduction.
 
 ---
 
@@ -34,13 +34,13 @@ AUC v2.2 = **0,896**. Ma trận @ ngưỡng 0,25: TP = **4.008** · FP = **2.939
 
 ![Confusion Matrix & ROC Curve — LightGBM v2.2](./figures/09_v2_2/chart_01.png)
 
-**Nhận xét chart_01:**
+**Nhận xét:**
 - **Confusion:** TN chiếm khối lớn nhất — mô hình không “flag hết” như v2.1@0,28. FN = 649 cao hơn mode inventory (225) nhưng thấp hơn v2.1@0,51 (684).
 - **ROC:** đường v2.2 (AUC ≈ 0,90) tách rõ khỏi v2 / v2.1 (≈ 0,87) trên gần như toàn bộ FPR — cải thiện **ranking** chứ không chỉ đổi ngưỡng.
 
 ![Confusion matrix v2.1@0.51 vs v2.2](./figures/09_v2_2/chart_07.png)
 
-**Nhận xét chart_07:** So cạnh nhau với baseline giảm-FP cũ (v2.1@0,51), v2.2 giảm đồng thời FP (−373) và FN (−35). Đây là win–win hiếm trên cùng ràng buộc Recall ≥ 0,85 — khác với dual-score / segment threshold (đã thử ở notebook FP reduction và không thắng).
+**Nhận xét:** So cạnh nhau với baseline giảm-FP cũ (v2.1@0,51), v2.2 giảm đồng thời FP (−373) và FN (−35). Đây là win–win hiếm trên cùng ràng buộc Recall ≥ 0,85 — khác với dual-score / segment threshold (đã thử ở notebook FP reduction và không thắng).
 
 ---
 
@@ -53,7 +53,7 @@ AUC v2.2 = **0,896**. Ma trận @ ngưỡng 0,25: TP = **4.008** · FP = **2.939
 
 ![Phân phối xác suất dự đoán P(hủy)](./figures/09_v2_2/chart_02.png)
 
-**Nhận xét chart_02:** Sau **isotonic calibration**, phân phối class Không hủy dồn về xác suất thấp (median 0,084) — khác v2.1 raw (median ~0,28) vốn bị `scale_pos_weight` đẩy lên. Ngưỡng 0,25 nằm giữa hai đỉnh → cắt được nhiều FP mà vẫn giữ Recall ≥ 0,85. Khoảng trống giữa hai mật độ rộng hơn v2.1 → phù hợp scoring vận hành.
+**Nhận xét:** Sau **isotonic calibration**, phân phối class Không hủy dồn về xác suất thấp (median 0,084) — khác v2.1 raw (median ~0,28) vốn bị `scale_pos_weight` đẩy lên. Ngưỡng 0,25 nằm giữa hai đỉnh → cắt được nhiều FP mà vẫn giữ Recall ≥ 0,85. Khoảng trống giữa hai mật độ rộng hơn v2.1 → phù hợp scoring vận hành.
 
 ---
 
@@ -61,11 +61,11 @@ AUC v2.2 = **0,896**. Ma trận @ ngưỡng 0,25: TP = **4.008** · FP = **2.939
 
 ![Calibration curve](./figures/09_v2_2/chart_08.png)
 
-**Nhận xét chart_08:** Đường v2.2 (calibrated) bám gần đường chéo hơn v2.1 raw — P(hủy) có thể đọc gần như tần suất thực tế. Đây là lý do ngưỡng tối ưu trên train-val chuyển được sang test mà không “vỡ” ràng buộc Recall.
+**Nhận xét:** Đường v2.2 (calibrated) bám gần đường chéo hơn v2.1 raw — P(hủy) có thể đọc gần như tần suất thực tế. Đây là lý do ngưỡng tối ưu trên train-val chuyển được sang test mà không “vỡ” ràng buộc Recall.
 
 ![FP–Recall theo ngưỡng v2.2](./figures/09_v2_2/chart_09.png)
 
-**Nhận xét chart_09:**
+**Nhận xét:**
 - Trái: FP giảm khi tăng t; điểm đỏ `t* = 0,25` là winner trên train-val (min FP ‖ Rec ≥ 0,85), nằm dưới đường FP của v2.1@0,51.
 - Phải: đường FP–Recall cho thấy vùng khả thi bên phải đường Recall = 0,85; điểm chọn nằm gần “góc” tốt (FP thấp, Rec đủ).
 
@@ -90,7 +90,7 @@ AUC v2.2 = **0,896**. Ma trận @ ngưỡng 0,25: TP = **4.008** · FP = **2.939
 | 9 | `market_segment_Offline TA/TO` | ~25.1k | Segment | Offline ↓ | Đối trọng Online |
 | 10 | `is_online_ta` | ~24.0k | Segment flag (mới) | = 1 ↑ | Echo Online TA |
 
-**Nhận xét chart_03:** Top gain vẫn giữ các driver EDA/hypothesis (`lead_time`, Online TA, PRT, `price_per_person`) nhưng **v2.2 đẩy `required_car_parking_spaces` và `special_requests_per_night` lên hạng cao** — đây là phần lớn gain so ablation chỉ calibrate v2.1 (xem mục 8).
+**Nhận xét:** Top gain vẫn giữ các driver EDA/hypothesis (`lead_time`, Online TA, PRT, `price_per_person`) nhưng **v2.2 đẩy `required_car_parking_spaces` và `special_requests_per_night` lên hạng cao** — đây là phần lớn gain so ablation chỉ calibrate v2.1 (xem mục 8).
 
 ---
 
@@ -122,19 +122,19 @@ AUC v2.2 = **0,896**. Ma trận @ ngưỡng 0,25: TP = **4.008** · FP = **2.939
 | 9 | `customer_type_Transient` | 0,197 | = Transient | ↑ | Khách lẻ rủi ro hơn |
 | 10 | `is_online_ta` | 0,158 | = 1 | ↑ | Flag song song segment |
 
-**Nhận xét chart_04:** Ranking SHAP gần với gain ở các tín hiệu mới (parking, special_requests_per_night). Gain đo split quality, SHAP đo đóng góp trung bình có hướng trên mẫu — cả hai đều đưa parking lên #1.
+**Nhận xét:** Ranking SHAP gần với gain ở các tín hiệu mới (parking, special_requests_per_night). Gain đo split quality, SHAP đo đóng góp trung bình có hướng trên mẫu — cả hai đều đưa parking lên #1.
 
 ### 6.3 Beeswarm toàn cục
 
 ![SHAP Beeswarm — Top 20](./figures/09_v2_2/chart_05.png)
 
-**Nhận xét chart_05:** Mỗi chấm = một booking trong mẫu 2.000. `required_car_parking_spaces` cao (đỏ) tập trung SHAP âm mạnh (kéo giảm P(hủy)); `country_PRT` / Online TA / `lead_time` cao đẩy SHAP dương. Beeswarm xác nhận hướng đọc bảng 6.2 và khớp hotspot BRD (Online TA + lead dài).
+**Nhận xét:** Mỗi chấm = một booking trong mẫu 2.000. `required_car_parking_spaces` cao (đỏ) tập trung SHAP âm mạnh (kéo giảm P(hủy)); `country_PRT` / Online TA / `lead_time` cao đẩy SHAP dương. Beeswarm xác nhận hướng đọc bảng 6.2 và khớp hotspot BRD (Online TA + lead dài).
 
 ### 6.4 Waterfall — 2 ví dụ local
 
 ![SHAP Waterfall — P(hủy) cao / thấp](./figures/09_v2_2/chart_10.png)
 
-**Nhận xét chart_10:**
+**Nhận xét:**
 - **P(hủy) cao:** tổ hợp PRT / Online TA / lead dài / giá/người thấp (hoặc thiếu tín hiệu an toàn) đẩy xác suất lên.
 - **P(hủy) thấp:** parking, nhiều special requests, Offline/Direct, lead ngắn kéo xác suất xuống.  
 Dùng waterfall khi RM cần giải thích **từng booking** trước khi hold / yêu cầu cọc.
