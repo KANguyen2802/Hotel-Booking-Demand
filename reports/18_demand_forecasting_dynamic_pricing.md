@@ -5,7 +5,8 @@
 > **Skill:** [`statsmodels`](../.cursor/skills/statsmodels/SKILL.md) — Workflow 4 Time Series Forecasting  
 > **Library:** statsmodels **0.14.6**  
 > **Notebook:** [`notebooks/18_demand_forecasting_dynamic_pricing.ipynb`](../notebooks/18_demand_forecasting_dynamic_pricing.ipynb)  
-> **Figures:** [`reports/figures/18/`](./figures/18/) · KPI: [`kpi_summary.csv`](./figures/18/kpi_summary.csv)
+> **Figures:** [`reports/figures/18/`](./figures/18/) · KPI: [`kpi_summary.csv`](./figures/18/kpi_summary.csv)  
+> **Cách đọc chart / chỉ số:** [`docs/Guide - Cach doc va danh gia mo hinh demand forecasting.md`](../docs/Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20demand%20forecasting.md)
 
 ---
 
@@ -29,6 +30,8 @@ Dự báo demand tháng cho dynamic pricing theo pipeline **statsmodels**:
 
 ![Monthly demand](./figures/18/01_monthly_demand_overall.png)
 
+**Đọc biểu đồ:** Panel trên = nhịp booking tháng; panel dưới = City vs Resort. Nhìn sóng lặp năm và xem hai property có cùng hình không — lệch thì tách rate calendar.
+
 **Insight**
 
 - Chuỗi **26 tháng** (2015-07 → 2017-08), tổng **59.527** stay bookings — đủ thấy chu kỳ năm nhưng ngắn cho model phức tạp.  
@@ -39,6 +42,8 @@ Dự báo demand tháng cho dynamic pricing theo pipeline **statsmodels**:
 ### 1.2 Seasonal decompose
 
 ![Seasonal decompose](./figures/18/02_seasonal_decompose.png)
+
+**Đọc biểu đồ:** Tách chuỗi thành xu hướng chậm + nhịp 12 tháng + nhiễu. Seasonal sóng rõ = tín hiệu chính; đừng coi trend nhẹ trên 26 tháng là tăng trưởng chắc 2018.
 
 **Insight**
 
@@ -71,6 +76,8 @@ Dự báo demand tháng cho dynamic pricing theo pipeline **statsmodels**:
 
 ![ACF/PACF](./figures/18/03_acf_pacf.png)
 
+**Đọc biểu đồ:** “Trí nhớ” của chuỗi sau khi làm phẳng — cột vượt band = còn dính lag đó. Chỉ lấy hướng; chốt model ở holdout MAPE, không đếm ACF tay.
+
 **Insight**
 
 - ACF/PACF trên chuỗi đã diff giúp gợi ý bậc `q` / `p`; spike gần lag mùa gợi ý `P`/`Q`.  
@@ -98,6 +105,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
 ![SARIMAX diagnostics](./figures/18/04_sarimax_diagnostics.png)
 
+**Đọc biểu đồ:** Phần sai trên train có còn chu kỳ không? Quanh 0 + correlogram trong band = train ổn — chưa đủ để chọn primary (phải xem holdout).
+
 | Model | Ljung–Box p (lag 6) | Ljung–Box p (lag 12) |
 |---|---:|---:|
 | SARIMAX | 0,17 | 0,18 |
@@ -118,6 +127,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
 ![Holdout forecasts + PI](./figures/18/05_holdout_forecasts.png)
 
+**Đọc biểu đồ:** Cuộc thi 6 tháng giấu: ai sát đường actual? Vùng tô = rủi ro SARIMAX — rộng thì biết biên, khó chốt một số cứng cho BAR.
+
 **Insight**
 
 - Seasonal Naive bám actual tốt trên 6 tháng cuối; SARIMAX lệch hơn ở vài tháng nhưng **PI 95% bao phủ 100%** actual.  
@@ -128,6 +139,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 ### 4.2 Holdout MAPE
 
 ![Holdout MAPE](./figures/18/05_holdout_metrics.png)
+
+**Đọc biểu đồ:** Cột càng thấp càng tốt. Trọng tài chọn volume forecast — ở đây Naive thắng.
 
 | Model | MAE | RMSE | MAPE |
 |---|---:|---:|---:|
@@ -150,6 +163,8 @@ Primary cho stance pricing = model thắng holdout → **Seasonal Naive**.
 SARIMAX / Holt–Winters giữ làm đối chứng + interval.
 
 ![Forecast horizon](./figures/18/07_forecast_horizon.png)
+
+**Đọc biểu đồ:** Trái đường xám = lịch sử; phải = 6 tháng dự báo. Quan trọng hơn mức điểm tuyệt đối là cả 3 model có cùng hướng mùa (Oct cao, Dec–Jan thấp) không.
 
 | Tháng | Seasonal Naive | SARIMAX | SARIMAX 95% PI | Holt–Winters |
 |---|---:|---:|---|---:|
@@ -174,6 +189,8 @@ File: [`forecast_next_6m.csv`](./figures/18/forecast_next_6m.csv)
 ## 6. Pricing stance
 
 ![Pricing stance](./figures/18/08_pricing_stance.png)
+
+**Đọc biểu đồ:** Cột ≥1,15 (đỏ) = PROTECT giá; ≤0,90 (xanh) = STIMULATE; giữa = NEUTRAL. Đổi forecast volume thành hành động tháng.
 
 | Tháng | Forecast (Naive) | Pressure | Stance |
 |---|---:|---:|---|

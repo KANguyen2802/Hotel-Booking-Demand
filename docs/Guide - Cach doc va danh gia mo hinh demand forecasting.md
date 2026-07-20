@@ -3,9 +3,10 @@
 > **Phạm vi:** `notebooks/18_demand_forecasting_dynamic_pricing.ipynb` (statsmodels Workflow 4)  
 > **Biến mục tiêu:** demand tháng = số stay bookings (`is_canceled = 0`)  
 > **Dữ liệu:** `hotel_bookings_v5.csv` · 59.527 stay · **26 tháng** (2015-07 → 2017-08)  
-> **Báo cáo kết quả:** `reports/18_demand_forecasting_dynamic_pricing.md`  
+> **Báo cáo kết quả:** [`reports/18_demand_forecasting_dynamic_pricing.md`](../reports/18_demand_forecasting_dynamic_pricing.md)  
 > **Hình ảnh:** `reports/figures/18/`  
-> **Library:** statsmodels **0.14.6**
+> **Library:** statsmodels **0.14.6**  
+> **Guide cùng bộ:** [ADR (18a)](Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20ADR%20forecasting.md) · [RevPAR (18b)](Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20RevPAR%20forecasting.md)
 
 ---
 
@@ -14,9 +15,11 @@
 Sau khi đọc xong, bạn có thể:
 
 1. Đọc đúng **mọi chỉ số** time-series (ADF/KPSS, AIC/BIC, MAE/RMSE/MAPE, Ljung–Box, PI coverage).
-2. Đọc **toàn bộ chart** trong notebook / báo cáo 18.
+2. Đọc **toàn bộ chart** trong notebook / báo cáo 18 — kể cả khi chưa quen thuật ngữ thống kê.
 3. Phân biệt *model thắng trên train (AIC)* vs *model thắng ngoài mẫu (holdout MAPE)*.
 4. Liên kết chỉ số ↔ chart ↔ **pricing stance** (PROTECT / NEUTRAL / STIMULATE).
+
+**Cách dùng phần chart (PHẦN II):** mỗi biểu đồ có khối *Biểu đồ này nói gì?* → *Nhìn gì trước?* → *Kết luận cho pricing* → *Đừng hiểu nhầm*. Đọc khối này trước; bảng kỹ thuật bên dưới dành khi cần đào sâu.
 
 ---
 
@@ -188,22 +191,39 @@ Trên 6 tháng cuối:
 
 # PHẦN II — Cách đọc chart đánh giá mô hình
 
+> Mỗi chart tự đứng được: đọc 4 khối plain-language trước, rồi mới xem bảng kỹ thuật nếu cần.
+
+---
+
 ## Chart 01 — Monthly demand (overall + by hotel)
 
 ![Chart 01 — Monthly demand](../reports/figures/18/01_monthly_demand_overall.png)
 
-| Panel | Cách đọc |
+### Biểu đồ này nói gì?
+
+Đây là “nhịp thở” số phòng bán được theo tháng. Panel trên = tổng cả hai khách sạn; panel dưới = tách City vs Resort để thấy mùa có giống nhau không.
+
+### Nhìn gì trước?
+
+1. **Sóng lặp mỗi năm chưa?** (cao hè / thấp đông) → nếu có, model có mùa sẽ thắng model “phẳng”.  
+2. **Đỉnh–đáy cách nhau bao xa?** Biên độ lớn = pricing theo tháng có ý nghĩa.  
+3. **Hai đường City/Resort có cùng hình không?** Nếu lệch → đừng áp một rate calendar cho cả hai.
+
+### Kết luận cho pricing (nb 18)
+
+Demand có mùa rõ trên 26 tháng (~59.527 stay) → dùng forecast theo tháng là đúng hướng; rolling average dễ “làm mượt” mất peak.
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
 |---|---|
-| **Trên** | Chuỗi bookings tháng tổng; nhìn peak/trough theo năm |
-| **Dưới** | Tách City vs Resort — so biên độ và pha mùa |
+| Đường đi lên nhẹ = “năm sau chắc tăng mạnh” | Mẫu lệch năm (2015 chỉ H2, 2017 cắt Aug) — trend chỉ mang tính gợi ý |
+| Hai hotel cùng chart = cùng policy | Biên độ khác → nên tách property khi triển khai |
 
-**Cách đọc visual:**
-
-1. Có chu kỳ lặp theo năm không? (có → seasonal model).  
-2. Trend tăng/giảm dài hạn có rõ không? (mẫu lệch năm → đừng over-interpret).  
-3. Hai hotel có cùng hình dạng không? (không → cân nhắc forecast tách property).
-
-**Liên kết chỉ số:** n = 26 tháng; total stays = 59.527.
+| Panel | Đọc kỹ thuật ngắn |
+|---|---|
+| **Trên** | Chuỗi bookings tháng tổng; peak/trough theo năm |
+| **Dưới** | City vs Resort — biên độ và pha mùa |
 
 ---
 
@@ -211,16 +231,33 @@ Trên 6 tháng cuối:
 
 ![Chart 02 — Decompose](../reports/figures/18/02_seasonal_decompose.png)
 
-| Thành phần | Ý nghĩa |
+### Biểu đồ này nói gì?
+
+Máy “tách” chuỗi gốc thành 3 lớp: xu hướng chậm (trend), nhịp năm (seasonal), và phần nhiễu còn lại (residual). Giống tách bản nhạc thành bass / beat / noise.
+
+### Nhìn gì trước?
+
+1. **Seasonal** có sóng rõ, lặp 12 tháng không? → tín hiệu chính của hotel.  
+2. **Trend** chỉ hơi nghiêng hay nhảy mạnh? → nghiêng nhẹ trên mẫu ngắn = đừng tin quá.  
+3. **Residual** còn “nhám” không? → còn chỗ cho SARIMAX bắt phần còn lại.
+
+### Kết luận cho pricing
+
+Seasonality năm mạnh → Seasonal Naive / SARIMAX seasonal / Holt–Winters hợp lý hơn ARIMA thuần (không có mùa).
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
 |---|---|
-| Observed | Chuỗi gốc |
-| Trend | Xu hướng chậm |
-| Seasonal | Chu kỳ 12 tháng |
-| Residual | Phần còn lại sau trend+season |
+| Trend tăng = kế hoạch bán 2018 chắc chắn cao hơn | Trend trên ~26 điểm dễ bị lệch cấu trúc năm — chỉ minh họa |
+| Residual đẹp = model forecast chắc thắng | Decompose chưa phải model; phải xem holdout MAPE |
 
-**Cách đọc:** Seasonal biên độ lớn → Naive / SARIMAX seasonal / HW hợp lý. Residual vẫn “nhám” → còn chỗ cho AR/MA.
-
-**Đọc sai:** coi trend tăng nhẹ trên 26 tháng là “tăng trưởng chắc chắn 2018”.
+| Thành phần | Ý nghĩa đời thường |
+|---|---|
+| Observed | Số booking thật từng tháng |
+| Trend | “Mức nền” thay đổi chậm |
+| Seasonal | Tháng nào thường đông / vắng (lặp mỗi năm) |
+| Residual | Phần không giải thích được bằng trend + mùa |
 
 ---
 
@@ -228,12 +265,31 @@ Trên 6 tháng cuối:
 
 ![Chart 03 — ACF/PACF](../reports/figures/18/03_acf_pacf.png)
 
-| Chart | Gợi ý order |
-|---|---|
-| **ACF** | Cutoff ở lag q → nghiêng MA(q); spike lag 12 → seasonal MA |
-| **PACF** | Cutoff ở lag p → nghiêng AR(p); spike lag 12 → seasonal AR |
+### Biểu đồ này nói gì?
 
-**Cách đọc với n nhỏ:** chỉ lấy **hướng**; quyết định cuối = AIC grid + holdout (nb chọn `(0,1,2)×(1,0,1,12)`).
+Hai “thước đo trí nhớ” của chuỗi sau khi đã làm phẳng (diff): tháng này còn “dính” tháng trước / cùng tháng năm trước bao nhiêu. Dùng để **gợi ý** cấu hình SARIMAX, không phải chấm điểm cuối.
+
+### Nhìn gì trước?
+
+1. Cột vượt ra ngoài dải xanh đậm = tương quan còn đáng kể ở lag đó.  
+2. Spike quanh lag 12 = còn “nhớ mùa năm trước”.  
+3. Với chỉ ~25 điểm sau diff → lấy **hướng**, đừng đếm từng cột để chọn order tay.
+
+### Kết luận cho pricing
+
+Nb 18 dùng ACF/PACF + lưới AIC → chốt `SARIMAX(0,1,2)×(1,0,1,12)`. Chart này giải thích *vì sao thử seasonal AR/MA*, không giải thích *vì sao Naive thắng holdout*.
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
+|---|---|
+| Thấy spike đẹp → model đó chắc thắng pricing | Order cuối = AIC trên train + **MAPE holdout** |
+| Không hiểu ACF = bỏ qua cả notebook | Có thể bỏ qua chi tiết; nhảy thẳng Chart 05a/05b để chọn model |
+
+| Chart | Gợi ý order (kỹ thuật) |
+|---|---|
+| **ACF** | Cutoff lag q → MA(q); spike lag 12 → seasonal MA |
+| **PACF** | Cutoff lag p → AR(p); spike lag 12 → seasonal AR |
 
 ---
 
@@ -241,16 +297,33 @@ Trên 6 tháng cuối:
 
 ![Chart 04 — Diagnostics](../reports/figures/18/04_sarimax_diagnostics.png)
 
-| Panel điển hình | Cách đọc “ổn” |
+### Biểu đồ này nói gì?
+
+Kiểm tra “phần sai” của SARIMAX trên **dữ liệu đã học** còn mang hình dạng có hệ thống không. Nếu residual nhảy lung tung quanh 0 và không còn chu kỳ rõ → model đã “hút” hết cấu trúc dễ thấy trên train.
+
+### Nhìn gì trước?
+
+1. **Residuals theo thời gian:** dao động quanh 0, không lệch một phía lâu dài.  
+2. **Histogram / Q–Q:** gần đối xứng / gần đường chuẩn (mẫu ngắn thì hơi lệch vẫn bình thường).  
+3. **Correlogram:** hầu hết cột nằm trong band → ít “trí nhớ” còn sót.
+
+### Kết luận cho pricing
+
+Diagnostics đạt (Ljung–Box p > 0,05) → **được phép** dùng SARIMAX cho dải rủi ro. Vẫn **chưa đủ** để chọn primary: phải xem Chart 05.
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
 |---|---|
-| Residuals vs time | Dao động quanh 0, không trend rõ |
+| Q–Q hơi lệch → bỏ SARIMAX | Mẫu ngắn dễ lệch hình; ưu tiên Ljung–Box + holdout |
+| Residual sạch = forecast ngoài mẫu tốt | Train sạch ≠ thắng 6 tháng holdout (ở đây Naive vẫn thắng MAPE) |
+
+| Panel | Dấu hiệu “ổn” |
+|---|---|
+| Residuals vs time | Quanh 0, không trend rõ |
 | Histogram / KDE | Gần đối xứng quanh 0 |
 | Q–Q | Điểm gần đường chuẩn |
-| Correlogram | Spike trong band → ít autocorrelation còn lại |
-
-**Liên kết chỉ số:** Ljung–Box p lag 6/12 > 0,05 → khớp “residual sạch” trên train.
-
-**Đọc sai:** thấy Q–Q hơi lệch trên mẫu ngắn rồi bác bỏ model đang thắng holdout.
+| Correlogram | Spike trong band |
 
 ---
 
@@ -258,18 +331,35 @@ Trên 6 tháng cuối:
 
 ![Chart 05a — Holdout forecasts](../reports/figures/18/05_holdout_forecasts.png)
 
-| Thành phần visual | Ý nghĩa |
+### Biểu đồ này nói gì?
+
+Cuộc thi công khai: 6 tháng cuối **giấu** khỏi lúc train, rồi các model phải đoán. Đường đậm = thực tế; các đường đứt/chấm = dự báo; vùng tô = khoảng “chắc khoảng 95%” của SARIMAX.
+
+### Nhìn gì trước?
+
+1. **Ai bám sát đường actual nhất?** → Seasonal Naive.  
+2. **Actual có nằm trong vùng tô không?** → có (coverage 100%).  
+3. **Vùng tô rộng hay hẹp?** → rất rộng → biết được biên rủi ro, khó chốt một số cứng cho BAR.
+
+### Kết luận cho pricing
+
+- **Point forecast volume** = Seasonal Naive.  
+- **Dải rủi ro** = SARIMAX 95% PI (cảnh báo khi actual lệch khỏi PI).  
+- Holt trend thiếu mùa → lệch ở tháng mùa mạnh.
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
 |---|---|
-| Đường actual | Sự thật 6 tháng cuối |
-| Seasonal Naive / Holt / SARIMAX | Point forecast từng model |
-| Vùng tô (PI) | 95% prediction interval của SARIMAX |
-| Đường dọc train/test | Ranh giới holdout |
+| Coverage 100% = model hoàn hảo | PI rộng dễ “ôm” mọi thứ — độ bao phủ cao nhưng ít hữu ích để chốt giá |
+| Lấy cận trên PI làm target bán | PI là biên bất định, không phải KPI doanh số |
 
-**Cách đọc:**
-
-1. Model nào bám actual sát nhất? → Naive.  
-2. Actual có nằm trong PI không? → có (coverage 100%).  
-3. PI có quá rộng để “chốt giá cứng” không? → có → dùng PI làm cảnh báo, không làm target duy nhất.
+| Thành phần | Ý nghĩa đời thường |
+|---|---|
+| Actual | Sự thật 6 tháng cuối |
+| Các đường model | Mỗi model “đoán” thế nào |
+| Vùng tô (PI) | Khoảng rủi ro SARIMAX |
+| Đường dọc xám | Ranh giới train → test |
 
 ---
 
@@ -277,15 +367,30 @@ Trên 6 tháng cuối:
 
 ![Chart 05b — Holdout MAPE](../reports/figures/18/05_holdout_metrics.png)
 
-**Cách đọc:** cột thấp hơn = tốt hơn. Thứ tự nb 18: Naive < Holt trend < SARIMAX.
+### Biểu đồ này nói gì?
 
-**Quy tắc quyết định:**
+Bảng xếp hạng lỗi theo %: cột càng thấp càng đoán sát. Đây là **trọng tài cuối** chọn model cho rate calendar volume.
+
+### Nhìn gì trước?
+
+1. Cột thấp nhất = primary. Nb 18: **Naive ~6,9%** < Holt ~8,1% < SARIMAX ~9,1%.  
+2. Gap ~2 điểm % so với SARIMAX ≈ hàng trăm booking/tháng — đủ lớn để chọn Naive.  
+3. Đừng so AIC ở đây — AIC ở train, MAPE ở holdout.
+
+### Kết luận cho pricing
 
 ```
 Holdout MAPE thấp nhất  →  primary point forecast (pricing volume)
-AIC thấp nhất (train)   →  chỉ chọn trong họ SARIMAX / diagnostics
+AIC thấp nhất (train)   →  chỉ lọc trong họ SARIMAX / diagnostics
 PI hẹp + coverage tốt   →  tin uncertainty band hơn
 ```
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
+|---|---|
+| SARIMAX thua MAPE → xóa hẳn | Giữ SARIMAX cho PI / đối chứng |
+| Cột gần nhau = chọn model nào cũng được | Với revenue, 2 điểm MAPE vẫn đáng kể trên chuỗi ngắn |
 
 ---
 
@@ -293,14 +398,33 @@ PI hẹp + coverage tốt   →  tin uncertainty band hơn
 
 ![Chart 07 — Forecast horizon](../reports/figures/18/07_forecast_horizon.png)
 
+### Biểu đồ này nói gì?
+
+Sau khi chọn xong model, vẽ **6 tháng phía trước** (Sep 2017 → Feb 2018, minh họa). Lịch sử bên trái đường xám; phần phải là dự báo + vùng rủi ro SARIMAX.
+
+### Nhìn gì trước?
+
+1. **Hướng mùa có đồng thuận không?** Oct cao hơn, Dec–Jan thấp hơn — cả 3 model cùng hướng.  
+2. **Mức điểm có lệch nhau không?** (vd. Nov) → càng lệch càng nên mềm khi chốt BAR.  
+3. **PI có nở dần theo tháng không?** → càng xa càng bất định.
+
+### Kết luận cho pricing
+
+Tín hiệu mùa (cao/thấp) đáng tin hơn con số tuyệt đối từng model. Primary stance lấy **Seasonal Naive**; đọc kèm PI khi model lệch nhau.
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
+|---|---|
+| Đây là kế hoạch bán chắc chắn 2018 | Horizon minh họa trên dữ liệu cắt Aug-2017 |
+| Chọn một đường rồi khóa cứng cả quý | Khi 3 model phân kỳ → giữ linh hoạt channel / LOS |
+
 | Đường | Vai trò |
 |---|---|
-| Actual (lịch sử) | Quan sát đến Aug-2017 |
-| Seasonal Naive | Primary stance input |
+| Actual | Quan sát đến Aug-2017 |
+| Seasonal Naive | Primary input cho stance |
 | SARIMAX + PI | Đối chứng + biên rủi ro |
-| Holt–Winters | Đối chứng seasonal (full sample đủ 2 chu kỳ) |
-
-**Cách đọc:** ba model **đồng thuận hướng mùa** (Oct cao, Dec–Jan thấp) dù mức tuyệt đối khác → tín hiệu mùa đáng tin hơn mức điểm từng model.
+| Holt–Winters | Đối chứng seasonal (full sample) |
 
 ---
 
@@ -308,17 +432,42 @@ PI hẹp + coverage tốt   →  tin uncertainty band hơn
 
 ![Chart 08 — Pricing stance](../reports/figures/18/08_pricing_stance.png)
 
+### Biểu đồ này nói gì?
+
+Đổi forecast volume thành **hành động giá**: cột cao (đỏ) = tháng đông → bảo vệ giá; cột thấp (xanh) = tháng vắng → kích cầu. Hai đường ngang = ngưỡng PROTECT (≥1,15) và STIMULATE (≤0,90).
+
+### Nhìn gì trước?
+
+1. Cột **vượt 1,15** chưa? → PROTECT.  
+2. Cột **dưới 0,90** chưa? → STIMULATE.  
+3. Nằm giữa → NEUTRAL (giữ BAR, chỉnh tactical).
+
+### Kết luận cho pricing (nb 18)
+
+| Tháng (minh họa) | Stance | Việc nên nghĩ tới |
+|---|---|---|
+| Dec–Jan | **STIMULATE** | Promo, early-bird, package |
+| Oct | NEUTRAL gần protect | Hạn chế dump OTA; weekend chọn lọc |
+| Sep / Nov / Feb | NEUTRAL | Hold BAR, chỉnh theo lead-time / channel |
+
+Ghép với ADR season / weekend / lead-time ở [`17_adr_strategy_analysis.md`](../reports/17_adr_strategy_analysis.md) và playbook §7 trong báo cáo 18.
+
+### Đừng hiểu nhầm
+
+| Dễ hiểu sai | Hiểu đúng hơn |
+|---|---|
+| STIMULATE = cắt giá sâu mọi kênh | Kích cầu có floor; tránh race-to-bottom OTA |
+| PROTECT = tăng giá vô điều kiện | Chủ yếu *không xả* inventory / hạn chế dump; vẫn cần đọc pickup tuần |
+| Chỉ nhìn chart volume là đủ | Đối chiếu thêm ADR (18a) và RevPAR (18b) cùng tháng |
+
 | Màu / ngưỡng | Stance | Hành động gợi ý |
 |---|---|---|
 | Đỏ / ≥ 1,15 | PROTECT | Harden BAR, hạn chế dump OTA |
 | Vàng / 0,90–1,15 | NEUTRAL | Hold BAR, weekend tactical |
 | Xanh / ≤ 0,90 | STIMULATE | Promo, early-bird, package |
 
-**Nb 18:** Dec–Jan xanh (STIMULATE); Oct gần ngưỡng protect; còn lại NEUTRAL.
-
-**Liên kết nb 17:** stance volume này ghép với ADR season / weekend premium / lead-time ladder — xem `reports/17_adr_strategy_analysis.md` và mục chiến lược trong `reports/18_...md` §7.
-
 ---
+
 
 # PHẦN III — Liên kết chỉ số ↔ chart ↔ quyết định
 
@@ -375,10 +524,12 @@ Chuỗi ngắn (~26 tháng) + seasonality mạnh
 | `reports/18_demand_forecasting_dynamic_pricing.md` | Báo cáo kết quả + insight + gợi ý chiến lược |
 | `reports/figures/18/*.png` | Hình dùng trong guide này |
 | `reports/figures/18/kpi_summary.csv` | KPI tóm tắt (local; `*.csv` đang gitignore) |
+| [`Guide ADR forecasting`](Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20ADR%20forecasting.md) | Đọc chart / chỉ số series ADR (18a) |
+| [`Guide RevPAR forecasting`](Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20RevPAR%20forecasting.md) | Đọc chart / chỉ số series RevPAR (18b) |
 | `reports/17_adr_strategy_analysis.md` | ADR season / weekend / lead-time để ghép pricing |
 | `docs/Guide - Cach doc chi so thong ke.md` | ADF/p-value/effect size & khái niệm thống kê nền |
 | `docs/Guide - Cach doc va danh gia mo hinh du doan.md` | Guide mô hình hủy phòng (classification) — so sánh tư duy đánh giá |
 
 ---
 
-*Cập nhật: 19/7/2026 — hướng dẫn đọc chỉ số & chart mô hình demand forecasting dynamic pricing (kèm hình từ `18_demand_forecasting_dynamic_pricing.ipynb`).*
+*Cập nhật: 20/7/2026 — bổ sung khối đọc chart plain-language (self-contained); liên kết guide ADR / RevPAR.*

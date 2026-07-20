@@ -7,6 +7,7 @@
 > **Library:** statsmodels **0.14.6**  
 > **Notebook:** [`notebooks/18a_demand_forecasting_dynamic_pricing_adr.ipynb`](../notebooks/18a_demand_forecasting_dynamic_pricing_adr.ipynb)  
 > **Figures:** [`reports/figures/18_adr/`](./figures/18_adr/) · KPI: [`kpi_summary.csv`](./figures/18_adr/kpi_summary.csv)  
+> **Cách đọc chart / chỉ số:** [`docs/Guide - Cach doc va danh gia mo hinh ADR forecasting.md`](../docs/Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20ADR%20forecasting.md)  
 > **Liên kết:** demand [`18_...md`](18_demand_forecasting_dynamic_pricing.md) · ADR strategy [`17_adr_strategy_analysis.md`](17_adr_strategy_analysis.md) · RevPAR [`18b_...md`](18b_demand_forecasting_dynamic_pricing_RevPAR.md)
 
 ---
@@ -33,6 +34,8 @@ Dự báo **ADR tháng** cho dynamic pricing theo pipeline **statsmodels**:
 
 ![Monthly ADR](./figures/18_adr/01_monthly_adr_overall.png)
 
+**Đọc biểu đồ:** Giá trung bình đêm theo tháng. Nhìn đáy đông / đỉnh hè và xem City vs Resort có cùng pha không — lệch thì tách BAR ladder.
+
 **Insight**
 
 - Chuỗi **26 tháng** (2015-07 → 2017-08), mean ADR **102,77 €** — đủ thấy chu kỳ năm nhưng ngắn cho model phức tạp.  
@@ -43,6 +46,8 @@ Dự báo **ADR tháng** cho dynamic pricing theo pipeline **statsmodels**:
 ### 1.2 Seasonal decompose
 
 ![Seasonal decompose](./figures/18_adr/02_seasonal_decompose.png)
+
+**Đọc biểu đồ:** Tách ADR thành trend + nhịp năm + nhiễu. Seasonal rõ = bắt buộc model có mùa; trend lên nhẹ giúp hiểu vì sao Naive (copy năm trước) dễ thua.
 
 **Insight**
 
@@ -75,6 +80,8 @@ Dự báo **ADR tháng** cho dynamic pricing theo pipeline **statsmodels**:
 
 ![ACF/PACF](./figures/18_adr/03_acf_pacf.png)
 
+**Đọc biểu đồ:** Gợi ý bậc AR/MA sau khi làm phẳng giá — chỉ lấy hướng; order cuối = AIC + holdout (`(2,1,2)×(1,0,1,12)`).
+
 **Insight**
 
 - ACF/PACF trên chuỗi đã diff giúp gợi ý bậc `q` / `p`; spike gần lag mùa gợi ý `P`/`Q`.  
@@ -102,6 +109,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
 ![SARIMAX diagnostics](./figures/18_adr/04_sarimax_diagnostics.png)
 
+**Đọc biểu đồ:** Residual train có sạch không? Sạch → được dùng point SARIMAX; **chưa** đủ để tin PI (phải xem coverage holdout).
+
 | Model | Ljung–Box p (lag 6) | Ljung–Box p (lag 12) |
 |---|---:|---:|
 | SARIMAX | 0,13 | 0,56 |
@@ -121,6 +130,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
 ![Holdout forecasts + PI](./figures/18_adr/05_holdout_forecasts.png)
 
+**Đọc biểu đồ:** Ai sát giá thật 6 tháng cuối? SARIMAX thắng điểm; vùng tô hẹp nhưng hay trượt actual → **đừng** chốt BAR theo PI.
+
 **Insight**
 
 - **SARIMAX** bám actual tốt hơn Naive trên cửa sổ Mar–Aug 2017 (đặc biệt Apr–Jun).  
@@ -131,6 +142,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 ### 4.2 Holdout MAPE
 
 ![Holdout MAPE](./figures/18_adr/05_holdout_metrics.png)
+
+**Đọc biểu đồ:** Cột thấp = lỗi nhỏ. SARIMAX ~6,7% thắng rõ Naive ~13% — primary BAR lấy SARIMAX (khác Demand/RevPAR).
 
 | Model | MAE | RMSE | MAPE |
 |---|---:|---:|---:|
@@ -153,6 +166,8 @@ Primary cho stance pricing = model thắng holdout → **SARIMAX**.
 Seasonal Naive / Holt–Winters giữ làm đối chứng.
 
 ![Forecast horizon](./figures/18_adr/07_forecast_horizon.png)
+
+**Đọc biểu đồ:** 6 tháng tới — hướng mùa đồng thuận (Sep cao → Nov–Jan thấp); SARIMAX thường cao hơn Naive ~15–22 € → kiểm tra pickup trước khi lock BAR cao.
 
 | Tháng | **SARIMAX (primary)** | SARIMAX 95% PI | Seasonal Naive | Holt–Winters |
 |---|---:|---|---:|---:|
@@ -177,6 +192,8 @@ File: [`forecast_next_6m.csv`](./figures/18_adr/forecast_next_6m.csv)
 ## 6. Pricing stance (ADR pressure)
 
 ![Pricing stance](./figures/18_adr/08_pricing_stance.png)
+
+**Đọc biểu đồ:** Cột đỏ (≥1,15) = PROTECT giá; xanh (≤0,90) = STIMULATE có floor. Sep rõ PROTECT; Nov/Jan/Feb STIMULATE.
 
 | Tháng | Forecast (SARIMAX) | Pressure | Stance |
 |---|---:|---:|---|

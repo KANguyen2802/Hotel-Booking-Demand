@@ -10,6 +10,7 @@
 > **Library:** statsmodels **0.14.6**  
 > **Notebook:** [`notebooks/18b_demand_forecasting_dynamic_pricing_RevPAR.ipynb`](../notebooks/18b_demand_forecasting_dynamic_pricing_RevPAR.ipynb)  
 > **Figures:** [`reports/figures/18_revpar/`](./figures/18_revpar/) · KPI: [`kpi_summary.csv`](./figures/18_revpar/kpi_summary.csv)  
+> **Cách đọc chart / chỉ số:** [`docs/Guide - Cach doc va danh gia mo hinh RevPAR forecasting.md`](../docs/Guide%20-%20Cach%20doc%20va%20danh%20gia%20mo%20hinh%20RevPAR%20forecasting.md)  
 > **Liên kết:** demand [`18_...md`](18_demand_forecasting_dynamic_pricing.md) · ADR forecast [`18a_...md`](18a_demand_forecasting_dynamic_pricing_adr.md) · ADR strategy [`17_adr_strategy_analysis.md`](17_adr_strategy_analysis.md)
 
 ---
@@ -36,6 +37,8 @@ Dự báo **RevPAR tháng** (metric tổng hợp giá × công suất proxy) the
 
 ![Monthly RevPAR](./figures/18_revpar/01_monthly_revpar_overall.png)
 
+**Đọc biểu đồ:** Một số “giá × công suất (proxy)” theo tháng. Thấp hơn ADR là bình thường; khi thấp bất thường hãy tách xem do giá hay do phòng vắng.
+
 **Insight**
 
 - Chuỗi **26 tháng**, mean RevPAR **73,92 €** — thấp hơn mean ADR (~103 €) đúng như kỳ vọng vì nhân với Occupancy_Rate < 1.  
@@ -46,6 +49,8 @@ Dự báo **RevPAR tháng** (metric tổng hợp giá × công suất proxy) the
 ### 1.2 Seasonal decompose
 
 ![Seasonal decompose](./figures/18_revpar/02_seasonal_decompose.png)
+
+**Đọc biểu đồ:** Tách RevPAR thành trend + nhịp năm + nhiễu. Seasonal rõ = giống Demand; đừng dừng ở chart này để chọn primary.
 
 **Insight**
 
@@ -78,6 +83,8 @@ Dự báo **RevPAR tháng** (metric tổng hợp giá × công suất proxy) the
 
 ![ACF/PACF](./figures/18_revpar/03_acf_pacf.png)
 
+**Đọc biểu đồ:** Gợi ý cấu hình SARIMAX sau diff — chỉ lấy hướng; ai thắng pricing xem cột MAPE holdout.
+
 **Insight**
 
 - ACF/PACF định hướng `p,q` / `P,Q`; n nhỏ → quyết định cuối = **AIC + holdout**.  
@@ -104,6 +111,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
 ![SARIMAX diagnostics](./figures/18_revpar/04_sarimax_diagnostics.png)
 
+**Đọc biểu đồ:** Train rất “sạch” (p Ljung–Box cao) — ví dụ điển hình: diagnostics đẹp vẫn có thể thua holdout nặng.
+
 | Model | Ljung–Box p (lag 6) | Ljung–Box p (lag 12) |
 |---|---:|---:|
 | SARIMAX | 0,81 | 0,98 |
@@ -123,6 +132,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 
 ![Holdout forecasts + PI](./figures/18_revpar/05_holdout_forecasts.png)
 
+**Đọc biểu đồ:** Naive bám actual; SARIMAX thiên thấp; vùng tô gần như không ôm được thực tế (coverage 0%) → bỏ PI khỏi điều hành.
+
 **Insight**
 
 - **Seasonal Naive** bám actual sát trên Mar–Aug 2017; SARIMAX **thiên thấp** rõ ở Apr–Aug.  
@@ -133,6 +144,8 @@ Train = 20 tháng đầu · Test/holdout = 6 tháng cuối.
 ### 4.2 Holdout MAPE
 
 ![Holdout MAPE](./figures/18_revpar/05_holdout_metrics.png)
+
+**Đọc biểu đồ:** Cột thấp = tốt. Naive ~5% thắng cách biệt SARIMAX ~18% — primary KPI tổng hợp = Naive (giống Demand, khác ADR).
 
 | Model | MAE | RMSE | MAPE |
 |---|---:|---:|---:|
@@ -155,6 +168,8 @@ Primary cho stance = model thắng holdout → **Seasonal Naive**.
 SARIMAX / Holt–Winters đối chứng (+ PI minh họa).
 
 ![Forecast horizon](./figures/18_revpar/07_forecast_horizon.png)
+
+**Đọc biểu đồ:** 6 tháng tới — hướng mùa đồng thuận (Sep cao, Dec–Jan đáy); đọc kèm Demand + ADR, bỏ qua cận PI.
 
 | Tháng | **Seasonal Naive (primary)** | SARIMAX | SARIMAX 95% PI | Holt–Winters |
 |---|---:|---:|---|---:|
@@ -179,6 +194,8 @@ File: [`forecast_next_6m.csv`](./figures/18_revpar/forecast_next_6m.csv)
 ## 6. Pricing stance (RevPAR pressure)
 
 ![Pricing stance](./figures/18_revpar/08_pricing_stance.png)
+
+**Đọc biểu đồ:** Đỏ = PROTECT doanh thu phòng; xanh = STIMULATE. Sep PROTECT; Nov–Feb STIMULATE — luôn đối chiếu bảng 3 stance (§7.3) trước khi lock.
 
 | Tháng | Forecast (Naive) | Pressure | Stance |
 |---|---:|---:|---|
