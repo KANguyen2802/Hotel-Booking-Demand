@@ -16,7 +16,7 @@ _Hotel Booking Demand · facet City / Resort · báo cáo điều hành end-to-e
 
 ## 🔄 Pipeline overview
 
-Chuỗi notebook tạo một đường ống quyết định giá theo tháng, tách City / Resort từ đầu đến cuối.
+Chuỗi notebook tạo một pipeline quyết định giá theo tháng, tách City / Resort từ đầu đến cuối.
 
 ```mermaid
 flowchart LR
@@ -223,25 +223,25 @@ stateDiagram-v2
 
 ## 🧭 Decision map — từ tín hiệu đến BAR
 
+_Monthly BAR decision sequence: forecast, elasticity, optimization, and ML feed a median ensemble with guardrails for the revenue manager._
+
 ```mermaid
 sequenceDiagram
-    accTitle: Monthly BAR Decision Sequence
-    accDescr: Each month pulls forecast stance, elasticity-based optimum, and ML signals into a median ensemble with guardrails.
-    participant FC as Forecast 20*
+    participant FC as Forecast 20
     participant EL as Elasticity 22
-    participant OPT as Optimize 23
+    participant OP as Optimize 23
     participant ML as ML 24
     participant ENS as Ensemble
     participant RM as Revenue manager
 
-    FC->>OPT: P0 · Q0 · pressures
-    EL->>OPT: ε primary
-    OPT->>ENS: p_star · action
-    FC->>ML: lags · pressures
-    ML->>ENS: ml_adr · ml_stance
+    FC->>OP: P0, Q0, pressures
+    EL->>OP: eps primary
+    OP->>ENS: p_star, action
+    FC->>ML: lags, pressures
+    ML->>ENS: ml_adr, ml_stance
     FC->>ENS: fc_adr
-    ENS->>RM: bar_recommend · floor · ceil · final_action
-    RM-->>ENS: pickup validate / lock or override
+    ENS->>RM: bar_recommend, floor, ceil, final_action
+    RM-->>ENS: pickup validate or lock override
 ```
 
 | Nếu… | Thì ưu tiên… | Vì… |
