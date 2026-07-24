@@ -108,9 +108,17 @@ Mục lục đóng gói: [reports/29_35_closing_pack_index.md](reports/29_35_clo
 
 ---
 
-## Dashboard (xem số nhanh)
+## Dashboard điều hành
 
-Có giao diện theo dõi RevPAR, hủy, và mô phỏng giá trong thư mục `dashboard/` (dành cho team phân tích / RM khi cần xem biểu đồ). Nội dung quyết định vẫn lấy từ bộ báo cáo `reports/` ở trên.
+Ba bản theo dõi RevPAR, hủy, và mô phỏng / theo dõi giá:
+
+| Bản | Thư mục | Cách chạy / ghi chú |
+|-----|---------|---------------------|
+| **Streamlit (local web)** | `dashboard/` | `streamlit run dashboard/Home.py` |
+| **HTML (local + Vercel)** | `dashboard-html/` | Local: `cd dashboard-html && python -m http.server 8765` → http://localhost:8765 · Live: [hotel-booking-demand-dashboard.vercel.app](https://hotel-booking-demand-dashboard.vercel.app) |
+| **Power BI** | `dashboard-powerbi/` | Đang thực hiện — xem README trong thư mục |
+
+Nguồn dữ liệu dashboard: star-schema CSV trong `data/star schema/` (`revpar_monthly.csv`, `hotel_bookings_normalized.csv`). Nội dung quyết định vẫn lấy từ bộ báo cáo `reports/` ở trên.
 
 ---
 

@@ -1,0 +1,11 @@
+# Never ship source DB tooling, notebooks, or export scripts to the CDN
+_export_data.py
+*.duckdb
+*.csv
+*.ipynb
+.env
+.env.*
+**/__pycache__/
+.DS_Store
+Thumbs.db
+README.md

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <title>Hotel Booking Demand · Local Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Filters">
+      <div class="brand">
+        <h1>Hotel Booking Demand</h1>
+      </div>
+
+      <nav class="nav" aria-label="Views">
+        <button type="button" class="nav-btn active" data-view="overview">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Overview
+        </button>
+        <button type="button" class="nav-btn" data-view="revpar">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6"/></svg>
+          RevPAR
+        </button>
+        <button type="button" class="nav-btn" data-view="cancellation">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+          Cancellation
+        </button>
+        <button type="button" class="nav-btn" data-view="simulator">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg>
+          Pricing Simulator
+        </button>
+      </nav>
+
+      <div class="filter-block">
+        <h3>Filters</h3>
+        <span class="filter-label">Hotel</span>
+        <div class="chip-row" id="hotelChips"></div>
+
+        <span class="filter-label">Year</span>
+        <div class="chip-row" id="yearChips"></div>
+      </div>
+
+      <div class="sidebar-actions">
+        <button type="button" class="btn btn-secondary" id="btnResetFilters">Reset filters</button>
+        <button type="button" class="btn btn-ghost" id="btnResetVisuals">Reset visuals</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 class="page-title" id="pageTitle">Overview</h2>
+          <p class="page-subtitle" id="pageSubtitle">CEO snapshot — bookings, revenue, RevPAR và sức khỏe hủy phòng từ star schema đã chuẩn hóa.</p>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="btn-icon" id="btnTheme" aria-label="Toggle light/dark mode" title="Light / Dark">
+            <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" hidden><path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="brush-bar" id="brushBar" hidden>
+        <span class="brush-label">Brush</span>
+        <div class="chip-row" id="brushChips"></div>
+        <button type="button" class="btn btn-ghost" id="btnClearBrush">Clear brush</button>
+      </div>
+
+      <!-- Overview -->
+      <section class="view active" id="view-overview" aria-label="Overview">
+        <div class="kpi-grid" id="overviewKpis"></div>
+        <div class="grid-2">
+          <article class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">Revenue & bookings</h3>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-ghost" data-reset-range="overviewTrend">Reset window</button>
+              </div>
+            </div>
+            <div class="range-chart">
+              <div class="range-overview" id="rangeTrack-overviewTrend">
+                <canvas id="chartOverviewTrendMini"></canvas>
+                <div class="range-window" id="rangeWindow-overviewTrend" role="slider" aria-label="Time range window">
+                  <span class="range-handle range-handle-l" aria-hidden="true"></span>
+                  <span class="range-handle range-handle-r" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="range-meta">
+                <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
+                <span class="range-label" id="rangeLabel-overviewTrend"></span>
+              </div>
+              <div class="chart-wrap tall"><canvas id="chartOverviewTrend"></canvas></div>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">Reservation status</h3>
+            </div>
+            <div class="chart-wrap"><canvas id="chartStatus"></canvas></div>
+          </article>
+        </div>
+        <div class="grid-2 equal">
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Market segment mix</h3></div>
+            <div class="chart-wrap"><canvas id="chartSegment"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Top countries</h3></div>
+            <div class="chart-wrap"><canvas id="chartCountries"></canvas></div>
+          </article>
+        </div>
+        <p class="footnote">Nguồn: <code>vw_revpar_monthly</code> · <code>vw_booking_normalized</code></p>
+      </section>
+
+      <!-- RevPAR -->
+      <section class="view" id="view-revpar" aria-label="RevPAR">
+        <div class="kpi-grid cols-4" id="revparKpis"></div>
+        <div class="grid-2 wide-left">
+          <article class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">RevPAR by month</h3>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-ghost" data-reset-range="revparTrend">Reset window</button>
+              </div>
+            </div>
+            <div class="range-chart">
+              <div class="range-overview" id="rangeTrack-revparTrend">
+                <canvas id="chartRevparTrendMini"></canvas>
+                <div class="range-window" id="rangeWindow-revparTrend" role="slider" aria-label="Time range window">
+                  <span class="range-handle range-handle-l" aria-hidden="true"></span>
+                  <span class="range-handle range-handle-r" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="range-meta">
+                <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
+                <span class="range-label" id="rangeLabel-revparTrend"></span>
+              </div>
+              <div class="chart-wrap tall"><canvas id="chartRevparTrend"></canvas></div>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">ADR × Occupancy</h3></div>
+            <div class="chart-wrap tall"><canvas id="chartAdrOcc"></canvas></div>
+          </article>
+        </div>
+        <div class="stack">
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Seasonality heatmap</h3></div>
+            <div id="revparHeatmap" class="heatmap heatmap-full" aria-label="RevPAR seasonality heatmap"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Latest month RevPAR by hotel</h3></div>
+            <div class="chart-wrap"><canvas id="chartRevparLatest"></canvas></div>
+          </article>
+        </div>
+        <article class="panel">
+          <div class="panel-head"><h3 class="panel-title">Monthly panel</h3></div>
+          <div class="table-wrap" id="revparTable"></div>
+        </article>
+        <p class="footnote">RevPAR = ADR × Occupancy · panel từ <code>vw_revpar_monthly</code></p>
+      </section>
+
+      <!-- Cancellation -->
+      <section class="view" id="view-cancellation" aria-label="Cancellation Analysis">
+        <div class="kpi-grid cols-4" id="cancelKpis"></div>
+        <div class="grid-2 wide-right">
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Status mix</h3></div>
+            <div class="chart-wrap"><canvas id="chartCancelStatus"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">Cancel & no-show trend</h3>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-ghost" data-reset-range="cancelTrend">Reset window</button>
+              </div>
+            </div>
+            <div class="range-chart">
+              <div class="range-overview" id="rangeTrack-cancelTrend">
+                <canvas id="chartCancelTrendMini"></canvas>
+                <div class="range-window" id="rangeWindow-cancelTrend" role="slider" aria-label="Time range window">
+                  <span class="range-handle range-handle-l" aria-hidden="true"></span>
+                  <span class="range-handle range-handle-r" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="range-meta">
+                <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
+                <span class="range-label" id="rangeLabel-cancelTrend"></span>
+              </div>
+              <div class="chart-wrap tall"><canvas id="chartCancelTrend"></canvas></div>
+            </div>
+          </article>
+        </div>
+        <div class="grid-2 equal">
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Cancel rate by lead time</h3></div>
+            <div class="chart-wrap"><canvas id="chartCancelLead"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Cancel rate by deposit</h3></div>
+            <div class="chart-wrap"><canvas id="chartCancelDeposit"></canvas></div>
+          </article>
+        </div>
+        <div class="grid-2 equal">
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">By distribution channel</h3></div>
+            <div class="chart-wrap"><canvas id="chartCancelChannel"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">By market segment</h3></div>
+            <div class="chart-wrap"><canvas id="chartCancelSegment"></canvas></div>
+          </article>
+        </div>
+        <p class="footnote">Nguồn: <code>vw_booking_normalized</code> · status Canceled / Check-Out / No-Show</p>
+      </section>
+
+      <!-- Simulator -->
+      <section class="view" id="view-simulator" aria-label="Pricing Simulator">
+        <div class="sim-levers">
+          <div class="panel-head" style="margin-bottom:0.75rem">
+            <h3 class="panel-title">Scenario levers</h3>
+            <div class="panel-actions">
+              <button type="button" class="btn btn-secondary" id="btnResetLevers">Reset levers</button>
+            </div>
+          </div>
+          <div class="sim-levers-grid">
+            <div class="slider-block">
+              <div class="slider-head"><span>ADR change (%)</span><strong id="valAdr">+5%</strong></div>
+              <input type="range" id="levAdr" min="-30" max="30" value="5" step="1" />
+            </div>
+            <div class="slider-block">
+              <div class="slider-head"><span>Occupancy change (pp)</span><strong id="valOcc">-2 pp</strong></div>
+              <input type="range" id="levOcc" min="-20" max="20" value="-2" step="1" />
+            </div>
+            <div class="slider-block">
+              <div class="slider-head"><span>Cancel rate change (pp)</span><strong id="valCancel">0 pp</strong></div>
+              <input type="range" id="levCancel" min="-15" max="15" value="0" step="1" />
+            </div>
+          </div>
+          <label class="check-row" style="margin-top:0.75rem">
+            <input type="checkbox" id="levElasticity" />
+            Apply soft ADR→Occ elasticity (−0.25)
+          </label>
+        </div>
+
+        <div class="kpi-grid cols-4" id="simKpis"></div>
+
+        <div class="grid-2 wide-left">
+          <article class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">Baseline vs scenario RevPAR</h3>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-ghost" data-reset-range="simTrend">Reset window</button>
+              </div>
+            </div>
+            <div class="range-chart">
+              <div class="range-overview" id="rangeTrack-simTrend">
+                <canvas id="chartSimTrendMini"></canvas>
+                <div class="range-window" id="rangeWindow-simTrend" role="slider" aria-label="Time range window">
+                  <span class="range-handle range-handle-l" aria-hidden="true"></span>
+                  <span class="range-handle range-handle-r" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="range-meta">
+                <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
+                <span class="range-label" id="rangeLabel-simTrend"></span>
+              </div>
+              <div class="chart-wrap tall"><canvas id="chartSimTrend"></canvas></div>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Δ RevPAR by month (%)</h3></div>
+            <div class="chart-wrap tall"><canvas id="chartSimDelta"></canvas></div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3 class="panel-title">Sensitivity (average month)</h3>
+          </div>
+          <div class="chart-wrap short"><canvas id="chartSimSens"></canvas></div>
+        </article>
+
+        <article class="panel" style="margin-top:0.85rem">
+          <div class="panel-head">
+            <h3 class="panel-title">Scenario table</h3>
+            <div class="panel-actions">
+              <button type="button" class="btn btn-primary" id="btnDownloadCsv">Download CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap" id="simTable"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/theme.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/rangeBrush.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
