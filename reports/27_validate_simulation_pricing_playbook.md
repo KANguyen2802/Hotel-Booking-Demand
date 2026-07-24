@@ -68,7 +68,13 @@ $$
 \mathrm{Score}(p)=\alpha\,R_{\mathrm{norm}}(p)-(1-\alpha)\,\mathrm{Risk}_{\mathrm{norm}}(p),\quad \alpha\in\{0{,}5,\,0{,}7,\,0{,}9\}.
 $$
 
-Risk proxy: $\mathrm{cancel}_0 + \hat\beta\log(p/P_0)$ với $\hat\beta$ từ hồi quy mô tả cancel~log ADR theo tháng ($\hat\beta_{\mathrm{City}}\approx 0{,}069$, $\hat\beta_{\mathrm{Resort}}\approx 0{,}145$).
+Risk proxy:
+
+$$
+\mathrm{cancel}_{0} + \hat{\beta}\log(p/P_{0})
+$$
+
+với $\hat{\beta}$ từ hồi quy mô tả cancel ~ log ADR theo tháng ($\hat{\beta}(\mathrm{City})\approx 0{,}069$, $\hat{\beta}(\mathrm{Resort})\approx 0{,}145$).
 
 ### 2.6 Back-test 2015-07 → 2016-12
 
