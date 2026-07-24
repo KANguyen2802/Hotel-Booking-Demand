@@ -62,13 +62,69 @@ Analytics behind the screens produced an **asymmetric pricing playbook** (City P
 
 ## 4. Design Thinking Approach
 
-1. **Empathize** — Stakeholders (GM, RM, FO, Finance) need one story: raise revenue without uncontrolled cancel/walk/OTA conflict.
-2. **Define** — Problem framed as *property-asymmetric demand*, not a single portfolio elasticity.
-3. **Ideate** — Separate pages for Overview / RevPAR / Cancellation / Pricing; dual local-web channels + Power BI for exec publish.
-4. **Prototype** — Streamlit multipage app + HTML static dashboard on the same star-schema facts.
-5. **Test / refine** — Filters (hotel, year), Quiet Luxury / teal-cognac visual systems, and recommend-only framing (no auto-publish of extreme +21% raises).
+The dashboard workstream combined **classic Design Thinking** with analytics and BI frameworks that match how this project actually ships decisions: property-asymmetric pricing, cancel-tier booking, and recommend-only pilots.
 
-Design principle: **show the trade-off** (ADR vs volume vs cancel risk), not a single “optimal price” number.
+### Framework stack (why each one)
+
+| Framework | Role in this project |
+|-----------|----------------------|
+| **Design Thinking** (Empathize → Test) | Outer loop for stakeholder pain → problem framing → dashboard prototypes |
+| **Double Diamond** (Discover → Deliver) | Separates *problem space* (City ≠ Resort elasticity) from *solution space* (playbook + multi-channel dashboards) |
+| **CRISP-DM** | Structures the analytics pipeline that feeds the UI (Business Understanding → Modeling → Evaluation → Deployment-as-recommend-only) |
+| **Jobs-to-be-Done (JTBD)** | Defines what GM / RM / FO / Finance hire the dashboard to do |
+| **Decision-centric IA** (Overview → Diagnose → Act) | Page architecture: Overview & RevPAR → Cancellation → Pricing Simulator |
+| **Shneiderman’s Visual Information-Seeking Mantra** | *Overview first, zoom & filter, then details-on-demand* — hotel/year filters + drill pages |
+
+### A. Jobs-to-be-Done (stakeholder jobs)
+
+| Stakeholder | Job the dashboard must help them do |
+|-------------|-------------------------------------|
+| GM | See portfolio health and City vs Resort trade-offs in one view |
+| Revenue Management | Inspect RevPAR / ADR / seasonality and stress-test BAR moves in band |
+| Front Office / Ops | Understand where cancel risk concentrates before buffer / walk decisions |
+| Finance | Trace KPI definitions and treat uplift as proxy scenarios, not committed P&L |
+
+### B. Double Diamond × Design Thinking (mapped to deliverables)
+
+```text
+DISCOVER                    DEFINE
+(Empathize)                 (Define)
+82.8k bookings · ε prior    Problem = asymmetric demand
+cancel 28% · OTA High       NOT “one price for both hotels”
+        \                      /
+         \____ Develop ____/
+              (Ideate + Prototype)
+   Playbook rules · star schema · Streamlit / HTML / Power BI pages
+                      |
+                   DELIVER
+              (Test / refine)
+   Filters · design tokens · recommend-only · pilot KPI pack
+```
+
+1. **Discover / Empathize** — Interview the decision pain: raise RevPAR without uncontrolled cancel, walk, or OTA conflict when City and Resort do not share the same demand curve.
+2. **Define** — Lock the problem statement to *property-asymmetric demand + cancel-tier inventory*, rejecting a single portfolio elasticity and rejecting live push of analytic extremes (~+21% City RAISE).
+3. **Develop / Ideate + Prototype** — Translate CRISP-DM outputs (scores, ε, ensemble bands) into four decision pages and three delivery channels on the same star-schema facts.
+4. **Deliver / Test** — Validate usability (hotel/year filters, weighted KPIs) and policy framing (what-if only; no auto-publish outside ±15% band).
+
+### C. CRISP-DM → dashboard handoff
+
+| CRISP-DM phase | Project artifact | What the dashboard exposes |
+|----------------|------------------|----------------------------|
+| Business Understanding | Exec question on RevPAR vs risk | Overview narrative KPIs |
+| Data Understanding / Preparation | `hotel_bookings_v5` → star-schema CSV | Stable facts for filters |
+| Modeling | LightGBM cancel scores, ε, BAR ensemble | Cancellation + Pricing Simulator inputs |
+| Evaluation | Back-test go/no-go, dual-objective | Guardrails in what-if framing |
+| Deployment | Recommend-only playbook + 16-week pilot | Monitoring-oriented KPI language (ΔRevPAR, Δcancel, walk, Direct) |
+
+### D. Decision-centric information architecture
+
+| Layer | Pages | Intent |
+|-------|-------|--------|
+| **Overview** | Home | Portfolio pulse — bookings, revenue, ADR, Occ, RevPAR, cancel |
+| **Diagnose** | RevPAR · Cancellation | Seasonality, mix, and cancel drivers (deposit, channel, segment, lead time) |
+| **Act (recommend-only)** | Pricing Simulator | Controlled ADR what-if inside operable bands — not RMS write-back |
+
+**North-star design principle:** show the **trade-off** (ADR vs volume vs cancel risk), not a single “optimal price” number—consistent with ensemble floor–recommend–ceil and dual-objective softening of pure-revenue optima.
 
 ---
 
