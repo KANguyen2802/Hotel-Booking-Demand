@@ -2,6 +2,8 @@
 
 Bản **dashboard điều hành** local HTML / CSS / JS (teal + cognac), filter hotel + year, light/dark, brush/cross-filter.
 
+**Live (Vercel):** [https://hotel-booking-demand-dashboard.vercel.app](https://hotel-booking-demand-dashboard.vercel.app)
+
 ## Chạy local
 
 ```bash
@@ -23,6 +25,12 @@ Nguồn: `data/star schema/revpar_monthly.csv` + `hotel_bookings_normalized.csv`
 ## Deploy Vercel (an toàn)
 
 Chỉ deploy thư mục `dashboard-html` (static). Không deploy toàn repo.
+
+Production URL ổn định:
+
+```text
+https://hotel-booking-demand-dashboard.vercel.app
+```
 
 ```bash
 cd dashboard-html
