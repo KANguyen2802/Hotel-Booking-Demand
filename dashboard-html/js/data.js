@@ -416,6 +416,68 @@
     );
   }
 
+  /**
+   * Cancel-rate samples (%) per lead_bin for boxplot / violin.
+   * One sample = cancel rate of (hotel × year_month) cell with enough bookings.
+   */
+  function cubeLeadCancelRateSamples(rows, { minBookings = 15 } = {}) {
+    const cell = new Map();
+    (rows || []).forEach((r) => {
+      if (!r.lead_bin || !r.year_month || !r.hotel) return;
+      const k = `${r.lead_bin}|${r.year_month}|${r.hotel}`;
+      if (!cell.has(k)) {
+        cell.set(k, {
+          lead_bin: r.lead_bin,
+          bookings: 0,
+          canceled: 0,
+        });
+      }
+      const g = cell.get(k);
+      g.bookings += r.bookings || 0;
+      g.canceled += r.canceled || 0;
+    });
+
+    const byLead = new Map();
+    cell.forEach((g) => {
+      if (g.bookings < minBookings) return;
+      const rate = (g.canceled / g.bookings) * 100;
+      if (!byLead.has(g.lead_bin)) byLead.set(g.lead_bin, []);
+      byLead.get(g.lead_bin).push(rate);
+    });
+
+    const labels = [
+      ...Object.keys(LEAD_ORDER).sort((a, b) => LEAD_ORDER[a] - LEAD_ORDER[b]),
+      ...[...byLead.keys()].filter((k) => LEAD_ORDER[k] == null).sort(),
+    ].filter((lab) => byLead.has(lab));
+
+    const samples = labels.map((lab) => byLead.get(lab) || []);
+    const stats = labels.map((lab, i) => {
+      const vals = [...samples[i]].sort((a, b) => a - b);
+      const n = vals.length;
+      const q = (p) => {
+        if (!n) return null;
+        const idx = (n - 1) * p;
+        const lo = Math.floor(idx);
+        const hi = Math.ceil(idx);
+        if (lo === hi) return vals[lo];
+        return vals[lo] * (hi - idx) + vals[hi] * (idx - lo);
+      };
+      const sum = vals.reduce((s, v) => s + v, 0);
+      return {
+        lead_bin: lab,
+        n,
+        min: n ? vals[0] : null,
+        q1: q(0.25),
+        median: q(0.5),
+        q3: q(0.75),
+        max: n ? vals[n - 1] : null,
+        mean: n ? sum / n : null,
+      };
+    });
+
+    return { labels, samples, stats };
+  }
+
   function seasonalityHeatmap(rows) {
     const hotels = [...new Set(rows.map((r) => r.hotel))].sort();
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -536,6 +598,7 @@
     cubeMonthlyTrend,
     cubeByKey,
     cubeLeadBins,
+    cubeLeadCancelRateSamples,
     cubeCountries,
     cubeSegments,
     cubeMonthlyRevenue,

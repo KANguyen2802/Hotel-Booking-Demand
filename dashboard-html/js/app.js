@@ -7,6 +7,7 @@
     hotels: [],
     years: [],
     brush: {},
+    leadChartMode: "bar",
     levers: { adrDelta: 5, occDelta: -2, cancelDelta: 0, elasticity: false },
     lastSimRows: [],
   };
@@ -425,9 +426,77 @@
     });
   }
 
+  function syncLeadChartModeButtons() {
+    qsa("#leadChartMode [data-lead-mode]").forEach((btn) => {
+      const on = btn.dataset.leadMode === state.leadChartMode;
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  function renderLeadChartStats(stats) {
+    const el = qs("#leadChartStats");
+    if (!el) return;
+    if (!stats || !stats.length) {
+      el.textContent = "";
+      return;
+    }
+    el.textContent = stats
+      .map((s) => {
+        if (!s.n) return `${s.lead_bin}: no samples`;
+        return `${s.lead_bin}: n=${s.n}, min=${s.min.toFixed(1)}%, Q1=${s.q1.toFixed(1)}%, median=${s.median.toFixed(1)}%, Q3=${s.q3.toFixed(1)}%, max=${s.max.toFixed(1)}%, mean=${s.mean.toFixed(1)}%`;
+      })
+      .join(" · ");
+  }
+
+  function renderLeadChart(leadRows) {
+    const { cubeLeadBins, cubeLeadCancelRateSamples } = D();
+    const caption = qs("#leadChartCaption");
+    const mode = state.leadChartMode || "bar";
+    syncLeadChartModeButtons();
+
+    if (mode === "bar") {
+      const lead = cubeLeadBins(leadRows);
+      if (caption) caption.textContent = "Tỷ lệ hủy tổng theo từng lead-time bin.";
+      renderLeadChartStats([]);
+      C().vbar(
+        "cancelLead",
+        "chartCancelLead",
+        lead.map((r) => r.lead_bin),
+        lead.map((r) => r.cancel_rate * 100),
+        C().tokens().primary,
+        {
+          asPercent: true,
+          activeLabel: state.brush.lead_bin || null,
+          onSelect: (lab) => toggleBrush("lead_bin", lab),
+        }
+      );
+      return;
+    }
+
+    const dist = cubeLeadCancelRateSamples(leadRows);
+    if (caption) {
+      caption.textContent =
+        mode === "violin"
+          ? "Phân bố mật độ cancel % theo hotel×tháng trong mỗi lead bin (violin)."
+          : "Phân bố cancel % theo hotel×tháng trong mỗi lead bin (boxplot · median màu accent).";
+    }
+    renderLeadChartStats(dist.stats);
+    const fn = mode === "violin" ? C().violin : C().boxplot;
+    fn(
+      "cancelLead",
+      "chartCancelLead",
+      dist.labels,
+      dist.samples,
+      C().tokens().primary,
+      {
+        activeLabel: state.brush.lead_bin || null,
+        onSelect: (lab) => toggleBrush("lead_bin", lab),
+      }
+    );
+  }
+
   function renderCancellation() {
-    const { fmtPct, filterCube, cubeKpis, cubeStatusMix, cubeMonthlyTrend, cubeByKey, cubeLeadBins } =
-      D();
+    const { fmtPct, filterCube, cubeKpis, cubeStatusMix, cubeMonthlyTrend, cubeByKey } = D();
     const f = getFilters();
     const rows = filterCube(f, state.brush);
     const kpis = cubeKpis(rows);
@@ -498,19 +567,7 @@
 
     // Dimension charts: exclude own brush dim so bars stay visible for reselection
     const leadRows = filterCube(f, { ...state.brush, lead_bin: undefined });
-    const lead = cubeLeadBins(leadRows);
-    C().vbar(
-      "cancelLead",
-      "chartCancelLead",
-      lead.map((r) => r.lead_bin),
-      lead.map((r) => r.cancel_rate * 100),
-      C().tokens().primary,
-      {
-        asPercent: true,
-        activeLabel: state.brush.lead_bin || null,
-        onSelect: (lab) => toggleBrush("lead_bin", lab),
-      }
-    );
+    renderLeadChart(leadRows);
 
     const deposit = cubeByKey(
       filterCube({ ...f, deposit_type: null }, { ...state.brush, deposit_type: undefined }),
@@ -930,6 +987,20 @@
         if (window.HBDRange) window.HBDRange.reset(btn.dataset.resetRange);
       });
     });
+
+    const leadMode = qs("#leadChartMode");
+    if (leadMode) {
+      leadMode.addEventListener("click", (evt) => {
+        const btn = evt.target.closest("[data-lead-mode]");
+        if (!btn) return;
+        const mode = btn.dataset.leadMode;
+        if (!mode || mode === state.leadChartMode) return;
+        state.leadChartMode = mode;
+        syncLeadChartModeButtons();
+        if (state.view === "cancellation") renderCancellation();
+      });
+      syncLeadChartModeButtons();
+    }
 
     window.addEventListener("themechange", () => {
       // recreate charts so token colors refresh

@@ -7,6 +7,7 @@
   <title>Hotel Booking Demand · Local Dashboard</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.4.4/build/index.umd.min.js"></script>
 </head>
 <body>
   <div class="app">
@@ -217,8 +218,22 @@
         </div>
         <div class="grid-2 equal">
           <article class="panel">
-            <div class="panel-head"><h3 class="panel-title">Cancel rate by lead time</h3></div>
+            <div class="panel-head">
+              <h3 class="panel-title">Cancel rate by lead time</h3>
+              <div
+                class="seg-control"
+                id="leadChartMode"
+                role="group"
+                aria-label="Chế độ biểu đồ cancel rate theo lead time"
+              >
+                <button type="button" class="seg-btn" data-lead-mode="bar" aria-pressed="true">Bar %</button>
+                <button type="button" class="seg-btn" data-lead-mode="boxplot" aria-pressed="false">Boxplot</button>
+                <button type="button" class="seg-btn" data-lead-mode="violin" aria-pressed="false">Violin</button>
+              </div>
+            </div>
+            <p class="chart-caption" id="leadChartCaption">Tỷ lệ hủy tổng theo từng lead-time bin.</p>
             <div class="chart-wrap"><canvas id="chartCancelLead"></canvas></div>
+            <div class="sr-only" id="leadChartStats" aria-live="polite"></div>
           </article>
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">Cancel rate by deposit</h3></div>
@@ -318,10 +333,10 @@
     </main>
   </div>
 
-  <script src="js/theme.js?v=20260724b"></script>
-  <script src="js/data.js?v=20260724b"></script>
-  <script src="js/charts.js?v=20260724b"></script>
-  <script src="js/rangeBrush.js?v=20260724b"></script>
-  <script src="js/app.js?v=20260724b"></script>
+  <script src="js/theme.js?v=20260731a"></script>
+  <script src="js/data.js?v=20260731a"></script>
+  <script src="js/charts.js?v=20260731a"></script>
+  <script src="js/rangeBrush.js?v=20260731a"></script>
+  <script src="js/app.js?v=20260731a"></script>
 </body>
 </html>

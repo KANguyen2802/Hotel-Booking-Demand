@@ -1,6 +1,22 @@
 (function () {
   const charts = {};
 
+  function registerBoxplotPlugin() {
+    const P = window.ChartBoxPlot;
+    if (!P || !window.Chart || registerBoxplotPlugin.done) return;
+    const regs = [
+      P.BoxPlotController,
+      P.BoxAndWiskers,
+      P.ViolinController,
+      P.Violin,
+    ].filter(Boolean);
+    if (regs.length) {
+      window.Chart.register(...regs);
+      registerBoxplotPlugin.done = true;
+    }
+  }
+  registerBoxplotPlugin();
+
   function tokens() {
     const s = getComputedStyle(document.documentElement);
     const g = (name) => s.getPropertyValue(name).trim();
@@ -308,6 +324,86 @@
     });
   }
 
+  function withAlpha(hexOrCss, alpha) {
+    const s = String(hexOrCss || "").trim();
+    if (s.startsWith("#") && (s.length === 7 || s.length === 4)) {
+      const hex =
+        s.length === 4
+          ? `#${s[1]}${s[1]}${s[2]}${s[2]}${s[3]}${s[3]}`
+          : s;
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return s;
+  }
+
+  /** Boxplot or violin; `samples` is array-of-arrays of percent values. */
+  function distribution(key, canvasId, type, labels, samples, color, extra = {}) {
+    registerBoxplotPlugin();
+    const t = tokens();
+    const chartType = type === "violin" ? "violin" : "boxplot";
+    const hasType =
+      window.Chart &&
+      window.Chart.registry &&
+      typeof window.Chart.registry.getController === "function" &&
+      window.Chart.registry.getController(chartType);
+    if (!hasType) {
+      console.warn(`Chart type "${chartType}" unavailable; falling back to empty chart.`);
+      return upsert(key, canvasId, {
+        type: "bar",
+        data: { labels, datasets: [{ data: labels.map(() => 0) }] },
+        options: baseOptions(),
+      });
+    }
+    const opts = baseOptions();
+    opts.plugins.legend.display = false;
+    opts.interaction = { mode: "nearest", intersect: true };
+    applyPercentAxis(opts, "y", extra.axisTitle || "Cancel %");
+    opts.scales.y.beginAtZero = true;
+    opts.scales.y.suggestedMax = 100;
+    attachClick(opts, labels, extra.onSelect);
+
+    const active = color || t.primary;
+    const dim = t.grid;
+    const bg = labels.map((lab) =>
+      withAlpha(extra.activeLabel && lab !== extra.activeLabel ? dim : active, 0.28)
+    );
+    const borders = labels.map((lab) =>
+      extra.activeLabel && lab !== extra.activeLabel ? dim : active
+    );
+
+    return upsert(key, canvasId, {
+      type: chartType,
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Cancel %",
+            data: samples,
+            backgroundColor: bg,
+            borderColor: borders,
+            borderWidth: 1.5,
+            outlierBackgroundColor: t.accent,
+            outlierBorderColor: t.accent,
+            medianColor: t.accent,
+            itemRadius: 0,
+          },
+        ],
+      },
+      options: opts,
+    });
+  }
+
+  function boxplot(key, canvasId, labels, samples, color, extra = {}) {
+    return distribution(key, canvasId, "boxplot", labels, samples, color, extra);
+  }
+
+  function violin(key, canvasId, labels, samples, color, extra = {}) {
+    return distribution(key, canvasId, "violin", labels, samples, color, extra);
+  }
+
   function barsSigned(key, canvasId, labels, values, extra = {}) {
     const t = tokens();
     const opts = baseOptions();
@@ -376,6 +472,8 @@
     doughnut,
     hbar,
     vbar,
+    boxplot,
+    violin,
     barsSigned,
     sensitivity,
   };
