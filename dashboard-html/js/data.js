@@ -256,17 +256,26 @@
       .sort((a, b) => a.year_month.localeCompare(b.year_month));
   }
 
+  function cubeDistinct(key) {
+    return [...new Set((STORE.bookingCube || []).map((r) => r[key]).filter((v) => v != null && v !== ""))]
+      .map(String)
+      .sort((a, b) => a.localeCompare(b));
+  }
+
   /** Filter booking cube by sidebar + brush selections. */
-  function filterCube({ hotels, years }, brush = {}) {
+  function filterCube({ hotels, years, segment, channel, deposit_type }, brush = {}) {
     const yearSet = new Set((years || []).map(Number));
     const hotelList = brush.hotel ? [brush.hotel] : hotels;
+    const seg = brush.segment || segment || null;
+    const ch = brush.channel || channel || null;
+    const dep = brush.deposit_type || deposit_type || null;
     return STORE.bookingCube.filter((r) => {
       if (!hotelList.includes(r.hotel)) return false;
       if (yearSet.size && !yearSet.has(Number(r.year))) return false;
+      if (seg && r.segment !== seg) return false;
+      if (ch && r.channel !== ch) return false;
+      if (dep && r.deposit_type !== dep) return false;
       if (brush.lead_bin && r.lead_bin !== brush.lead_bin) return false;
-      if (brush.deposit_type && r.deposit_type !== brush.deposit_type) return false;
-      if (brush.channel && r.channel !== brush.channel) return false;
-      if (brush.segment && r.segment !== brush.segment) return false;
       if (brush.status && r.status !== brush.status) return false;
       if (brush.country && r.country !== brush.country) return false;
       if (brush.year_month && r.year_month !== brush.year_month) return false;
@@ -512,6 +521,7 @@
     filterAgg,
     filterByMonthRange,
     filterCube,
+    cubeDistinct,
     filterRevparBrushed,
     overviewKpis,
     monthlyTrends,

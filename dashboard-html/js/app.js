@@ -24,9 +24,20 @@
   };
 
   function hasCubeOnlyBrush() {
-    return ["lead_bin", "deposit_type", "channel", "segment", "status", "country"].some(
-      (k) => state.brush[k] != null
+    const f = getFilters();
+    return (
+      !!f.segment ||
+      !!f.channel ||
+      !!f.deposit_type ||
+      ["lead_bin", "deposit_type", "channel", "segment", "status", "country"].some((k) => state.brush[k] != null)
     );
+  }
+
+  function syncSelectValue(id, value) {
+    const el = qs(id);
+    if (!el) return;
+    el.value = value || "";
+    el.classList.toggle("has-value", !!el.value);
   }
 
   function brushActive() {
@@ -41,6 +52,9 @@
     } else {
       state.brush[dim] = value;
     }
+    if (dim === "segment") syncSelectValue("#filterSegment", state.brush.segment || "");
+    if (dim === "channel") syncSelectValue("#filterChannel", state.brush.channel || "");
+    if (dim === "deposit_type") syncSelectValue("#filterDeposit", state.brush.deposit_type || "");
     renderActive();
   }
 
@@ -100,11 +114,17 @@
   }
 
   function getFilters() {
-    const hotels = qsa('#hotelChips input:checked').map((el) => el.value);
-    const years = qsa('#yearChips input:checked').map((el) => Number(el.value));
+    const hotels = qsa("#hotelChips input:checked").map((el) => el.value);
+    const years = qsa("#yearChips input:checked").map((el) => Number(el.value));
+    const segment = qs("#filterSegment")?.value || "";
+    const channel = qs("#filterChannel")?.value || "";
+    const deposit_type = qs("#filterDeposit")?.value || "";
     return {
       hotels: hotels.length ? hotels : [...state.hotels],
       years: years.length ? years : [...state.years],
+      segment: segment || null,
+      channel: channel || null,
+      deposit_type: deposit_type || null,
     };
   }
 
@@ -203,7 +223,7 @@
       }
     );
 
-    const segs = cubeSegments(filterCube(f, { ...brush, segment: undefined })).reverse();
+    const segs = cubeSegments(filterCube({ ...f, segment: null }, { ...brush, segment: undefined })).reverse();
     C().hbar(
       "segment",
       "chartSegment",
@@ -211,7 +231,7 @@
       segs.map((r) => r.bookings),
       C().tokens().primary,
       {
-        activeLabel: brush.segment || null,
+        activeLabel: brush.segment || f.segment || null,
         onSelect: (lab) => toggleBrush("segment", lab),
       }
     );
@@ -486,14 +506,16 @@
       lead.map((r) => r.cancel_rate * 100),
       C().tokens().primary,
       {
+        asPercent: true,
         activeLabel: state.brush.lead_bin || null,
         onSelect: (lab) => toggleBrush("lead_bin", lab),
       }
     );
 
-    const deposit = cubeByKey(filterCube(f, { ...state.brush, deposit_type: undefined }), "deposit_type").sort(
-      (a, b) => a.cancel_rate - b.cancel_rate
-    );
+    const deposit = cubeByKey(
+      filterCube({ ...f, deposit_type: null }, { ...state.brush, deposit_type: undefined }),
+      "deposit_type"
+    ).sort((a, b) => a.cancel_rate - b.cancel_rate);
     C().hbar(
       "cancelDeposit",
       "chartCancelDeposit",
@@ -501,14 +523,16 @@
       deposit.map((r) => r.cancel_rate * 100),
       C().tokens().accent,
       {
-        activeLabel: state.brush.deposit_type || null,
+        asPercent: true,
+        activeLabel: state.brush.deposit_type || f.deposit_type || null,
         onSelect: (lab) => toggleBrush("deposit_type", lab),
       }
     );
 
-    const channel = cubeByKey(filterCube(f, { ...state.brush, channel: undefined }), "channel").sort(
-      (a, b) => a.cancel_rate - b.cancel_rate
-    );
+    const channel = cubeByKey(
+      filterCube({ ...f, channel: null }, { ...state.brush, channel: undefined }),
+      "channel"
+    ).sort((a, b) => a.cancel_rate - b.cancel_rate);
     C().hbar(
       "cancelChannel",
       "chartCancelChannel",
@@ -516,15 +540,20 @@
       channel.map((r) => r.cancel_rate * 100),
       C().tokens().accentSoft,
       {
-        activeLabel: state.brush.channel || null,
+        asPercent: true,
+        activeLabel: state.brush.channel || f.channel || null,
         onSelect: (lab) => toggleBrush("channel", lab),
       }
     );
 
-    const seg = cubeByKey(filterCube(f, { ...state.brush, segment: undefined }), "segment", {
-      minBookings: 50,
-      limit: 10,
-    }).sort((a, b) => a.cancel_rate - b.cancel_rate);
+    const seg = cubeByKey(
+      filterCube({ ...f, segment: null }, { ...state.brush, segment: undefined }),
+      "segment",
+      {
+        minBookings: 50,
+        limit: 10,
+      }
+    ).sort((a, b) => a.cancel_rate - b.cancel_rate);
     C().hbar(
       "cancelSegment",
       "chartCancelSegment",
@@ -532,7 +561,8 @@
       seg.map((r) => r.cancel_rate * 100),
       C().tokens().primarySoft,
       {
-        activeLabel: state.brush.segment || null,
+        asPercent: true,
+        activeLabel: state.brush.segment || f.segment || null,
         onSelect: (lab) => toggleBrush("segment", lab),
       }
     );
@@ -725,10 +755,87 @@
     });
   }
 
+  function fillSelect(id, values, allLabel) {
+    const el = qs(id);
+    if (!el) return;
+    const current = el.value;
+    const list = Array.isArray(values) ? values : [];
+    el.replaceChildren();
+    const all = document.createElement("option");
+    all.value = "";
+    all.textContent = allLabel;
+    el.appendChild(all);
+    list.forEach((v) => {
+      const opt = document.createElement("option");
+      opt.value = String(v);
+      opt.textContent = String(v);
+      el.appendChild(opt);
+    });
+    if (current && list.map(String).includes(String(current))) el.value = current;
+    else el.value = "";
+    el.classList.toggle("has-value", !!el.value);
+  }
+
+  function distinctValues(rows, key) {
+    return [
+      ...new Set(
+        (rows || [])
+          .map((r) => r[key])
+          .filter((v) => v != null && String(v).trim() !== "")
+          .map(String)
+      ),
+    ].sort((a, b) => a.localeCompare(b));
+  }
+
+  function buildDimDropdowns() {
+    const S = D().STORE;
+    const segments =
+      distinctValues(S.bookingCube, "segment").length > 0
+        ? distinctValues(S.bookingCube, "segment")
+        : distinctValues(S.cancelSegment, "market_segment");
+    const channels =
+      distinctValues(S.bookingCube, "channel").length > 0
+        ? distinctValues(S.bookingCube, "channel")
+        : distinctValues(S.cancelChannel, "distribution_channel");
+    const deposits =
+      distinctValues(S.bookingCube, "deposit_type").length > 0
+        ? distinctValues(S.bookingCube, "deposit_type")
+        : distinctValues(S.cancelDeposit, "deposit_type");
+
+    fillSelect("#filterSegment", segments, "All segments");
+    fillSelect("#filterChannel", channels, "All channels");
+    fillSelect("#filterDeposit", deposits, "All deposits");
+
+    ["#filterSegment", "#filterChannel", "#filterDeposit"].forEach((sel) => {
+      const el = qs(sel);
+      if (!el || el.dataset.bound === "1") return;
+      el.dataset.bound = "1";
+      el.addEventListener("change", () => {
+        el.classList.toggle("has-value", !!el.value);
+        if (sel === "#filterSegment") {
+          if (el.value) state.brush.segment = el.value;
+          else delete state.brush.segment;
+        }
+        if (sel === "#filterChannel") {
+          if (el.value) state.brush.channel = el.value;
+          else delete state.brush.channel;
+        }
+        if (sel === "#filterDeposit") {
+          if (el.value) state.brush.deposit_type = el.value;
+          else delete state.brush.deposit_type;
+        }
+        renderActive();
+      });
+    });
+  }
+
   function resetFilters() {
     qsa("#hotelChips input, #yearChips input").forEach((el) => {
       el.checked = true;
     });
+    syncSelectValue("#filterSegment", "");
+    syncSelectValue("#filterChannel", "");
+    syncSelectValue("#filterDeposit", "");
     state.brush = {};
     renderActive();
   }
@@ -795,6 +902,7 @@
     state.years = [...meta.years];
     buildHotelChips(meta.hotels);
     buildYearChips(meta.years);
+    buildDimDropdowns();
 
     qsa(".nav-btn").forEach((btn) => {
       btn.addEventListener("click", () => setView(btn.dataset.view));

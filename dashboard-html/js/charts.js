@@ -234,12 +234,38 @@
     });
   }
 
+  /** Format value axis ticks + tooltips as percent (data already on 0–100 scale). */
+  function applyPercentAxis(opts, valueAxis, axisTitle) {
+    const t = tokens();
+    const axis = opts.scales[valueAxis];
+    axis.ticks = {
+      ...axis.ticks,
+      callback: (v) => `${v}%`,
+    };
+    axis.title = {
+      display: true,
+      text: axisTitle || "Cancel %",
+      color: t.mutedFg,
+    };
+    opts.plugins.tooltip = opts.plugins.tooltip || {};
+    opts.plugins.tooltip.callbacks = {
+      ...(opts.plugins.tooltip.callbacks || {}),
+      label(ctx) {
+        const raw = valueAxis === "x" ? ctx.parsed.x : ctx.parsed.y;
+        const n = Number(raw);
+        const prefix = ctx.dataset.label ? `${ctx.dataset.label}: ` : "Cancel rate: ";
+        return `${prefix}${Number.isFinite(n) ? n.toFixed(1) : raw}%`;
+      },
+    };
+  }
+
   function hbar(key, canvasId, labels, values, color, extra = {}) {
     const t = tokens();
     const opts = baseOptions();
     opts.indexAxis = "y";
     opts.plugins.legend.display = false;
     opts.interaction = { mode: "nearest", intersect: true };
+    if (extra.asPercent) applyPercentAxis(opts, "x", extra.axisTitle);
     attachClick(opts, labels, extra.onSelect);
     return upsert(key, canvasId, {
       type: "bar",
@@ -263,6 +289,7 @@
     const opts = baseOptions();
     opts.plugins.legend.display = false;
     opts.interaction = { mode: "nearest", intersect: true };
+    if (extra.asPercent) applyPercentAxis(opts, "y", extra.axisTitle);
     attachClick(opts, labels, extra.onSelect);
     return upsert(key, canvasId, {
       type: "bar",
