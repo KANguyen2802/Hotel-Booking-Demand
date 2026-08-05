@@ -110,11 +110,10 @@ Mục lục đóng gói: [reports/29_35_closing_pack_index.md](reports/29_35_clo
 
 ## Dashboard điều hành
 
-Ba bản theo dõi RevPAR, hủy, và mô phỏng / theo dõi giá:
+Hai bản theo dõi RevPAR, hủy, và mô phỏng / theo dõi giá:
 
 | Bản | Thư mục | Cách chạy / ghi chú |
 |-----|---------|---------------------|
-| **Streamlit (local web)** | `dashboard/` | `streamlit run dashboard/Home.py` |
 | **HTML (local + Vercel)** | `dashboard-html/` | Local: `cd dashboard-html && python -m http.server 8765` → http://localhost:8765 · Live: [https://hotel-booking-demand-dashboard.vercel.app](https://hotel-booking-demand-dashboard.vercel.app) |
 | **Power BI** | `dashboard-powerbi/` | Đang thực hiện — xem README trong thư mục |
 
