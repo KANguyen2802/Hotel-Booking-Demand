@@ -13,3 +13,5 @@
 | 35 | [`35_project_retrospective.md`](35_project_retrospective.md) | Lessons · next steps · monitoring |
 
 **Upstream playbook:** [`28_finalize_dynamic_pricing_playbook.md`](28_finalize_dynamic_pricing_playbook.md)
+
+**HTML storytelling (Vercel):** [hotel-booking-demand-scqa.vercel.app](https://hotel-booking-demand-scqa.vercel.app) · source [`html/`](html/)

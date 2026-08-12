@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Hotel Booking Demand — Báo cáo SCQA</title>
+  <meta name="description" content="Data storytelling tổng hợp dự án Hotel Booking Demand theo framework SCQA: Situation, Complication, Question, Answer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <style>
+    :root {
+      --color-primary: #1C1917;
+      --color-on-primary: #FFFFFF;
+      --color-secondary: #44403C;
+      --color-accent: #A16207;
+      --color-accent-soft: #B45309;
+      --color-accent-muted: #FEF3C7;
+      --color-background: #FAFAF9;
+      --color-foreground: #0C0A09;
+      --color-muted: #E7E5E4;
+      --color-muted-fg: #78716C;
+      --color-border: #D6D3D1;
+      --color-card: #FFFFFF;
+      --color-positive: #166534;
+      --color-negative: #991B1B;
+      --color-city: #1C1917;
+      --color-resort: #A16207;
+      --font-display: "Cormorant", Georgia, serif;
+      --font-body: "Montserrat", system-ui, sans-serif;
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --space-3xl: 4.5rem;
+      --radius: 2px;
+      --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.06);
+      --shadow-md: 0 8px 24px rgba(28, 25, 23, 0.08);
+      --max: 1120px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+      .hero__grain, .hero__orb { animation: none !important; }
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: var(--color-foreground);
+      background: var(--color-background);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img { max-width: 100%; display: block; }
+    a { color: var(--color-accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { color: var(--color-primary); }
+    button, .nav a, .btn { cursor: pointer; }
+
+    /* —— Nav —— */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: 0.85rem clamp(1rem, 4vw, 2rem);
+      background: rgba(250, 250, 249, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .site-nav__brand {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--color-primary);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .site-nav__brand span { color: var(--color-accent); }
+    .site-nav__links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .site-nav__links a {
+      color: var(--color-muted-fg);
+      text-decoration: none;
+      padding: 0.35rem 0;
+      border-bottom: 2px solid transparent;
+      transition: color 200ms var(--ease), border-color 200ms var(--ease);
+    }
+    .site-nav__links a:hover,
+    .site-nav__links a[aria-current="true"] {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-accent);
+    }
+
+    /* —— Hero —— */
+    .hero {
+      position: relative;
+      min-height: min(92vh, 860px);
+      display: grid;
+      place-items: end start;
+      padding: clamp(3rem, 10vw, 7rem) clamp(1.25rem, 5vw, 4rem) clamp(3rem, 8vw, 5rem);
+      overflow: hidden;
+      color: var(--color-on-primary);
+      background:
+        linear-gradient(135deg, rgba(28, 25, 23, 0.94) 0%, rgba(28, 25, 23, 0.78) 48%, rgba(68, 64, 60, 0.55) 100%),
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(161, 98, 7, 0.35), transparent 55%),
+        linear-gradient(160deg, #292524 0%, #1C1917 45%, #44403C 100%);
+    }
+    .hero__orb {
+      position: absolute;
+      width: 42vmin;
+      height: 42vmin;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(161, 98, 7, 0.28), transparent 70%);
+      top: 12%;
+      right: 8%;
+      filter: blur(2px);
+      animation: drift 18s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    .hero__grain {
+      position: absolute;
+      inset: 0;
+      opacity: 0.07;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(-4%, 6%) scale(1.08); }
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 38rem; }
+    .hero__eyebrow {
+      margin: 0 0 1rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #FDE68A;
+    }
+    .hero h1 {
+      margin: 0 0 1rem;
+      font-family: var(--font-display);
+      font-size: clamp(2.75rem, 7vw, 4.5rem);
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+    }
+    .hero__lede {
+      margin: 0 0 2rem;
+      font-size: 1.05rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.82);
+      max-width: 32rem;
+    }
+    .hero__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.9rem 1.4rem;
+      background: var(--color-accent);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: none;
+      transition: background 200ms var(--ease), transform 200ms var(--ease);
+    }
+    .hero__cta:hover {
+      background: #854D0E;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .hero__cta svg { width: 16px; height: 16px; }
+
+    /* —— Layout —— */
+    .wrap {
+      width: min(100% - 2rem, var(--max));
+      margin-inline: auto;
+    }
+    section.chapter {
+      padding: var(--space-3xl) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .chapter__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0 0 1rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+    }
+    .chapter__label::before {
+      content: "";
+      width: 2rem;
+      height: 1px;
+      background: var(--color-accent);
+    }
+    .chapter h2 {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--color-primary);
+    }
+    .chapter__intro {
+      margin: 0 0 var(--space-2xl);
+      max-width: 40rem;
+      font-size: 1.05rem;
+      color: var(--color-secondary);
+      font-weight: 400;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 450ms var(--ease), transform 450ms var(--ease);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* —— Grid / panels —— */
+    .grid-2 {
+      display: grid;
+      gap: var(--space-xl);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 800px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+    .grid-3 {
+      display: grid;
+      gap: var(--space-lg);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 700px) {
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    }
+    .panel {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      padding: var(--space-xl);
+      box-shadow: var(--shadow-sm);
+    }
+    .panel h3 {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    .panel p { margin: 0; color: var(--color-secondary); font-size: 0.95rem; }
+    .panel--accent {
+      background: linear-gradient(160deg, #1C1917 0%, #292524 100%);
+      border-color: #292524;
+      color: #FAFAF9;
+    }
+    .panel--accent h3 { color: #FDE68A; }
+    .panel--accent p { color: rgba(250, 250, 249, 0.78); }
+
+    .kpi {
+      padding: var(--space-lg) var(--space-xl);
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-top: 3px solid var(--color-accent);
+    }
+    .kpi__value {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 2.6rem);
+      font-weight: 600;
+      line-height: 1;
+      color: var(--color-primary);
+      margin: 0 0 0.4rem;
+    }
+    .kpi__label {
+      margin: 0;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-muted-fg);
+    }
+    .kpi__note {
+      margin: 0.55rem 0 0;
+      font-size: 0.82rem;
+      color: var(--color-secondary);
+    }
+
+    .quote-block {
+      margin: var(--space-2xl) 0 0;
+      padding: var(--space-xl) var(--space-xl) var(--space-xl) var(--space-2xl);
+      border-left: 3px solid var(--color-accent);
+      background: linear-gradient(90deg, var(--color-accent-muted), transparent);
+    }
+    .quote-block p {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+      font-style: italic;
+      line-height: 1.4;
+      color: var(--color-primary);
+    }
+
+    .chart-box {
+      position: relative;
+      height: 280px;
+      padding: var(--space-md);
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+    }
+    .chart-box--tall { height: 320px; }
+    .chart-caption {
+      margin: 0.65rem 0 0;
+      font-size: 0.78rem;
+      color: var(--color-muted-fg);
+    }
+
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+    }
+    table.data th,
+    table.data td {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: top;
+    }
+    table.data th {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-muted-fg);
+      background: #F5F5F4;
+    }
+    table.data tr:last-child td { border-bottom: none; }
+    table.data .num { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .tag {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--color-accent-muted);
+      color: #854D0E;
+    }
+    .tag--ok { background: #DCFCE7; color: #166534; }
+    .tag--warn { background: #FEF3C7; color: #92400E; }
+    .tag--lock { background: #FEE2E2; color: #991B1B; }
+
+    .compare {
+      display: grid;
+      gap: 1px;
+      background: var(--color-border);
+      border: 1px solid var(--color-border);
+    }
+    @media (min-width: 700px) {
+      .compare { grid-template-columns: 1fr 1fr; }
+    }
+    .compare__col {
+      background: var(--color-card);
+      padding: var(--space-xl);
+    }
+    .compare__col h3 {
+      margin: 0 0 0.35rem;
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+    }
+    .compare__col .meta {
+      margin: 0 0 1.25rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-muted-fg);
+    }
+    .compare__col ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .compare__col li {
+      padding: 0.65rem 0;
+      border-top: 1px solid var(--color-muted);
+      font-size: 0.92rem;
+      color: var(--color-secondary);
+    }
+    .compare__col li strong {
+      display: block;
+      color: var(--color-primary);
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+    .compare__col--city h3 { color: var(--color-city); }
+    .compare__col--resort h3 { color: var(--color-resort); }
+
+    .funnel {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .funnel li {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.95rem 1.15rem;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .funnel li:nth-child(1) { background: #1C1917; width: 100%; }
+    .funnel li:nth-child(2) { background: #292524; width: 92%; margin-inline: auto; }
+    .funnel li:nth-child(3) { background: #44403C; width: 82%; margin-inline: auto; }
+    .funnel li:nth-child(4) { background: #A16207; width: 70%; margin-inline: auto; }
+    .funnel li:nth-child(5) { background: #854D0E; width: 58%; margin-inline: auto; }
+    .funnel .pct { font-variant-numeric: tabular-nums; font-weight: 700; opacity: 0.9; }
+
+    .timeline {
+      position: relative;
+      margin: 0;
+      padding: 0 0 0 1.5rem;
+      list-style: none;
+      border-left: 2px solid var(--color-border);
+    }
+    .timeline li {
+      position: relative;
+      padding: 0 0 1.75rem 1.25rem;
+    }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      left: -1.55rem;
+      top: 0.35rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-muted);
+    }
+    .timeline strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+    .timeline span {
+      font-size: 0.85rem;
+      color: var(--color-muted-fg);
+    }
+
+    .impact-bars {
+      display: grid;
+      gap: 1rem;
+    }
+    .impact-row {
+      display: grid;
+      gap: 0.35rem;
+    }
+    .impact-row__head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .impact-row__track {
+      height: 10px;
+      background: var(--color-muted);
+      overflow: hidden;
+    }
+    .impact-row__fill {
+      height: 100%;
+      background: linear-gradient(90deg, #44403C, var(--color-accent));
+      transform-origin: left;
+      transition: width 800ms var(--ease);
+    }
+
+    .scqa-rail {
+      display: grid;
+      gap: 0.75rem;
+      margin-bottom: var(--space-2xl);
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (min-width: 800px) {
+      .scqa-rail { grid-template-columns: repeat(4, 1fr); }
+    }
+    .scqa-rail a {
+      display: block;
+      padding: 1rem;
+      text-decoration: none;
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      transition: border-color 200ms var(--ease), box-shadow 200ms var(--ease);
+    }
+    .scqa-rail a:hover {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-md);
+    }
+    .scqa-rail__letter {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      line-height: 1;
+    }
+    .scqa-rail__name {
+      margin: 0.35rem 0 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+    }
+
+    .footer {
+      padding: var(--space-2xl) 0 var(--space-3xl);
+      background: var(--color-primary);
+      color: rgba(250, 250, 249, 0.75);
+      font-size: 0.85rem;
+    }
+    .footer a { color: #FDE68A; }
+    .footer h2 {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      color: #fff;
+      font-weight: 600;
+    }
+    .footer__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      margin-top: var(--space-xl);
+      padding-top: var(--space-lg);
+      border-top: 1px solid rgba(255,255,255,0.12);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+
+    /* —— Executive headline (hero) —— */
+    .hero__headline {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      max-width: 34rem;
+      margin: 0 0 1.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(253, 230, 138, 0.45);
+      border-left: 3px solid #FDE68A;
+      backdrop-filter: blur(6px);
+    }
+    .hero__headline svg { width: 22px; height: 22px; flex-shrink: 0; color: #FDE68A; margin-top: 0.15rem; }
+    .hero__headline strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+    .hero__headline span {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.78);
+      line-height: 1.55;
+    }
+
+    /* —— Executive summary box —— */
+    .exec-summary {
+      margin: 0 0 var(--space-2xl);
+      padding: var(--space-xl);
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-top: 4px solid var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .exec-summary__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 0.9rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+    }
+    .exec-summary dl {
+      display: grid;
+      gap: 0.9rem;
+      margin: 0;
+    }
+    .exec-summary dt {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--color-accent);
+      margin-bottom: 0.15rem;
+    }
+    .exec-summary dd {
+      margin: 0;
+      font-size: 0.97rem;
+      color: var(--color-foreground);
+      line-height: 1.6;
+    }
+    .exec-summary dd strong { color: var(--color-primary); }
+
+    /* —— Prominent warning banner —— */
+    .banner {
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      margin: 0 0 var(--space-xl);
+      padding: 1rem 1.25rem;
+      border: 2px solid #F59E0B;
+      background: #FFFBEB;
+    }
+    .banner svg { width: 24px; height: 24px; flex-shrink: 0; color: #B45309; margin-top: 0.1rem; }
+    .banner strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #92400E;
+      margin-bottom: 0.2rem;
+      letter-spacing: 0.01em;
+    }
+    .banner p { margin: 0; font-size: 0.88rem; color: #78350F; line-height: 1.55; }
+    .banner--danger { border-color: var(--color-negative); background: #FEF2F2; }
+    .banner--danger svg { color: var(--color-negative); }
+    .banner--danger strong { color: var(--color-negative); }
+    .banner--danger p { color: #7F1D1D; }
+
+    /* —— Technical term: pushed down a reading layer (tooltip) —— */
+    .tech-term {
+      font-size: 0.86em;
+      color: var(--color-muted-fg);
+      border-bottom: 1px dotted var(--color-muted-fg);
+      cursor: help;
+      white-space: nowrap;
+    }
+    .tech-term:hover, .tech-term:focus { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+
+    /* —— Technical appendix (details/summary progressive disclosure) —— */
+    details.tech-appendix {
+      margin: 1rem 0 var(--space-2xl);
+      border: 1px dashed var(--color-border);
+      background: #FAFAF9;
+    }
+    details.tech-appendix summary {
+      cursor: pointer;
+      padding: 0.9rem 1.25rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-muted-fg);
+      list-style: none;
+    }
+    details.tech-appendix summary::-webkit-details-marker { display: none; }
+    details.tech-appendix summary::before {
+      content: "▸ ";
+      color: var(--color-accent);
+    }
+    details.tech-appendix[open] summary::before { content: "▾ "; }
+    details.tech-appendix summary:hover { color: var(--color-primary); }
+    details.tech-appendix > div { padding: 0 1.25rem 1.25rem; }
+
+    /* —— Downside / cost-of-inaction panel —— */
+    .downside {
+      padding: var(--space-xl);
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-top: 3px solid var(--color-negative);
+    }
+    .downside h3 { color: var(--color-negative); }
+    .downside ul { margin: 0; padding: 0 0 0 1.1rem; }
+    .downside li { margin-bottom: 0.6rem; font-size: 0.9rem; color: #7F1D1D; line-height: 1.55; }
+    .downside li:last-child { margin-bottom: 0; }
+    .downside li strong { color: #991B1B; }
+
+    /* —— Chart source/meta line —— */
+    .chart-source {
+      margin: 0.3rem 0 0;
+      font-size: 0.7rem;
+      color: var(--color-muted-fg);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#situation">Bỏ qua điều hướng</a>
+
+  <nav class="site-nav" aria-label="Điều hướng SCQA">
+    <a class="site-nav__brand" href="#top">Hotel Booking <span>Demand</span></a>
+    <ul class="site-nav__links">
+      <li><a href="#situation">Situation</a></li>
+      <li><a href="#complication">Complication</a></li>
+      <li><a href="#question">Question</a></li>
+      <li><a href="#answer">Answer</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="hero__orb" aria-hidden="true"></div>
+    <div class="hero__grain" aria-hidden="true"></div>
+    <div class="hero__inner">
+      <p class="hero__eyebrow">Data Storytelling · Framework SCQA · Light Luxury</p>
+      <h1>Hotel Booking Demand</h1>
+      <p class="hero__lede">
+        Câu chuyện từ dữ liệu đặt phòng đến playbook giá bất đối xứng —
+        khi City và Resort không cùng một nhịp cầu.
+      </p>
+      <div class="hero__headline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+        <span>
+          <strong>Đề xuất: +€59–85k RevPAR portfolio trong 16 tuần thí điểm</strong>
+          Rủi ro hủy được khống chế ở mức tăng tối đa ±1 điểm phần trăm — có kill‑switch tự động dừng nếu vượt ngưỡng.
+          Đây là ước tính, chưa phải cam kết P&amp;L.
+        </span>
+      </div>
+      <a class="hero__cta" href="#situation">
+        Bắt đầu hành trình
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 5v14M5 12l7 7 7-7"/>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ========== S ========== -->
+    <section class="chapter" id="situation" aria-labelledby="s-title">
+      <div class="wrap">
+        <div class="scqa-rail reveal">
+          <a href="#situation"><div class="scqa-rail__letter">S</div><p class="scqa-rail__name">Situation</p></a>
+          <a href="#complication"><div class="scqa-rail__letter">C</div><p class="scqa-rail__name">Complication</p></a>
+          <a href="#question"><div class="scqa-rail__letter">Q</div><p class="scqa-rail__name">Question</p></a>
+          <a href="#answer"><div class="scqa-rail__letter">A</div><p class="scqa-rail__name">Answer</p></a>
+        </div>
+
+        <p class="chapter__label">Situation</p>
+        <h2 id="s-title" class="reveal">Hai property, một bộ dữ liệu booking demand</h2>
+        <p class="chapter__intro reveal">
+          Dự án phân tích nhu cầu đặt phòng của <strong>City Hotel</strong> và <strong>Resort Hotel</strong>
+          trong cùng portfolio — mục tiêu tăng RevPAR mà vẫn kiểm soát hủy, walk và xung đột kênh.
+          Phạm vi: dữ liệu lịch sử đến 08/2017; nguyên tắc <em>recommend-only</em>.
+        </p>
+
+        <div class="grid-3 reveal">
+          <div class="kpi">
+            <p class="kpi__value">2</p>
+            <p class="kpi__label">Property</p>
+            <p class="kpi__note">City · Resort — luôn tách phân tích</p>
+          </div>
+          <div class="kpi">
+            <p class="kpi__value">~€2,84M</p>
+            <p class="kpi__label">Base portfolio proxy</p>
+            <p class="kpi__note">Doanh thu phòng ước tính cho 12 tháng gần nhất trước điểm cắt dữ liệu — là mốc nền để tính % tăng trưởng của mọi case ROI phía dưới.</p>
+            <details class="tech-appendix" style="margin: 0.75rem 0 0; border-style: solid;">
+              <summary>Xem công thức &amp; nguồn số liệu</summary>
+              <div>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--color-secondary); line-height: 1.6;">
+                  <strong>Công thức (ước tính, cần Finance xác nhận trước khi dùng làm căn cứ ngân sách):</strong>
+                  Base portfolio proxy = Σ (phòng‑đêm đã bán × ADR quan sát theo mùa), quy đổi tương đương 12 tháng liền kề
+                  trước điểm cắt dữ liệu 08/2017, gộp cả City và Resort. <strong>Chưa trừ</strong> hoa hồng kênh (OTA/TA), thuế,
+                  và các khoản điều chỉnh kế toán khác — vì vậy đây là proxy doanh thu gộp, không phải doanh thu ròng.
+                  Nguồn: <span class="tech-term" title="Tập dữ liệu booking đã làm sạch, dùng xuyên suốt báo cáo 01–35">booking_cleaned.csv</span>,
+                  giai đoạn 07/2015–08/2017.
+                </p>
+              </div>
+            </details>
+          </div>
+          <div class="kpi">
+            <p class="kpi__value">11→35</p>
+            <p class="kpi__label">Chuỗi báo cáo</p>
+            <p class="kpi__note">Hủy → forecast → giá → playbook → đóng gói</p>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: var(--space-2xl);">
+          <div class="panel reveal">
+            <h3>Bối cảnh vận hành</h3>
+            <p>
+              Peak = tháng 7–8 · Shoulder = 4–6 &amp; 9–10 · Low = 11–3.
+              Revenue Management cần một ngôn ngữ chung giữa GM, FO, Finance và Legal —
+              nhưng mỗi property có nhịp cầu riêng.
+            </p>
+          </div>
+          <div class="panel reveal">
+            <h3>Hành trình phân tích</h3>
+            <p>
+              Hủy &amp; scoring → buffer → forecast ADR/RevPAR → elasticity · optimize · ML →
+              validate → playbook → stakeholder pack. Dashboard Streamlit / HTML / Power BI
+              phục vụ theo dõi điều hành.
+            </p>
+          </div>
+        </div>
+
+        <div class="quote-block reveal">
+          <p>“Làm sao tăng doanh thu phòng mà không đẩy hủy, walk, và xung đột kênh?”</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== C ========== -->
+    <section class="chapter" id="complication" aria-labelledby="c-title">
+      <div class="wrap">
+        <p class="chapter__label">Complication</p>
+        <h2 id="c-title" class="reveal">Một chiến lược giá cho cả hai — là sai</h2>
+        <p class="chapter__intro reveal">
+          <strong>Nói ngắn gọn:</strong> khi tăng giá phòng 10% vào mùa cao điểm, City lời thêm — nhưng Resort mất khách.
+          Vì vậy không thể dùng chung một mức giá cho cả hai property. Song song đó, cứ 100 booking thì khoảng 28 booking bị hủy —
+          vừa là rủi ro trống phòng, vừa là cơ hội bán lại nếu biết phân nhóm đúng khách có nguy cơ hủy cao.
+        </p>
+
+        <div class="compare reveal">
+          <div class="compare__col compare__col--city">
+            <h3>City Hotel</h3>
+            <p class="meta">Khách ít nhạy giá — tăng giá vừa phải vẫn giữ được khách
+              (<span class="tech-term" title="Hệ số co giãn cầu theo giá (elasticity). Càng gần 0 nghĩa là khách càng ít phản ứng khi giá thay đổi.">ε ≈ −0,70, inelastic</span>)</p>
+            <ul>
+              <li>
+                <strong>Tăng giá 10% vào mùa cao điểm</strong>
+                Doanh thu phòng (RevPAR) tăng thêm khoảng <span class="num">+2,3%</span> — nằm trong biên độ an toàn để tăng giá.
+              </li>
+              <li>
+                <strong>Mô hình tối ưu thuần túy</strong>
+                Nếu chỉ chạy theo tối đa hóa doanh thu, mô hình gợi ý tăng tới <strong>+21%</strong>
+                (<span class="tech-term" title="Mức giá tối ưu (p*) tính thuần túy từ mô hình toán, chưa qua điều chỉnh rủi ro thực tế">analytic p★</span>)
+                — mức này bị đánh giá là quá mạo hiểm nếu công bố thẳng lên OTA, nên không được thông qua nguyên trạng.
+              </li>
+              <li>
+                <strong>Quyết định</strong>
+                Chỉ nâng giá niêm yết (BAR) trong một biên độ an toàn đã định sẵn (±15% quanh mức đề xuất).
+              </li>
+            </ul>
+          </div>
+          <div class="compare__col compare__col--resort">
+            <h3>Resort Hotel</h3>
+            <p class="meta">Khách nhạy giá hơn — tăng giá dễ mất khách
+              (<span class="tech-term" title="Hệ số co giãn cầu theo giá (elasticity). Trị tuyệt đối càng lớn nghĩa là khách càng dễ bỏ đi khi giá tăng.">ε ≈ −1,10, mildly elastic</span>)</p>
+            <ul>
+              <li>
+                <strong>Tăng giá 10% vào mùa cao điểm</strong>
+                Doanh thu phòng (RevPAR) giảm khoảng <span class="num">−2,1%</span> — vì vậy <strong>cấm tuyệt đối</strong> việc tăng giá đột ngột thuần túy ở mùa này.
+              </li>
+              <li>
+                <strong>Mùa thấp điểm</strong>
+                Giảm giá nhẹ khoảng −5% giúp tăng nhẹ doanh thu và giảm tỷ lệ hủy dự kiến.
+              </li>
+              <li>
+                <strong>Kênh Offline (đại lý/tour)</strong>
+                Nhóm khách này phản ứng rất mạnh với giá
+                (<span class="tech-term" title="Hệ số co giãn riêng cho kênh Offline TA/TO">ε_ops ≈ −2,24</span>)
+                — nên ưu tiên khuyến mãi qua kênh Offline trước khi đưa lên kênh online.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: var(--space-2xl);">
+          <div class="reveal">
+            <div class="chart-box chart-box--tall">
+              <canvas id="chartShock" aria-label="Biểu đồ tác động RevPAR khi +10% ADR Peak, có dải tham chiếu từ back-test"></canvas>
+            </div>
+            <p class="chart-caption">
+              What-if mùa cao điểm (Peak): tác động lên RevPAR nếu tăng giá phòng 10% — City được lợi, Resort mất khách.
+              Vạch mảnh trên mỗi cột là dải tham chiếu quan sát được từ back-test 2015–2016 (không phải khoảng tin cậy thống kê chính thức).
+            </p>
+            <p class="chart-source">Nguồn: mô hình elasticity what-if (báo cáo 22–23) · đối chiếu back-test 2015–2016 (báo cáo 27) · dữ liệu cắt đến 08/2017.</p>
+          </div>
+          <div class="reveal">
+            <div class="chart-box chart-box--tall">
+              <canvas id="chartCancel" aria-label="Biểu đồ so sánh tỷ lệ hủy tổng thể và tỷ lệ hủy nhóm rủi ro cao"></canvas>
+            </div>
+            <p class="chart-caption">
+              Hủy tính chung trên toàn bộ booking chỉ ~28% — nhưng nếu chỉ nhìn riêng nhóm khách được scoring là
+              <strong>rủi ro hủy cao (High-tier, P ≥ 0,55)</strong>, tỷ lệ hủy thật lên tới <strong>~64%</strong>. Đây là nhóm cần buffer phòng chủ động.
+            </p>
+            <p class="chart-source">Nguồn: mô hình scoring hủy (báo cáo 11) · dữ liệu cắt đến 08/2017.</p>
+          </div>
+        </div>
+
+        <div class="panel panel--accent reveal" style="margin-top: var(--space-2xl);">
+          <h3>Ba nút thắt cùng lúc</h3>
+          <p style="margin-bottom: 0.85rem;">
+            <strong>(1)</strong> Công thức thống kê truyền thống
+            (<span class="tech-term" title="Ordinary Least Squares — phương pháp hồi quy tuyến tính cổ điển" style="color: rgba(250,250,249,0.65); border-bottom-color: rgba(250,250,249,0.4);">OLS</span>)
+            tính trên dữ liệu lịch sử có xu hướng đề xuất tăng giá quá tay, nên đội Revenue Management đã hiệu chỉnh lại bằng
+            kinh nghiệm thực tế thay vì dùng thẳng kết quả mô hình
+            (<span class="tech-term" title="RM prior: mức điều chỉnh dựa trên kinh nghiệm chuyên gia Revenue Management, thay cho hệ số mô hình thuần túy" style="color: rgba(250,250,249,0.65); border-bottom-color: rgba(250,250,249,0.4);">RM prior</span>).
+          </p>
+          <p style="margin-bottom: 0.85rem;">
+            <strong>(2)</strong> Nếu chỉ tối ưu để tối đa hóa doanh thu, mô hình sẽ đẩy giá City tăng tới +21% — quá rủi ro.
+            Do đó cần một mô hình tổng hợp nhiều tín hiệu, cân bằng giữa doanh thu và kiểm soát rủi ro hủy
+            (<span class="tech-term" title="Ensemble: kết hợp nhiều mô hình. Dual-objective: tối ưu đồng thời 2 mục tiêu (doanh thu và rủi ro) thay vì chỉ 1." style="color: rgba(250,250,249,0.65); border-bottom-color: rgba(250,250,249,0.4);">ensemble + dual-objective</span>)
+            để làm mềm mức đề xuất cực đoan.
+          </p>
+          <p style="margin-bottom: 0;">
+            <strong>(3)</strong> Mức giá bán trực tiếp (Direct) thấp nhất có thể vi phạm cam kết giá ngang bằng với OTA (rate parity)
+            — vì vậy bộ phận Pháp lý (Legal) là cửa duyệt bắt buộc trước khi công bố giá này ra thị trường.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Q ========== -->
+    <section class="chapter" id="question" aria-labelledby="q-title">
+      <div class="wrap">
+        <p class="chapter__label">Question</p>
+        <h2 id="q-title" class="reveal">Quyết định điều hành cần trả lời gì?</h2>
+        <p class="chapter__intro reveal">
+          Không phải “model nào đẹp nhất”, mà là bộ câu hỏi stakeholder có thể duyệt — hoặc từ chối — trong một phiên họp.
+        </p>
+
+        <div class="grid-2 reveal">
+          <div class="panel">
+            <h3>Câu hỏi lõi</h3>
+            <p style="margin-bottom: 1rem;">
+              Làm thế nào tăng RevPAR portfolio khi City và Resort phản ứng giá khác nhau,
+              mà không đẩy hủy / walk / xung đột kênh?
+            </p>
+            <p>
+              Và nếu có playbook — triển khai thế nào để Finance neo kỳ vọng thận trọng,
+              FO kiểm soát walk, Legal giữ parity?
+            </p>
+          </div>
+          <div>
+            <ul class="funnel" aria-label="Chuỗi câu hỏi quyết định">
+              <li><span>Giá Peak City harden bao nhiêu?</span><span class="pct">R1</span></li>
+              <li><span>Resort Peak có được shock ADR?</span><span class="pct">R2</span></li>
+              <li><span>Buffer hủy High refill kênh nào?</span><span class="pct">R3</span></li>
+              <li><span>ROI báo cáo: floor hay base?</span><span class="pct">R4</span></li>
+              <li><span>Pilot bao lâu · ai bấm kill?</span><span class="pct">R5</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="quote-block reveal">
+          <p>Câu trả lời phải là một chính sách vận hành có thể áp dụng ngay — không chỉ một con số giá tối ưu nằm trên slide.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== A ========== -->
+    <section class="chapter" id="answer" aria-labelledby="a-title">
+      <div class="wrap">
+        <p class="chapter__label">Answer</p>
+        <h2 id="a-title" class="reveal">Playbook bất đối xứng · booking theo tier · pilot có cửa chết</h2>
+        <p class="chapter__intro reveal">
+          Đề xuất v2.0: áp dụng chính sách giá riêng cho City và Resort, phân luồng xử lý booking theo rủi ro hủy,
+          triển khai theo từng giai đoạn có điểm kiểm soát trong 16 tuần — <strong>không triển khai đồng loạt toàn bộ portfolio ngay từ đầu.</strong>
+          <strong>Rủi ro chính cần lưu ý ngay:</strong> nếu áp dụng sai nhịp ở Resort mùa cao điểm, RevPAR có thể giảm tới khoảng 2,1%;
+          vì vậy đề xuất đi kèm cơ chế tự động dừng (kill‑switch) và không con số upside nào dưới đây được xem là cam kết tài chính.
+        </p>
+
+        <div class="exec-summary reveal">
+          <p class="exec-summary__label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            Tóm tắt điều hành — 60 giây
+          </p>
+          <dl>
+            <div>
+              <dt>Đề xuất là gì</dt>
+              <dd>Ngừng áp một mức giá chung cho toàn portfolio. Thay bằng: <strong>tăng giá thận trọng ở City</strong> vào mùa cao điểm,
+                <strong>giữ nguyên giá ở Resort</strong> mùa cao điểm, và xử lý khách có nguy cơ hủy cao bằng quy trình buffer riêng.</dd>
+            </div>
+            <div>
+              <dt>Kỳ vọng tài chính</dt>
+              <dd>RevPAR portfolio tăng thêm khoảng <strong>€10.000 (kịch bản an toàn)</strong>, mức đội RM đang theo dõi hàng tuần là
+                <strong>€59.000 (kịch bản cơ sở)</strong>, và tối đa <strong>€70.000–85.000 (kịch bản đầy đủ)</strong>
+                trong 16 tuần thí điểm — xem chi tiết 3 kịch bản A/B/C ở mục 3 bên dưới. Đây là <strong>ước tính dựa trên dữ liệu lịch sử, chưa phải số đã kiểm chứng bằng thử nghiệm thực tế</strong>.</dd>
+            </div>
+            <div>
+              <dt>Rủi ro được kiểm soát ra sao</dt>
+              <dd>Tỷ lệ hủy chỉ được phép tăng tối đa <strong>+1 điểm phần trăm</strong>; nếu vượt ngưỡng trong 2 tuần, chính sách tự động tạm dừng (kill‑switch),
+                không cần chờ họp phê duyệt lại.</dd>
+            </div>
+            <div>
+              <dt>Nếu không làm gì</dt>
+              <dd>Portfolio tiếp tục dùng một mức giá cho cả hai property, bỏ lỡ phần doanh thu tăng thêm nói trên, và vẫn giữ nguyên rủi ro
+                xung đột giá giữa kênh Direct và OTA vốn chưa được xử lý.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <h3 class="reveal" style="font-family: var(--font-display); font-size: 1.65rem; margin: 0 0 1rem;">
+          1 · Quy tắc giá then chốt
+        </h3>
+        <div class="reveal" style="overflow-x: auto; margin-bottom: var(--space-2xl);">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Quyết định</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">D1</td>
+                <td>City Peak harden BAR trong band ±15%</td>
+                <td><span class="tag tag--ok">Pilot</span></td>
+              </tr>
+              <tr>
+                <td class="num">D2</td>
+                <td>Resort Peak: HOLD — cấm +ADR shock</td>
+                <td><span class="tag tag--lock">Policy lock</span></td>
+              </tr>
+              <tr>
+                <td class="num">D3</td>
+                <td>Resort Low CUT ~−5% sau khi City Peak ổn</td>
+                <td><span class="tag tag--warn">Staged</span></td>
+              </tr>
+              <tr>
+                <td class="num">D4</td>
+                <td>Buffer chỉ High-tier; refill ưu tiên Direct</td>
+                <td><span class="tag tag--ok">+ FO SLA</span></td>
+              </tr>
+              <tr>
+                <td class="num">D5</td>
+                <td>Best-rate public sau Legal OK</td>
+                <td><span class="tag tag--warn">Gated</span></td>
+              </tr>
+              <tr>
+                <td class="num">D6</td>
+                <td>ROI: A floor · B base · C upside</td>
+                <td><span class="tag tag--ok">Reporting</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="reveal" style="font-family: var(--font-display); font-size: 1.65rem; margin: 0 0 1rem;">
+          2 · Booking theo tầng rủi ro hủy
+        </h3>
+        <div class="grid-3 reveal" style="margin-bottom: var(--space-2xl);">
+          <div class="panel">
+            <h3>Low</h3>
+            <p>Frictionless Direct — giảm ma sát, giữ trải nghiệm sạch.</p>
+          </div>
+          <div class="panel">
+            <h3>Medium</h3>
+            <p>CRM confirm — nhắc xác nhận trước ngày đến.</p>
+          </div>
+          <div class="panel">
+            <h3>High</h3>
+            <p>Buffer → refill Direct đúng BAR — không dump OTA.</p>
+          </div>
+        </div>
+
+        <h3 class="reveal" style="font-family: var(--font-display); font-size: 1.65rem; margin: 0 0 1rem;">
+          3 · Tác động kỳ vọng
+          <span class="tech-term" title="in-sample proxy: ước tính chạy trên chính dữ liệu lịch sử dùng để xây mô hình, chưa qua kiểm chứng độc lập ngoài mẫu" style="font-size: 0.5em; vertical-align: middle;">(proxy in-sample)</span>
+        </h3>
+
+        <div class="banner reveal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          <div>
+            <strong>Đây là ước tính counterfactual — CHƯA phải cam kết P&amp;L</strong>
+            <p>Ba con số A/B/C dưới đây được tính từ dữ liệu lịch sử (in-sample) và mô phỏng "nếu đã áp dụng chính sách này", không phải kết quả
+              đã đo được từ một thử nghiệm thực tế (chưa có A/B test / RCT production). Chỉ dùng để định hướng quyết định go/no-go pilot,
+              <strong>không dùng trực tiếp làm số liệu ngân sách</strong> cho đến khi có kết quả shadow-run thực tế.</p>
+          </div>
+        </div>
+
+        <div class="grid-2 reveal" style="margin-bottom: var(--space-2xl);">
+          <div>
+            <div class="impact-bars" id="impactBars">
+              <div class="impact-row">
+                <div class="impact-row__head">
+                  <span>A · Kịch bản an toàn (floor)</span>
+                  <span>~€10k</span>
+                </div>
+                <div class="impact-row__track"><div class="impact-row__fill" data-w="12" style="width:0%"></div></div>
+              </div>
+              <div class="impact-row">
+                <div class="impact-row__head">
+                  <span>B · Kịch bản cơ sở (base)</span>
+                  <span>~€59k</span>
+                </div>
+                <div class="impact-row__track"><div class="impact-row__fill" data-w="70" style="width:0%"></div></div>
+              </div>
+              <div class="impact-row">
+                <div class="impact-row__head">
+                  <span>C · Kịch bản đầy đủ (upside)</span>
+                  <span>~€70–85k</span>
+                </div>
+                <div class="impact-row__track"><div class="impact-row__fill" data-w="100" style="width:0%"></div></div>
+              </div>
+            </div>
+            <p class="chart-caption">
+              A = mức sàn tài chính, dùng để báo cáo Finance thận trọng · B = mức cơ sở đội RM theo dõi hàng tuần ·
+              C = mức trần chỉ đạt được nếu Legal duyệt giá Direct và UX buffer vận hành trơn tru.
+            </p>
+            <p class="chart-source">Nguồn: mô phỏng playbook trên dữ liệu 07/2015–08/2017 (báo cáo 26–28) · proxy doanh thu = ~€2,84M (xem công thức ở KPI Situation).</p>
+          </div>
+          <div class="panel">
+            <h3>Back-test 2015–2016</h3>
+            <p style="margin-bottom: 1rem;">
+              Khi áp thử quy tắc hẹp (City tăng giá mùa cao điểm + Resort giảm giá mùa thấp điểm) trên dữ liệu quá khứ,
+              cả hai property đều đạt tiêu chí thông qua (<strong>go = True</strong>): RevPAR không giảm và tỷ lệ hủy không tăng quá 1 điểm phần trăm.
+            </p>
+            <div class="chart-box" style="height: 200px; border: none; padding: 0;">
+              <canvas id="chartBacktest" aria-label="Biểu đồ mean ΔRevPAR back-test"></canvas>
+            </div>
+            <p class="chart-source">Nguồn: back-test rule hẹp trên dữ liệu 2015–2016 (báo cáo 27) · dữ liệu cắt đến 08/2017.</p>
+          </div>
+        </div>
+
+        <h3 class="reveal" style="font-family: var(--font-display); font-size: 1.65rem; margin: 0 0 1rem;">
+          Downside &amp; cost of inaction
+        </h3>
+        <div class="grid-2 reveal" style="margin-bottom: var(--space-2xl);">
+          <div class="downside">
+            <h3>Nếu không hành động</h3>
+            <ul>
+              <li>Bỏ lỡ toàn bộ phần doanh thu tăng thêm ước tính — từ <strong>~€10k (tối thiểu)</strong> đến <strong>~€85k (tối đa)</strong> trong 16 tuần thí điểm.</li>
+              <li>Tiếp tục dùng chung một mức giá cho City và Resort dù hai property phản ứng ngược chiều nhau — rủi ro mất khách Resort mùa cao điểm nếu đối thủ linh hoạt giá trước.</li>
+              <li>Nhóm khách rủi ro hủy cao (~64% trong High-tier) tiếp tục không có quy trình buffer chủ động, giữ nguyên rủi ro trống phòng phút chót.</li>
+            </ul>
+          </div>
+          <div class="downside">
+            <h3>Nếu triển khai sai (worst-case)</h3>
+            <ul>
+              <li>Nếu tăng giá đột ngột ở Resort mùa cao điểm (kịch bản đã bị khóa — quyết định D2), mô hình cho thấy RevPAR có thể giảm tới <strong>~2,1%</strong>.</li>
+              <li>Giới hạn thiệt hại tối đa theo thiết kế: <strong>Δhủy &gt; +1pp/2 tuần → tự động HOLD</strong>; <strong>walk &gt; 5%/tuần → siết buffer ngay</strong> — pilot không chạy tiếp nếu vượt ngưỡng.</li>
+              <li>Vì luôn bắt đầu bằng giai đoạn shadow ≥ 2 tuần (chưa đổi giá thật), rủi ro tài chính trong giai đoạn đầu gần như bằng 0.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="reveal" style="font-family: var(--font-display); font-size: 1.65rem; margin: 0 0 1rem;">
+          4 · Lộ trình pilot 16 tuần
+        </h3>
+        <div class="grid-2 reveal">
+          <ol class="timeline">
+            <li>
+              <strong>Phase 0–1 · Shadow ≥ 2 tuần</strong>
+              <span>Ký rule sheet · BAR shadow · kick-off Legal parity</span>
+            </li>
+            <li>
+              <strong>Phase 2 · City Peak</strong>
+              <span>Harden trong band · theo dõi ΔRevPAR / Δcancel / walk</span>
+            </li>
+            <li>
+              <strong>Phase 3 · Resort Low</strong>
+              <span>CUT ~−5% · ưu tiên Offline · chỉ khi City Peak đạt exit</span>
+            </li>
+            <li>
+              <strong>Phase 4 · Direct UX</strong>
+              <span>Best-rate public sau Legal OK — cho phép trượt nếu parity chậm</span>
+            </li>
+          </ol>
+          <div class="panel panel--accent">
+            <h3>Kill switch (RM lead)</h3>
+            <p style="margin-bottom: 0.75rem;">Δcancel &gt; +1 pp / 2 tuần → HOLD ô</p>
+            <p style="margin-bottom: 0.75rem;">Walk &gt; 5% / tuần → siết buffer</p>
+            <p style="margin-bottom: 0.75rem;">Resort Peak đỏ sau +ADR → rollback</p>
+            <p>Parity complaint → tắt best-rate public</p>
+          </div>
+        </div>
+
+        <h3 class="reveal" style="font-family: var(--font-display); font-size: 1.65rem; margin: var(--space-2xl) 0 1rem;">
+          5 · Từ mô hình kỹ thuật đến quyết định vận hành
+        </h3>
+        <p class="reveal" style="max-width: 40rem; color: var(--color-secondary); margin: 0 0 1rem;">
+          Toàn bộ playbook trên được xây từ một chuỗi mô hình (dự báo → đo độ nhạy giá → tối ưu → làm mềm bằng ensemble → kiểm chứng back-test).
+          Bảng chi tiết bên dưới dành cho đội RM &amp; Data — CEO có thể bỏ qua và đi thẳng tới mục Hạn chế.
+        </p>
+        <details class="tech-appendix reveal">
+          <summary>Xem bảng chi tiết pipeline kỹ thuật (RM &amp; Data team)</summary>
+          <div style="overflow-x: auto;">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Tầng</th>
+                <th>Deliverable</th>
+                <th>Đọc nghiệp vụ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Forecast 20–21</td>
+                <td>Demand · ADR · RevPAR tách facet</td>
+                <td>Tháng 9 nên giữ giá phòng cho cả hai property; riêng Resort có thể bắt đầu kích cầu sớm hơn, từ tháng 10.</td>
+              </tr>
+              <tr>
+                <td>Elasticity 22</td>
+                <td>ε City −0,70 · Resort −1,10</td>
+                <td>Kết quả hồi quy lịch sử (<span class="tech-term" title="Ordinary Least Squares — cho hệ số dương bất thường (giá tăng thì cầu cũng tăng), trái ngược lý thuyết kinh tế, nên không đáng tin để dùng trực tiếp">OLS</span>)
+                  bị lệch dương bất thường nên đã bị loại; hệ số dùng chính thức được hiệu chỉnh lại theo kinh nghiệm RM.</td>
+              </tr>
+              <tr>
+                <td>Optimize 23</td>
+                <td>p★ analytic</td>
+                <td>Mô hình gợi ý City tăng giá mạnh, Resort giảm giá nhẹ — nhưng mức đề xuất còn quá cực đoan để đưa vào vận hành ngay.</td>
+              </tr>
+              <tr>
+                <td>ML Ensemble 24</td>
+                <td>BAR floor–recommend–ceil</td>
+                <td>Mô hình tổng hợp sẽ tự động hạ bớt các mức giá đề xuất cực đoan; riêng khi vào mùa cao điểm và tỷ trọng khách OTA cao,
+                  trọng số cân bằng rủi ro (dual α) bị giới hạn tối đa ở mức 0,7 để ưu tiên an toàn hơn tối đa hóa doanh thu.</td>
+              </tr>
+              <tr>
+                <td>Validate 27 · Playbook 28</td>
+                <td>Go/no-go · rule sheet</td>
+                <td>Chỉ những quy tắc đã vượt qua back-test (rule hẹp) mới đủ điều kiện đưa vào pilot thực tế.</td>
+              </tr>
+              <tr>
+                <td>Pack 29–35</td>
+                <td>Exec · deck · impl · retro</td>
+                <td>Bộ tài liệu điều hành sẽ được cập nhật lại (v2.0) sau khi nhận phản hồi từ các bên liên quan.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </details>
+
+        <div class="panel reveal" style="margin-top: var(--space-2xl);">
+          <h3>Hạn chế — nói thẳng</h3>
+          <p>
+            Kết quả trên <strong>chưa</strong> được kiểm chứng bằng thử nghiệm đối chứng thực tế
+            (<span class="tech-term" title="Randomized Controlled Trial / A-B test chạy trực tiếp trên hệ thống production">RCT / A-B test production</span>).
+            Hệ số co giãn giá dùng chính thức là mức điều chỉnh theo kinh nghiệm RM, <strong>không phải</strong> quan hệ nhân quả đã được chứng minh
+            (<span class="tech-term" title="Causal: quan hệ nhân quả đã được kiểm chứng bằng thực nghiệm, không chỉ là tương quan quan sát được">non-causal</span>).
+            Chỉ số rủi ro hủy dùng trong mô hình tối ưu chỉ là một proxy mô tả, không phải xác suất hủy thực đo theo thời gian thực.
+            Hiệu quả của phần doanh thu Direct còn phụ thuộc vào mức hoa hồng thực tế của từng kênh và việc có giữ được cam kết giá ngang bằng (parity) hay không.
+            Dữ liệu phân tích kết thúc ở 08/2017 — cần hiệu chỉnh lại mô hình khi có dữ liệu mới hơn.
+          </p>
+          <p style="margin: 0.75rem 0 0;">
+            <strong>Bắt buộc trước khi mở rộng quy mô:</strong> hoàn tất giai đoạn shadow tối thiểu 2 tuần
+            và City Peak phải đạt các tiêu chí thoát giai đoạn (exit criteria) đã định trước.
+          </p>
+        </div>
+
+        <div class="quote-block reveal">
+          <p>
+            Tóm lại: đo riêng City và Resort mới thấy hai bên phản ứng ngược chiều khi tăng giá mùa cao điểm.
+            Vì vậy đề xuất giới hạn mức tăng giá trong một biên độ an toàn, gắn buffer phòng cho nhóm khách rủi ro hủy cao
+            với kênh bán trực tiếp, và chạy thí điểm có cơ chế tự động dừng nếu rủi ro vượt ngưỡng.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <h2>Đọc tiếp theo vai trò</h2>
+      <p>
+        GM: <a href="../29_executive_summary.md">29 Executive Summary</a> ·
+        RM: <a href="../28_finalize_dynamic_pricing_playbook.md">28 Playbook</a> ·
+        Stakeholder: <a href="../33_final_business_report_v2.md">33 Report v2.0</a> ·
+        Triển khai: <a href="../34_implementation_guide.md">34 Implementation</a> ·
+        Dashboard:
+        <a href="../../dashboard-html/index.html">HTML</a>
+      </p>
+      <div class="footer__meta">
+        <span>Hotel Booking Demand</span>
+        <span>SCQA Data Storytelling</span>
+        <span>Light · Luxury charcoal &amp; gold</span>
+        <span>Cập nhật 24/07/2026</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* Scroll reveal */
+      const reveals = document.querySelectorAll(".reveal");
+      if (reduce) {
+        reveals.forEach((el) => el.classList.add("is-visible"));
+      } else if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add("is-visible");
+                io.unobserve(e.target);
+              }
+            });
+          },
+          { rootMargin: "0px 0px -8% 0px", threshold: 0.12 }
+        );
+        reveals.forEach((el) => io.observe(el));
+      } else {
+        reveals.forEach((el) => el.classList.add("is-visible"));
+      }
+
+      /* Nav current section */
+      const sections = ["situation", "complication", "question", "answer"].map((id) =>
+        document.getElementById(id)
+      );
+      const navLinks = document.querySelectorAll('.site-nav__links a[href^="#"]');
+      const setCurrent = () => {
+        let current = sections[0];
+        const y = window.scrollY + 120;
+        sections.forEach((s) => {
+          if (s && s.offsetTop <= y) current = s;
+        });
+        navLinks.forEach((a) => {
+          const on = a.getAttribute("href") === "#" + (current && current.id);
+          a.setAttribute("aria-current", on ? "true" : "false");
+        });
+      };
+      window.addEventListener("scroll", setCurrent, { passive: true });
+      setCurrent();
+
+      /* Impact bars animate when visible */
+      const bars = document.querySelectorAll(".impact-row__fill");
+      const animateBars = () => {
+        bars.forEach((b) => {
+          b.style.width = (b.getAttribute("data-w") || "0") + "%";
+        });
+      };
+      const impact = document.getElementById("impactBars");
+      if (impact && "IntersectionObserver" in window && !reduce) {
+        const bio = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              animateBars();
+              bio.disconnect();
+            }
+          },
+          { threshold: 0.4 }
+        );
+        bio.observe(impact);
+      } else {
+        animateBars();
+      }
+
+      const bootCharts = () => {
+        if (typeof Chart === "undefined") return;
+
+        const font = { family: "Montserrat, sans-serif", size: 11 };
+        Chart.defaults.font.family = font.family;
+        Chart.defaults.color = "#78716C";
+
+        /* Vẽ dải tham chiếu (whisker) + nhãn giá trị ngay trên cột — thay cho việc
+           chỉ giải thích trong caption. Dải này lấy từ số back-test thật (chartBacktest),
+           không phải khoảng tin cậy thống kê chính thức — luôn ghi rõ trong nhãn. */
+        const shockAnnotations = {
+          id: "shockAnnotations",
+          afterDatasetsDraw(chart, args, opts) {
+            const ranges = (opts && opts.ranges) || [];
+            if (!ranges.length) return;
+            const meta = chart.getDatasetMeta(0);
+            const yScale = chart.scales.y;
+            const ctx = chart.ctx;
+            ctx.save();
+            meta.data.forEach((bar, i) => {
+              const [low, high] = ranges[i];
+              const x = bar.x;
+              const yLow = yScale.getPixelForValue(low);
+              const yHigh = yScale.getPixelForValue(high);
+              ctx.strokeStyle = "#44403C";
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.moveTo(x, yLow);
+              ctx.lineTo(x, yHigh);
+              ctx.moveTo(x - 8, yLow);
+              ctx.lineTo(x + 8, yLow);
+              ctx.moveTo(x - 8, yHigh);
+              ctx.lineTo(x + 8, yHigh);
+              ctx.stroke();
+
+              const value = chart.data.datasets[0].data[i];
+              const labelY = value >= 0 ? Math.min(yLow, yHigh) - 10 : Math.max(yLow, yHigh) + 18;
+              ctx.fillStyle = "#1C1917";
+              ctx.font = "700 12px Montserrat, sans-serif";
+              ctx.textAlign = "center";
+              ctx.fillText((value > 0 ? "+" : "") + value.toFixed(1) + "%", x, labelY);
+            });
+            ctx.restore();
+          },
+        };
+
+        const chartShock = new Chart(document.getElementById("chartShock"), {
+          type: "bar",
+          data: {
+            labels: ["City Peak +10% ADR", "Resort Peak +10% ADR"],
+            datasets: [
+              {
+                label: "Δ RevPAR (%)",
+                data: [2.3, -2.1],
+                backgroundColor: ["#1C1917", "#A16207"],
+                borderWidth: 0,
+                barThickness: 48,
+              },
+            ],
+          },
+          plugins: [shockAnnotations],
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { top: 24, bottom: 8 } },
+            plugins: {
+              legend: { display: false },
+              shockAnnotations: {
+                ranges: [
+                  [0.51, 2.3], // City: back-test mean (all seasons) → back-test mean (peak, khớp với what-if)
+                  [-2.1, 0.09], // Resort: điểm ước tính nếu shock thuần → thực tế back-test khi có rule bảo vệ
+                ],
+              },
+              tooltip: {
+                callbacks: {
+                  label: (c) => " Điểm ước tính: " + c.parsed.y + "% · dải quan sát back-test: " +
+                    (c.dataIndex === 0 ? "0,5% → 2,3%" : "−2,1% → +0,1%"),
+                },
+              },
+            },
+            scales: {
+              x: { grid: { display: false } },
+              y: {
+                grid: { color: "#E7E5E4" },
+                ticks: { callback: (v) => v + "%" },
+                suggestedMin: -3,
+                suggestedMax: 3,
+              },
+            },
+          },
+        });
+
+        /* chartCancel: tách rõ 2 lớp — hủy tổng thể vs hủy nhóm rủi ro cao — thay vì
+           doughnut 28/72 dễ khiến người đọc nghĩ 72% "an toàn". */
+        const barEndLabels = {
+          id: "barEndLabels",
+          afterDatasetsDraw(chart) {
+            const meta = chart.getDatasetMeta(0);
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.fillStyle = "#1C1917";
+            ctx.font = "700 13px Montserrat, sans-serif";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            meta.data.forEach((bar, i) => {
+              const value = chart.data.datasets[0].data[i];
+              ctx.fillText(value + "%", bar.x + 10, bar.y);
+            });
+            ctx.restore();
+          },
+        };
+
+        new Chart(document.getElementById("chartCancel"), {
+          type: "bar",
+          data: {
+            labels: ["Tổng thể (mọi booking)", "High-tier · P ≥ 0,55"],
+            datasets: [
+              {
+                data: [28, 64],
+                backgroundColor: ["#D6D3D1", "#991B1B"],
+                borderWidth: 0,
+                barThickness: 40,
+              },
+            ],
+          },
+          plugins: [barEndLabels],
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { right: 42 } },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (c) => " Tỷ lệ hủy: " + c.parsed.x + "%",
+                },
+              },
+            },
+            scales: {
+              x: { grid: { color: "#E7E5E4" }, suggestedMax: 80, ticks: { callback: (v) => v + "%" } },
+              y: { grid: { display: false } },
+            },
+          },
+        });
+
+        new Chart(document.getElementById("chartBacktest"), {
+          type: "bar",
+          data: {
+            labels: ["City", "Resort"],
+            datasets: [
+              {
+                label: "Mean ΔRevPAR (all)",
+                data: [0.51, 0.09],
+                backgroundColor: "#1C1917",
+                barThickness: 36,
+              },
+              {
+                label: "Mean ΔRevPAR (peak)",
+                data: [2.3, 0],
+                backgroundColor: "#A16207",
+                barThickness: 36,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 12, padding: 12, font: { size: 10 } },
+              },
+            },
+            scales: {
+              x: { grid: { display: false } },
+              y: {
+                grid: { color: "#E7E5E4" },
+                ticks: { callback: (v) => v + "%" },
+              },
+            },
+          },
+        });
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+          if (typeof Chart !== "undefined") bootCharts();
+          else window.addEventListener("load", bootCharts);
+        });
+      } else {
+        setTimeout(bootCharts, 50);
+      }
+    })();
+  </script>
+</body>
+</html>

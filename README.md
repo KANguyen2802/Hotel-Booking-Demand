@@ -76,6 +76,7 @@ Không cần đọc toàn bộ kỹ thuật để nắm quyết định: bắt �
 
 | Bạn cần… | Đọc |
 |----------|-----|
+| Báo cáo HTML (SCQA storytelling) | **Live:** [hotel-booking-demand-scqa.vercel.app](https://hotel-booking-demand-scqa.vercel.app) · Local: [`reports/html/`](reports/html/) |
 | 1–2 trang quyết định | [29 — Executive Summary](reports/29_executive_summary.md) |
 | Câu chuyện từ dữ liệu đến quyết định | [30 — Final Business Report](reports/30_final_business_report.md) |
 | Bản sau góp ý stakeholder | [33 — Business Report v2.0](reports/33_final_business_report_v2.md) |
@@ -107,6 +108,13 @@ Mục lục đóng gói: [reports/29_35_closing_pack_index.md](reports/29_35_clo
 - **Pilot trước khi scale:** shadow → ô ưu tiên → mở rộng; có kill switch khi hủy hoặc walk vượt ngưỡng.
 
 ---
+
+## Live demos (Vercel)
+
+| Bản | Live | Thư mục |
+|-----|------|---------|
+| **Báo cáo SCQA (HTML)** | [hotel-booking-demand-scqa.vercel.app](https://hotel-booking-demand-scqa.vercel.app) | `reports/html/` |
+| **Dashboard điều hành (HTML)** | [hotel-booking-demand-dashboard.vercel.app](https://hotel-booking-demand-dashboard.vercel.app) | `dashboard-html/` |
 
 ## Dashboard điều hành
 
