@@ -278,12 +278,28 @@ Chạy ngắn: import v5 → `dbo.hotel_booking_db` → `01` + `02` + `03`. Chi 
 
 ### Tóm tắt cho CEO
 
-**Bottom line:** một chính sách giá chung cho hai khách sạn đang để tiền trên bàn ở Resort và bỏ lỡ dư địa ở City; đồng thời 28% nhu cầu đang "rò" qua hủy phòng mà không được quản trị theo rủi ro. Ba đòn bẩy dưới đây giải quyết cả hai, với rào chắn để không đánh đổi bằng walk-in hay xung đột kênh.
+**Bottom line.** Một chính sách giá đồng nhất cho hai khách sạn đang khiến City mất doanh thu tiềm năng và Resort chịu rủi ro giảm RevPAR — trong khi 28% nhu cầu bị "rò rỉ" qua kênh hủy phòng chưa được quản trị theo rủi ro. Ba can thiệp có mục tiêu dưới đây thu hồi phần giá trị này mà không đánh đổi bằng walk-in hay xung đột kênh phân phối.
 
-- **Định giá theo property, không theo cảm tính.** City chịu được nâng giá cao điểm có kiểm soát; Resort thì giữ nguyên — mọi phép tăng giá mạnh ở Resort đã được kiểm chứng là *lỗ* RevPAR, không phải lãi. Mùa thấp, Resort nên giảm nhẹ (~5%) để giữ occupancy thay vì để trống phòng.
-- **Biến rủi ro hủy thành tài sản, không phải tổn thất.** Thay vì đối xử như nhau với mọi booking, hệ thống chấm điểm rủi ro để phân luồng: khách an toàn được trải nghiệm đặt phòng mượt, khách rủi ro cao được đưa vào "bộ đệm" bán lại đúng giá qua kênh trực tiếp — không xả giá rẻ qua OTA.
-- **Siết có chọn lọc, không siết đại trà.** Không áp đặt cọc bắt buộc hay overbooking tràn lan lên toàn hệ thống — chỉ can thiệp đúng nhóm rủi ro cao (đặt sớm qua OTA), có trần an toàn và siết chặt hợp đồng nhóm đoàn.
-- **Đề xuất quyết định:** phê duyệt pilot 16 tuần, có cơ chế dừng tự động nếu hủy phòng hoặc walk-in vượt ngưỡng an toàn. Kịch bản thận trọng mang lại **~€10k/năm**; nếu triển khai đầy đủ trong khung an toàn, tiềm năng đạt **~€70–85k/năm** trên nền doanh thu ~€2,8M — chưa tính tác động thu hồi biên lợi nhuận từ giảm phụ thuộc OTA.
+**1. Định giá theo đặc thù property, không theo quy tắc chung.** City có độ co giãn cầu (elasticity) cho phép nâng giá cao điểm mà không mất khách; Resort thì ngược lại — dữ liệu cho thấy mọi lần tăng giá mạnh tại Resort đều làm giảm RevPAR, không phải tăng.
+
+→ *Khuyến nghị:* tách chính sách giá theo property. City: cho phép nâng giá có kiểm soát vào cao điểm. Resort: giữ giá mùa cao, giảm ~5% mùa thấp để bảo vệ occupancy thay vì chấp nhận phòng trống.
+
+**2. Chuyển rủi ro hủy phòng từ tổn thất thành tài sản vận hành.** Hệ thống hiện tại xử lý mọi booking như nhau, bất kể xác suất hủy. Việc chấm điểm rủi ro theo hồ sơ đặt phòng cho phép phân luồng: khách rủi ro thấp giữ trải nghiệm đặt phòng liền mạch; khách rủi ro cao được đưa vào bộ đệm bán lại đúng giá gốc qua kênh trực tiếp, thay vì buộc phải xả giá qua OTA khi hủy cận ngày.
+
+→ Đây là đòn bẩy thu hồi biên lợi nhuận, không chỉ giảm hủy phòng — vì kênh bán lại quyết định margin.
+
+**3. Can thiệp có chọn lọc, không siết đại trà.** Không áp dụng cọc bắt buộc hay overbooking trên toàn hệ thống — việc này tạo ma sát cho toàn bộ khách hàng để xử lý vấn đề chỉ đến từ một phân khúc. Can thiệp giới hạn đúng nhóm rủi ro cao (đặt sớm qua OTA) và hợp đồng đoàn, với trần an toàn (safety cap) để kiểm soát walk-in.
+
+→ *Nguyên tắc:* rủi ro cục bộ cần giải pháp cục bộ, không phải chính sách toàn hệ thống.
+
+**Đề xuất quyết định.** Phê duyệt pilot 16 tuần với cơ chế dừng tự động (kill-switch) nếu tỷ lệ hủy phòng hoặc walk-in vượt ngưỡng an toàn đã định trước.
+
+| Kịch bản | Tác động ước tính/năm |
+|----------|----------------------:|
+| Thận trọng (conservative) | **~€10K** |
+| Triển khai đầy đủ trong khung an toàn | **~€70–85K** trên nền doanh thu ~€2.8M |
+
+Lưu ý: con số trên chưa bao gồm tác động thu hồi biên lợi nhuận từ việc giảm phụ thuộc OTA — đây là upside chưa lượng hóa, cần đo lường trong giai đoạn pilot.
 
 Tài liệu quyết định: [29 Executive Summary](reports/29_executive_summary.md) · [28 Playbook](reports/28_finalize_dynamic_pricing_playbook.md) · [34 Implementation](reports/34_implementation_guide.md).
 
