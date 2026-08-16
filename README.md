@@ -276,6 +276,15 @@ Chạy ngắn: import v5 → `dbo.hotel_booking_db` → `01` + `02` + `03`. Chi 
 | **R7** | Groups / Corporate | Harden hợp đồng + attrition; không dump block |
 | **R8** | Pilot 16 tuần | Shadow → City Peak → Resort Low → Direct UX. Kill switch nếu Δcancel > +1 pp hoặc walk > 3–5% |
 
+### Tóm tắt cho CEO
+
+**Bottom line:** một chính sách giá chung cho hai khách sạn đang để tiền trên bàn ở Resort và bỏ lỡ dư địa ở City; đồng thời 28% nhu cầu đang "rò" qua hủy phòng mà không được quản trị theo rủi ro. Ba đòn bẩy dưới đây giải quyết cả hai, với rào chắn để không đánh đổi bằng walk-in hay xung đột kênh.
+
+- **Định giá theo property, không theo cảm tính.** City chịu được nâng giá cao điểm có kiểm soát; Resort thì giữ nguyên — mọi phép tăng giá mạnh ở Resort đã được kiểm chứng là *lỗ* RevPAR, không phải lãi. Mùa thấp, Resort nên giảm nhẹ (~5%) để giữ occupancy thay vì để trống phòng.
+- **Biến rủi ro hủy thành tài sản, không phải tổn thất.** Thay vì đối xử như nhau với mọi booking, hệ thống chấm điểm rủi ro để phân luồng: khách an toàn được trải nghiệm đặt phòng mượt, khách rủi ro cao được đưa vào "bộ đệm" bán lại đúng giá qua kênh trực tiếp — không xả giá rẻ qua OTA.
+- **Siết có chọn lọc, không siết đại trà.** Không áp đặt cọc bắt buộc hay overbooking tràn lan lên toàn hệ thống — chỉ can thiệp đúng nhóm rủi ro cao (đặt sớm qua OTA), có trần an toàn và siết chặt hợp đồng nhóm đoàn.
+- **Đề xuất quyết định:** phê duyệt pilot 16 tuần, có cơ chế dừng tự động nếu hủy phòng hoặc walk-in vượt ngưỡng an toàn. Kịch bản thận trọng mang lại **~€10k/năm**; nếu triển khai đầy đủ trong khung an toàn, tiềm năng đạt **~€70–85k/năm** trên nền doanh thu ~€2,8M — chưa tính tác động thu hồi biên lợi nhuận từ giảm phụ thuộc OTA.
+
 Tài liệu quyết định: [29 Executive Summary](reports/29_executive_summary.md) · [28 Playbook](reports/28_finalize_dynamic_pricing_playbook.md) · [34 Implementation](reports/34_implementation_guide.md).
 
 ---
