@@ -276,6 +276,23 @@ Chạy ngắn: import v5 → `dbo.hotel_booking_db` → `01` + `02` + `03`. Chi 
 | **R7** | Groups / Corporate | Harden hợp đồng + attrition; không dump block |
 | **R8** | Pilot 16 tuần | Shadow → City Peak → Resort Low → Direct UX. Kill switch nếu Δcancel > +1 pp hoặc walk > 3–5% |
 
+### Timeline 16 tuần — cổng ra quyết định
+
+Pilot không phải big-bang. Mỗi phase trả lời **một câu hỏi go/no-go**; không đạt cổng thì HOLD — không sang phase sau.
+
+| Phase | Tuần | Quyết định | Làm | Không làm | Cổng sang phase sau |
+|-------|------|------------|-----|-----------|---------------------|
+| **0 · Foundation** | 1–2 | Tách playbook City / Resort? | Ký rule sheet; workshop FO/Sales | Đổi giá OTA | Chữ ký GM + RM |
+| **1 · Shadow** | 3–4 | Dải BAR có đáng tin? | BAR chạy song song nội bộ | Đẩy rate plan OTA | ≥10 ngày làm việc; ≥90% quan sát giải thích được |
+| **2 · City Peak** | 5–8 | Harden City Peak? | Nâng BAR trong band; bật buffer High-tier; refill Direct | Shock Resort Peak; overbook Low/Medium | ΔRevPAR ≥ 0 · Δcancel ≤ +1 pp · walk < 5% |
+| **3 · Resort Low** | 9–12 | CUT ~−5% mùa thấp? | Promo Offline trước Online | +ADR Resort Peak | Rev không giảm; zero sự cố Peak |
+| **4 · Direct UX** | 13–14 | Public best-rate? | Giảm ma sát Low-tier; Legal parity | Best-rate nếu Legal chưa OK (**được trượt**) | Legal memo OK — hoặc giữ refill Direct im lặng |
+| **5 · Scale** | 15–16 | Mở Shoulder? | Playbook v1.1; dashboard tuần | Scale khi kill switch từng kích | Post-mortem; scale hoặc HOLD |
+
+**Kill switch (mọi phase live).** Δcancel > +1 pp / 2 tuần → HOLD ô. Walk > 5%/tuần → siết buffer. Resort Peak đỏ sau +ADR → rollback. Khiếu nại parity → tắt best-rate public.
+
+Chi tiết thao tác: [34 Implementation](reports/34_implementation_guide.md).
+
 ### Tóm tắt cho CEO
 
 **Bottom line.** Một chính sách giá đồng nhất cho hai khách sạn đang khiến City mất doanh thu tiềm năng và Resort chịu rủi ro giảm RevPAR — trong khi 28% nhu cầu bị "rò rỉ" qua kênh hủy phòng chưa được quản trị theo rủi ro. Ba can thiệp có mục tiêu dưới đây thu hồi phần giá trị này mà không đánh đổi bằng walk-in hay xung đột kênh phân phối.
@@ -323,10 +340,8 @@ Hotel-Booking-Demand/
 ├── reports/                       # 02–35 markdown + html/ SCQA
 │   └── html/
 ├── design-system/hotel-booking-demand/
-├── docs/                          # Guide học dự án + figures README + references.bib
-│   └── figures/
-├── scripts/                       # build star-schema (local)
-└── cv/                            # không thuộc pipeline phân tích
+└── docs/                          # Guide học dự án + figures README + references.bib
+    └── figures/
 ```
 
 Đọc theo vai trò: GM → `reports/29` + `31`. RM → `28` + `34`. FO/CRM → `26` + booking flow trong `28`. Finance → ROI trong `29` / `33`.

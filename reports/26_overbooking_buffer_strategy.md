@@ -6,7 +6,21 @@
 > **Nâng cấp / mode phụ:** LightGBM **v2.2** @ 0,25 (calibrated) · **v2.1** @ 0,28 (inventory protection)  
 > **Nguồn hủy:** [`11`](11_cancellation_probability_scores.md) · [`11` by variable](11_cancellation_probability_by_variable.md) · [`11b`](11b_cancellation_probability_overview.md) · [`13`](13_cancellation_model_version_selection.md) · [`16`](16_overbooking_policy.md)  
 > **Nguồn giá / demand:** [`20`](20_demand_forecasting_dynamic_pricing_city_resort.md) → [`25`](25_key_findings_dynamic_pricing_pipeline_city_resort.md)  
-> **Cập nhật:** 23/07/2026
+> **Cập nhật:** 16/08/2026
+
+---
+
+## 0. Quyết định buffer — memo
+
+**Bottom line.** Buffer không phải “overbook 28% vì hệ thống hủy 28%”. Chỉ bán lại nhóm High-tier (hủy thật ~64%); Low/Medium giữ nguyên. Safety factor và cap tồn tại vì Precision v2 chỉ 0,49 — bán hết cờ “sẽ hủy” sẽ walk khách thật.
+
+| Quyết định | Làm | Không làm |
+|------------|-----|-----------|
+| Nguồn buffer = High-tier | P ≥ 0,55 vào pool; refill **Direct đúng BAR** | Overbook Low/Medium; dump OTA cận ngày |
+| Công thức có trần | `buffer = hủy thật (ô) × 0,6`; cap 20%/ngày (Groups 15%) | % cố định mọi hạng/ngày |
+| Peak nóng | Chốt ứng viên **v2.1 @ 0,28** | Giữ mode thường khi inventory nóng |
+
+**Map 16 tuần:** Phase 0–1 (tuần 1–4) chỉ map ô — **chưa bán**. Bật pool từ **Phase 2 tuần 5** (City × OTA × High). Walk > 5%/tuần → siết 50% hoặc tắt. Cổng đầy đủ: [`28`](28_finalize_dynamic_pricing_playbook.md) mục 4 · [`16`](16_overbooking_policy.md) §6.3 · [`34`](34_implementation_guide.md).
 
 ---
 
@@ -202,7 +216,7 @@ flowchart LR
 
   A[Internal Review] --> B{Go / No-go}
   B -->|No-go| Z[Giữ AS-IS · chỉnh lại số]
-  B -->|Go| C["Pilot 8–10 tuần · City × OTA × High"]
+  B -->|Go| C["Pilot Phase 2 · tuần 5–8 · City × OTA × High"]
   C --> D[Đo KPI · walk · RevPAR]
   D --> E{Đạt ngưỡng?}
   E -->|Không| F[Hạ buffer / Safety Factor · pause]
@@ -216,7 +230,7 @@ flowchart LR
 | Buffer / Safety Factor | **20%** · **0,6** — **cố định** suốt pilot (không chỉnh giữa chừng) |
 | Model | Tier bằng **v2**; chốt pool bằng **v2.1 @ 0,28** |
 | Đồng bộ pricing | Stance / BAR theo ensemble [`24`](24_dynamic_pricing_ml_city_resort.md) / [`25`](25_key_findings_dynamic_pricing_pipeline_city_resort.md) — không đổi ngoài guardrail |
-| Thời gian | **8–10 tuần** (có thể song song deposit pilot [`15`](15_policy_scenario.md)) |
+| Thời gian | **Phase 2 = tuần 5–8** trong playbook 16 tuần; mở rộng Phase 3–5 nếu đạt cổng (không còn timeline 8–10 tuần tách biệt) |
 | Mitigation OTA | Soft launch; theo dõi volume Online TA hàng tuần (`15` § rủi ro ranking) |
 
 **KPI đo trong pilot**

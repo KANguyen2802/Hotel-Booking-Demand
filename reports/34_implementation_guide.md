@@ -3,7 +3,7 @@
 > **Loại:** Hướng dẫn từng bước áp dụng recommendations  
 > **Đối tượng:** RM · Data · FO · CRM/Digital · Legal · Sales  
 > **Nguồn quyết định:** [`28`](28_finalize_dynamic_pricing_playbook.md) · [`33`](33_final_business_report_v2.md)  
-> **Cập nhật:** 24/07/2026
+> **Cập nhật:** 16/08/2026
 
 ---
 
@@ -11,13 +11,32 @@
 
 | # | Điều kiện | Done? |
 |---|-----------|:-----:|
-| 1 | Stakeholder đã duyệt playbook + pilot ([`29`](29_executive_summary.md) mục 4) | ☐ |
+| 1 | Stakeholder đã duyệt playbook + pilot ([`29`](29_executive_summary.md) mục 5) | ☐ |
 | 2 | RM lead chỉ định là kill-switch owner | ☐ |
 | 3 | Có quyền đọc scores v2 + export BAR ensemble | ☐ |
 | 4 | Lịch mùa Peak/Shoulder/Low thống nhất Jul–Aug / … | ☐ |
 | 5 | Legal được brief về parity (có thể song song phase 0–1) | ☐ |
 
 **Không sẵn sàng thì không sang Phase 1.**
+
+---
+
+## 0.5 Bản cho người duyệt (1 trang)
+
+Pilot 16 tuần là chuỗi **cổng go/no-go**, không phải lịch việc tuần tự bắt buộc. Mỗi phase trả lời một câu hỏi; fail cổng → HOLD, không sang phase sau. Thao tác chi tiết nằm ở các Phase 0–5 bên dưới.
+
+| Phase | Tuần | Quyết định | Làm | Không làm | Cổng sang phase sau |
+|-------|------|------------|-----|-----------|---------------------|
+| **0 · Foundation** | 1–2 | Tách playbook City / Resort? | Ký rule sheet; workshop FO/Sales | Đổi giá OTA | Chữ ký GM + RM |
+| **1 · Shadow** | 3–4 | Dải BAR có đáng tin? | BAR chạy song song nội bộ | Đẩy rate plan OTA | ≥10 ngày làm việc; ≥90% quan sát giải thích được |
+| **2 · City Peak** | 5–8 | Harden City Peak? | Nâng BAR trong band; bật buffer High-tier; refill Direct | Shock Resort Peak; overbook Low/Medium | ΔRevPAR ≥ 0 · Δcancel ≤ +1 pp · walk < 5% |
+| **3 · Resort Low** | 9–12 | CUT ~−5% mùa thấp? | Promo Offline trước Online | +ADR Resort Peak | Rev không giảm; zero sự cố Peak |
+| **4 · Direct UX** | 13–14 | Public best-rate? | Giảm ma sát Low-tier; Legal parity | Best-rate nếu Legal chưa OK (**được trượt**) | Legal memo OK — hoặc giữ refill Direct im lặng |
+| **5 · Scale** | 15–16 | Mở Shoulder? | Playbook v1.1; dashboard tuần | Scale khi kill switch từng kích | Post-mortem; scale hoặc HOLD |
+
+**Kill switch (RM lead bấm trong 24h).** Δcancel > +1 pp / 2 tuần → HOLD ô. Walk > 5%/tuần → siết buffer. Resort Peak đỏ sau +ADR → rollback. Khiếu nại parity → tắt best-rate public.
+
+Memo C-level: [`29`](29_executive_summary.md). Playbook: [`28`](28_finalize_dynamic_pricing_playbook.md).
 
 ---
 

@@ -5,7 +5,7 @@
 > **Người lập:** Nguyễn Đăng Khôi — Business Analyst  
 > **Dữ liệu:** `hotel_bookings_v5.csv` · **82.811** booking · tỷ lệ hủy **28,12%**  
 > **Nguồn chính:** `02`/`03` EDA · `12_brd_gap_analysis` · `14_key_findings_after_prediction_models`  
-> **Cập nhật:** 15/07/2026
+> **Cập nhật:** 16/08/2026 (thêm memo quyết định + map cọc vào timeline 16 tuần)
 
 ---
 
@@ -16,6 +16,26 @@ Dựa trên báo cáo phân tích dữ liệu từ Data Analyst, tỷ lệ hủy
 Hiện **98,7%** booking là **No Deposit** — thiếu cam kết tài chính mang tính hệ thống. Việc duy trì chính sách nới lỏng để chiều lòng kênh OTA đang gây thất thoát doanh thu tiềm năng (tổng mất do hủy ước **11,25M €**, tương đương **33,74%** doanh thu tiềm năng) và làm giảm hiệu suất phòng thực tế (RevPAR).
 
 **Mục tiêu của báo cáo:** Trình bày nguyên nhân gốc rễ, đối chuẩn với thị trường và đề xuất 3 kịch bản chính sách mới nhằm giảm tỷ lệ hủy, bảo vệ dòng tiền — neo theo số liệu DA đã chốt.
+
+### 1.1 Quyết định chính sách cọc — không siết hàng loạt
+
+**Bottom line.** 98,7% booking đang No Deposit nên rủi ro hủy là hệ thống — nhưng siết cọc trên toàn portfolio tạo ma sát cho cả khách Low-risk (hủy thật chỉ ~4%). Can thiệp phải hẹp.
+
+| Quyết định | Làm | Không làm |
+|------------|-----|-----------|
+| **Chọn B làm thí nghiệm, không làm mặc định** | A/B hẹp: Online TA, lead > 30 (ưu tiên City Peak) | Cọc bắt buộc mọi kênh / mọi lead time |
+| **Audit trước khi siết** | Rà Non Refund (hủy quan sát ~95%, n nhỏ) — đây là tín hiệu chất lượng/channel gaming, không phải bằng chứng "cọc làm tăng hủy" | Dùng Non Refund lịch sử để bác bỏ hoặc biện minh cọc hàng loạt |
+| **A = đệm, C = rate fence** | Kịch bản A (cutoff 72h, không cọc) cho nhóm ít rủi ro; C (Non-Refundable −15%) là lựa chọn song song | Ép toàn bộ khách vào Non-Refundable |
+
+**Map vào pilot 16 tuần** (khớp [`28`](28_finalize_dynamic_pricing_playbook.md) / [`34`](34_implementation_guide.md) — thay timeline 10 tuần cũ):
+
+| Phase | Tuần | Việc liên quan cọc | Cổng |
+|-------|------|--------------------|------|
+| 0–1 Foundation / Shadow | 1–4 | Audit Non Refund; Legal/PCI; họp Payment Gateway; **chưa** bật cọc | Compliance OK |
+| 2 City Peak | 5–8 | A/B hẹp Kịch bản B trên City × Online TA × lead > 30 — **chỉ nếu GM duyệt** | Volume không rơi > 10%; Δcancel không xấu hơn baseline |
+| 3–5 Resort Low → Scale | 9–16 | Chỉ mở rộng nếu Phase 2 đạt; C làm rate fence song song | Ranking OTA không sụt rõ; net revenue dương vs mô phỏng `12` |
+
+Mô phỏng phạm vi hẹp (Online TA, lead > 30): **+1,52M €** net lưu trú / **+3,48M €** nếu giữ một phần cọc — đây là trần mô phỏng, **không** phải target P&L cho đến khi A/B xong.
 
 ---
 
@@ -169,18 +189,19 @@ Nếu Ban Giám đốc phê duyệt Kịch bản B & C, BA sẽ triển khai tro
 - Phát hành **BRD** chi tiết quy trình tự động Hold / Charge / Hoàn tiền (bổ sung BRD v1.2).
 - Làm việc với Data Analyst để đưa model dự báo hủy (**v2** / **v2.1**) vào scoring vận hành và theo dõi KPI: cancel toàn cục **28,12% → < 24%**; Online TA × TA/TO **35,7% → < 30%**; giảm tỷ lệ No Deposit **98,7% → < 85%**.
 
-### 7.1 Timeline & RACI đề xuất
+### 7.1 Timeline 16 tuần & RACI (cọc là workstream trong playbook)
 
-| Tuần | Hành động | Chịu trách nhiệm (R) | Phê duyệt (A) | Hỗ trợ (C/I) |
-|---|---|---|---|---|
-| 1 | Họp & chốt nhà cung cấp Payment Gateway; rà soát compliance PCI-DSS | BA | Ban Giám đốc | IT, Pháp lý |
-| 2 | Phát hành BRD Hold/Charge/Refund (bổ sung BRD v1.2) | BA | Revenue Management | FO/Kế toán, IT |
-| 3–4 | Build & test tích hợp PMS ↔ Payment Gateway | IT | BA | FO/Kế toán |
-| 5 | Soft-launch Pilot B (Online TA, lead > 30, phạm vi giới hạn) | Revenue Management | Ban Giám đốc | Sales & Marketing, BA |
-| 6–9 | Theo dõi pilot: cancel rate, volume, net revenue, phản ứng OTA | Data Analyst | Revenue Management | BA |
-| 10 | Đánh giá go/no-go mở rộng toàn hệ thống + Kịch bản C | BA + Revenue Management | Ban Giám đốc | Tất cả |
+Cọc **không** chạy timeline riêng 10 tuần. Gắn vào cổng go/no-go của playbook 16 tuần ([`28`](28_finalize_dynamic_pricing_playbook.md) mục 4 · [`34`](34_implementation_guide.md)).
 
-**Cổng phê duyệt (go/no-go):** Chỉ mở rộng toàn hệ thống nếu sau pilot (tuần 6–9): net revenue tăng dương, volume giảm không vượt quá 10% giả định, và không ghi nhận sụt giảm ranking OTA rõ rệt.
+| Phase | Tuần | Hành động cọc | Chịu trách nhiệm (R) | Phê duyệt (A) | Hỗ trợ (C/I) |
+|---|---|---|---|---|---|
+| **0 · Foundation** | 1–2 | Họp Payment Gateway; rà PCI-DSS; kick-off Legal | BA | Ban Giám đốc | IT, Pháp lý |
+| **1 · Shadow** | 3–4 | BRD Hold/Charge/Refund; **chưa** bật cọc trên kênh | BA | Revenue Management | FO/Kế toán, IT |
+| **2 · City Peak** | 5–8 | A/B hẹp Kịch bản B (Online TA, lead > 30) nếu GM duyệt | Revenue Management | Ban Giám đốc | Sales, BA, Data |
+| **3 · Resort Low** | 9–12 | Không mở cọc Resort Peak; chỉ giữ A/B City nếu đang đạt cổng | Revenue Management | Ban Giám đốc | Sales |
+| **4–5 · Direct / Scale** | 13–16 | Go/no-go mở rộng + Kịch bản C (rate fence); đo ranking OTA | BA + Revenue Management | Ban Giám đốc | Tất cả |
+
+**Cổng phê duyệt:** Chỉ mở rộng nếu sau Phase 2 (tuần 5–8): net revenue tăng dương, volume giảm không vượt 10% giả định, không sụt ranking OTA rõ rệt. Kill switch chung playbook: Δcancel > +1 pp / 2 tuần → HOLD.
 
 ### 7.2 Theo dõi sau triển khai (Monitoring Cadence)
 
@@ -206,4 +227,4 @@ Nếu Ban Giám đốc phê duyệt Kịch bản B & C, BA sẽ triển khai tro
 
 ---
 
-*Báo cáo đề xuất chính sách quản trị rủi ro hủy phòng và tối ưu RevPAR. Cập nhật: 15/07/2026.*
+*Báo cáo đề xuất chính sách quản trị rủi ro hủy phòng và tối ưu RevPAR. Cập nhật: 16/08/2026.*

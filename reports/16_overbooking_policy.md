@@ -6,7 +6,7 @@
 > **Dữ liệu:** `hotel_bookings_v5.csv` · **82.811** booking · tỷ lệ hủy **28,12%**  
 > **Mô hình nguồn:** LightGBM v2 (scoring, `11_cancellation_probability_scores.md`) · LightGBM v2.1 (khuyến nghị production cho overbooking, `13_cancellation_model_version_selection.md`)  
 > **Nguồn chính:** `10`/`12` BRD · `11` Probability scores · `13` Version selection · `15` Policy scenario  
-> **Cập nhật:** 16/07/2026
+> **Cập nhật:** 16/08/2026 (thêm memo quyết định + map buffer vào timeline 16 tuần)
 
 ---
 
@@ -23,6 +23,19 @@ Báo cáo này chuyển hóa output mô hình dự đoán hủy (P(hủy)) thàn
 | 5 | Phase 2 Deliverable | Outline trình bày Internal Review + Q&A dự kiến |
 
 **Thông điệp chính:** Không nên overbook đồng loạt theo % cố định. Buffer phải **calibrate theo rủi ro thực tế của từng ô (segment × mùa × hotel)**, và phải **chiết khấu an toàn (safety factor)** so với tỷ lệ hủy thô — vì Precision mô hình v2 chỉ **0,49** ở ngưỡng 0,35 (gần một nửa booking bị gắn cờ "sẽ hủy" thực ra **không hủy**). Đây là rủi ro walk cost cốt lõi mà chính sách phải kiểm soát.
+
+### Quyết định overbooking — chỉ High-tier, có trần
+
+**Bottom line.** Overbook toàn hệ thống để "bù 28% hủy" sẽ walk khách Low-risk (hủy thật chỉ ~4%). Buffer chỉ lấy từ nhóm đã hủy thật ~64%.
+
+| Quyết định | Làm | Không làm |
+|------------|-----|-----------|
+| Chỉ bán buffer **High-tier** (P ≥ 0,55) | Low (P < 0,35) = không buffer; Medium = CRM nhắc, chưa bán lại | Overbook Low/Medium; % cố định mọi ngày |
+| Công thức có trần | `buffer = hủy thật (ô) × 0,6`; cap **20%**/ngày (Groups **15%**) | Bán buffer = 100% tỷ lệ hủy thô |
+| Peak nóng → phòng thủ | Chốt ứng viên bằng **v2.1 @ 0,28** (Recall ~0,95) | Giữ mode thường khi inventory nóng |
+| Refill đúng BAR | Slot giải phóng → **Direct trước** @ BAR; dump OTA là phương án cuối | Xả giá OTA cận ngày |
+
+**Map vào 16 tuần:** buffer **bật từ Phase 2 (tuần 5)** cùng City Peak — không bật ở Shadow. Walk > 5%/tuần → siết buffer 50% hoặc tắt pool. Chi tiết cổng: [`28`](28_finalize_dynamic_pricing_playbook.md) mục 4 · [`34`](34_implementation_guide.md).
 
 ---
 
@@ -226,15 +239,24 @@ Trình bày framework Risk Tier + Overbooking Strategy + Playbook + Cost-Benefit
 | 6 | Walk Protocol | Quy trình xử lý khi overbook vượt ngưỡng | Mục 4.3 |
 | 7 | Cost-Benefit | Net Benefit +4,2M–5,0M €/năm, walk cost 80–150k € | Mục 5 |
 | 8 | Rủi ro & Mitigation | Walk cost, phản ứng OTA, compliance (liên kết `15` mục 2.1 & 6) | `15` |
-| 9 | Đề xuất pilot | Phạm vi pilot (Online TA, City Hotel, Jul–Aug trước), timeline 8–10 tuần | Mục 6.3 |
+| 9 | Đề xuất pilot | Phạm vi City × OTA × High; bật buffer Phase 2 (tuần 5–8) trong playbook 16 tuần | Mục 6.3 |
 | 10 | Ask & Next steps | Xin phê duyệt pilot; RACI; KPI theo dõi | Mục 6.4 |
 
-### 6.3 Phạm vi Pilot đề xuất (nếu được duyệt)
+### 6.3 Phạm vi Pilot đề xuất (nếu được duyệt) — khớp 16 tuần
 
-- **Phạm vi:** City Hotel × Online TA × Tier High, bắt đầu 1 tháng trước mùa cao điểm để đo trước Jul–Aug.
-- **Buffer áp dụng:** 20% (theo mục 3.2/3.3), safety factor 0,6 — **không đổi trong suốt pilot** để đo sạch.
-- **Thời gian:** 8–10 tuần (song song với pilot Kịch bản B — Deposit — ở `15_policy_scenario.md` nếu được duyệt cùng lúc).
-- **KPI đo:** Δ Occupancy thực tế, walk rate thực tế, net revenue recovered, số khiếu nại.
+Buffer **không** chạy timeline 8–10 tuần tách biệt. Gắn vào playbook:
+
+| Phase | Tuần | Buffer | Cổng |
+|-------|------|--------|------|
+| 0–1 Foundation / Shadow | 1–4 | Map ô rủi ro; **chưa** bán buffer | Rule sheet signed |
+| **2 · City Peak** | **5–8** | Bật pool: City × Online TA × High-tier; buffer 20%, safety 0,6 **cố định** | ΔRevPAR ≥ 0 · Δcancel ≤ +1 pp · **walk < 5%** |
+| 3 · Resort Low | 9–12 | Không mở shock Peak; buffer Resort Low mỏng hơn (theo ô) | Walk vẫn dưới ngưỡng |
+| 4–5 Direct / Scale | 13–16 | Refill Direct đúng BAR; go/no-go mở rộng | Post-mortem; scale hoặc HOLD |
+
+- **Phạm vi mở đầu:** City Hotel × Online TA × Tier High, bắt đầu Phase 2 — lý tưởng 1 tháng trước mùa cao điểm để đo trước Jul–Aug.
+- **Không đổi** safety factor / cap trong suốt Phase 2 để đo sạch.
+- **KPI đo:** Δ Occupancy, walk rate, net revenue recovered, số khiếu nại — cộng KPI playbook (ΔRevPAR, Δcancel).
+- Cọc ([`15`](15_policy_scenario.md)) nếu được duyệt thì chạy **cùng Phase 2**, không thay buffer.
 
 ### 6.4 RACI cho giai đoạn chuẩn bị & review
 
@@ -271,4 +293,4 @@ Trình bày framework Risk Tier + Overbooking Strategy + Playbook + Cost-Benefit
 
 ---
 
-*Overbooking Policy Playbook — Phase 2 Deliverable. Cập nhật: 16/07/2026.*
+*Overbooking Policy Playbook — Phase 2 Deliverable. Cập nhật: 16/08/2026.*

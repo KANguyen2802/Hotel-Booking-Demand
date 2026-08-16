@@ -5,7 +5,7 @@
 > **Dữ liệu:** `hotel_bookings_v5.csv` · **82.811** booking · panel tháng 2015-07 → 2017-08  
 > **Nguồn upstream:** [`27`](27_validate_simulation_pricing_playbook.md) validation · [`24`](24_dynamic_pricing_ml_city_resort.md) ensemble BAR · [`26`](26_overbooking_buffer_strategy.md) buffer · [`22`](22_dynamic_pricing_elasticity_city_resort.md)–[`25`](25_key_findings_dynamic_pricing_pipeline_city_resort.md) pipeline · [`11`](11_cancellation_probability_scores.md) P(hủy) · [`17`](17_adr_strategy_analysis.md) upsell  
 > **Bản chiến lược đồng bộ:** [`28_dynamic_pricing_strategy.md`](28_dynamic_pricing_strategy.md)  
-> **Cập nhật:** 01/08/2026 (đồng bộ số liệu · bỏ draft \$550k / TP 6.680)
+> **Cập nhật:** 16/08/2026 (thêm memo quyết định + timeline 16 tuần theo cổng go/no-go)
 
 ---
 
@@ -28,6 +28,22 @@
 **Verdict vận hành:** City kém co giãn → harden Peak trong band BAR (±15%). Resort co giãn hơn → CUT ~−5% Low (không tăng giá Peak thuần). Dual-objective hạ BAR ~7–8% so với tối ưu thuần doanh thu. Cả hai property đạt go trên cửa sổ 2015–2016. Trụ cột hủy dùng tier **Low &lt; 0,35 / Medium 0,35–0,55 / High ≥ 0,55** — **không** dùng cutoff draft 25%/55% hay Net Benefit \$550k.
 
 **Mùa:** Peak = Jul–Aug · Shoulder = Apr–Jun, Sep–Oct · Low = Nov–Mar.
+
+---
+
+## 0. Chiến lược giá — 3 quyết định khóa
+
+**Bottom line.** Một rate card cho cả hai property đang để City bỏ headroom và Resort chịu RevPAR âm nếu bị shock giá Peak. Ba quyết định dưới đây khóa playbook trước khi đụng BAR.
+
+| # | Quyết định | Làm | Không làm | Bằng chứng |
+|---|------------|-----|-----------|------------|
+| **D1** | Tách City / Resort | City Peak harden BAR trong band; Resort Peak HOLD; Resort Low CUT ~−5% (Offline trước Online) | +10% ADR đồng loạt hai property | City Peak +10% → RevPAR **+2,3%**; Resort Peak +10% → **−2,1%** |
+| **D2** | Không chốt cực trị +21% | Luôn floor–recommend–ceil (±15%); dual α ≤ 0,7 khi Peak + High OTA | Publish p★ thuần doanh thu | Dual hạ BAR ~7–8% so tối ưu thuần revenue |
+| **D3** | Refill đúng BAR, ưu tiên Direct | High-tier (P ≥ 0,55) vào buffer → mở Direct trước OTA | Dump OTA cận ngày; overbook Low/Medium | Hủy thật High-tier **~64%**; Direct hủy **15,1%** |
+
+**Đề xuất quyết định.** Duyệt D1–D3 + pilot 16 tuần (mục 4) với kill switch. Policy lock: **cấm** shock +ADR Resort Peak.
+
+Chi tiết cổng go/no-go: [`29`](29_executive_summary.md) · thao tác: [`34`](34_implementation_guide.md).
 
 ---
 
@@ -229,7 +245,20 @@ CSV: [`revpar_simulation_monthly.csv`](./figures/27_validate_simulation/tables/r
 
 ## 4. Implementation roadmap
 
-Timeline **16 tuần** · recommend-only → pilot → scale.
+Timeline **16 tuần** · recommend-only → pilot → scale. Mỗi phase trả lời **một câu hỏi go/no-go**; không đạt cổng thì HOLD — không sang phase sau.
+
+| Phase | Tuần | Quyết định | Làm | Không làm | Cổng thoát |
+|-------|------|------------|-----|-----------|------------|
+| **0 · Foundation** | 1–2 | Tách playbook City / Resort? | Rule sheet + workshop FO/Sales (§4.2) | Đổi giá OTA | Chữ ký GM + RM · attendance ≥ 90% |
+| **1 · Shadow** | 3–4 | Dải BAR có đáng tin? | `bar_recommend` ±15% nội bộ | Đẩy rate plan OTA | ≥10 ngày; không alert ảo kéo dài |
+| **2 · City Peak** | 5–8 | Harden City Peak? | BAR trong band + buffer High-tier refill Direct | Shock Resort Peak; overbook Low/Medium | ΔRevPAR ≥ 0 · Δcancel ≤ +1 pp · walk < 5% |
+| **3 · Resort Low** | 9–12 | CUT ~−5% mùa thấp? | Promo Offline trước Online | +ADR Resort Peak | Rev không giảm; zero sự cố Peak |
+| **4 · Direct UX** | 13–14 | Public best-rate? | Frictionless Low-tier; Legal parity | Best-rate nếu Legal chưa OK (**được trượt**) | % Direct ↑ hoặc refill Direct im lặng |
+| **5 · Scale** | 15–16 | Mở Shoulder? | Playbook v1.1; dashboard tuần | Scale khi kill switch từng kích | Post-mortem; scale hoặc HOLD |
+
+**Kill switch.** Δcancel > +1 pp / 2 tuần → HOLD ô. Walk > 5%/tuần → siết buffer. Resort Peak đỏ sau +ADR → rollback. Khiếu nại parity → tắt best-rate.
+
+Bảng deliverable / owner (vận hành):
 
 | Phase | Thời gian | Deliverable | Owner | Exit criteria |
 |-------|-----------|-------------|-------|---------------|

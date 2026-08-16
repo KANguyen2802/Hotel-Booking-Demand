@@ -75,9 +75,9 @@ Driver hội tụ với EDA: lead dài, Online TA, thiếu cam kết, PRT / lị
 |------|------|
 | [`10`](10_brd_v1_1.md) | BRD v1.1 — bài toán RevPAR, luật nghiệp vụ |
 | [`12` gap](12_brd_gap_analysis.md) · [`12` BRD v1.2](12_brd_v1_2.md) | 4 lỗ hổng BRD + cập nhật tài liệu |
-| [`15`](15_policy_scenario.md) | 3 kịch bản chính sách hủy / cọc |
-| [`16`](16_overbooking_policy.md) | Overbook theo ô rủi ro, không % cố định |
-| [`26`](26_overbooking_buffer_strategy.md) | Buffer pool gắn stance giá |
+| [`15`](15_policy_scenario.md) | 3 kịch bản cọc + memo quyết định; map A/B hẹp vào 16 tuần |
+| [`16`](16_overbooking_policy.md) | Overbook chỉ High-tier, có trần; bật buffer từ Phase 2 |
+| [`26`](26_overbooking_buffer_strategy.md) | Buffer pool gắn stance giá + memo go/no-go 16 tuần |
 
 **Kết quả `12`:** Online TA + lead > 90 + Jul–Aug: hủy **46,6%**, **22,6%** doanh thu mất. Tổng mất hủy ước **€11,25M** (**33,7%** tiềm năng). Mis-match phòng **18%** (phần lớn free upgrade). Mô phỏng cọc Online TA lead > 30: net **+€1,52M** (hoặc **+€3,48M** nếu giữ cọc).
 
@@ -132,7 +132,7 @@ Lệch pha: **Sep** gần đồng thuận PROTECT; **Oct** City còn NEUTRAL, Re
 | File | Việc |
 |------|------|
 | [`27`](27_validate_simulation_pricing_playbook.md) | What-if · dual-objective · back-test 2015–2016 |
-| [`28` playbook](28_finalize_dynamic_pricing_playbook.md) | Rule giá × mùa × booking flow × ROI × risk |
+| [`28` playbook](28_finalize_dynamic_pricing_playbook.md) | 3 quyết định khóa + rule giá × mùa × ROI × timeline 16 tuần |
 | [`28` strategy](28_dynamic_pricing_strategy.md) | Bản chiến lược đồng bộ số với playbook |
 
 **Kết quả `27`:** Peak ADR **+10%** → City RevPAR **+2,3%** (win-rate Peak 100%); Resort **−2,1%** → **cấm shock**. Low Resort CUT **−5%**: revenue **+0,23%**. Dual-objective hạ BAR **~7–8%** so p\* thuần. Back-test: **go=True** cả hai hotel (ΔRevPAR ≥ 0, Δcancel ≤ +1 pp).
@@ -154,12 +154,12 @@ Uplift giá năm hóa (proxy, base ~€2,84M): conservative **~€10k** · full 
 
 | File | Việc | Kết quả / dùng để |
 |------|------|-------------------|
-| [`29`](29_executive_summary.md) | 1–2 trang C-level | 5 finding + R1–R5 + ROI A/B/C |
+| [`29`](29_executive_summary.md) | Memo C-level: 3 can thiệp + timeline 16 tuần + ask duyệt | Duyệt playbook + pilot + Legal parity |
 | [`30`](30_final_business_report.md) | Narrative data → quyết định (v1) | Câu chuyện đầy đủ trước feedback |
 | [`31`](31_stakeholder_presentation.md) | Deck 12 slide | Họp |
 | [`32`](32_stakeholder_presentation_qa.md) | Script + Q&A | Trả lời ε chưa causal, ROI proxy, parity |
 | [`33`](33_final_business_report_v2.md) | Report v2 sau góp ý | Nổi hạn chế; shadow ≥ 2 tuần trước pilot giá |
-| [`34`](34_implementation_guide.md) | Pilot 16 tuần | Shadow → City Peak → Resort Low → Direct; kill switch |
+| [`34`](34_implementation_guide.md) | Pilot 16 tuần: 1 trang duyệt + bước thao tác | Cổng go/no-go từng phase; kill switch |
 | [`35`](35_project_retrospective.md) | Bài học + monitoring | Tách hotel sớm; không tin OLS ε dương |
 | [`29_35` index](29_35_closing_pack_index.md) | Mục lục gói đóng | — |
 | [`html/`](html/README.md) | SCQA storytelling | [Live](https://hotel-booking-demand-scqa.vercel.app) |
