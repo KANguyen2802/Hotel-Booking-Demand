@@ -84,7 +84,7 @@ Bốn view quyết định (cùng IA trên HTML và Power BI):
 
 | View | Việc stakeholder làm | Grain dữ liệu |
 |------|----------------------|---------------|
-| **Overview** | 30 giây nắm booking, revenue, ADR, Occ, RevPAR, cancel; mix kênh / quốc gia / customer type | `Fact_RevPAR_Monthly` + cube booking |
+| **Overview** | 30 giây nắm booking, revenue, ADR, Occ, RevPAR, cancel (thẻ spark: vs PY / YoY / PY\|CY); mix kênh / quốc gia / customer type | `Fact_RevPAR_Monthly` + cube booking |
 | **RevPAR** | So City vs Resort theo tháng; waterfall ΔADR vs ΔOcc; scatter ADR × Occ; heatmap mùa | Tháng + ngày |
 | **Cancellation** | Driver hủy (lead, deposit, kênh, segment) + brush/cross-filter + funnel overbooking | Booking-level |
 | **Pricing Simulator** | What-if ADR / Occ / cancel trong band — **không** xuất một “giá tối ưu” duy nhất | Panel tháng |
