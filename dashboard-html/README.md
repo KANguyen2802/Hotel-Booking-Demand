@@ -61,14 +61,13 @@ Không dùng “password giả” trong JavaScript — không an toàn.
 
 | View | Nội dung |
 |------|----------|
-| Overview | KPI, revenue/bookings, status, segment, countries |
-| RevPAR | ADR × Occ, seasonality heatmap, latest month by hotel |
-| Cancellation | Cancel drivers + brush/cross-filter |
-| Pricing Simulator | What-if trên panel RevPAR tháng |
+| Overview | 6 thẻ KPI spark (vs PY / YoY / PY\|CY / sparkline), revenue/bookings, channel share, segment, countries |
+| RevPAR | 4 thẻ KPI spark + rating, ADR × Occ, seasonality heatmap, latest month by hotel |
+| Cancellation | 4 thẻ KPI spark (metric thất thoát, đảo màu) + driver hủy + brush/cross-filter |
+| Pricing Simulator | What-if trên panel RevPAR tháng; 4 thẻ KPI compact (Δ so với baseline, không spark) |
 
 ## Bản dashboard khác
 
 | Bản | Thư mục |
 |-----|---------|
-| Streamlit (local web) | `dashboard/` |
 | Power BI | `dashboard-powerbi/` (đang thực hiện) |
