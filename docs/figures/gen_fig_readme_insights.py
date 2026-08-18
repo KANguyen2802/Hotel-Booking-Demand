@@ -129,7 +129,16 @@ def fig_asymmetric_pricing():
         offset = -0.18 if val < 0 else 0.18
         ax.text(val + offset, bar.get_y() + bar.get_height() / 2, f"{val:+.1f}%", va="center", ha=side, fontsize=10, fontweight="bold", color=INK)
     ax.annotate("ε ≈ −0,70 · harden BAR", xy=(2.3, 0), xytext=(3.2, 0.42), fontsize=8, color=CITY, arrowprops=dict(arrowstyle="-", color=CITY, lw=0.6))
-    ax.annotate("ε ≈ −1,10 · cấm shock giá", xy=(-2.1, 1), xytext=(-4.3, 1.42), fontsize=8, color=RESORT, arrowprops=dict(arrowstyle="-", color=RESORT, lw=0.6))
+    ax.annotate(
+        "ε ≈ −1,10 · cấm shock giá",
+        xy=(-2.1, 0.78),
+        xytext=(-3.85, 0.36),
+        fontsize=8,
+        color=RESORT,
+        ha="left",
+        va="center",
+        arrowprops=dict(arrowstyle="-", color=RESORT, lw=0.6),
+    )
     fig.savefig(OUT / "fig_asymmetric_pricing.png")
     fig.savefig(OUT / "fig_asymmetric_pricing.pdf")
     plt.close(fig)
