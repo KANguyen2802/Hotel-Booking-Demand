@@ -70,6 +70,46 @@ def fig_cancel_lead():
     plt.close(fig)
 
 
+def fig_cancel_drivers_city_resort():
+    """|association| with is_canceled after dropping leakage (notebook 04b)."""
+    labels = [
+        "Yêu cầu đặc biệt  |r|",
+        "Loại cọc  V",
+        "Lead time  r",
+        "Market segment  V",
+        "Chỗ đậu xe  |r|",
+        "ADR  r",
+        "Tháng đến  V",
+    ]
+    city = np.array([0.170, 0.183, 0.204, 0.198, 0.129, 0.081, 0.065])
+    resort = np.array([0.059, 0.102, 0.193, 0.239, 0.244, 0.168, 0.143])
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.2))
+    y = np.arange(len(labels))
+    h = 0.36
+    b1 = ax.barh(y - h / 2, city, h, label="City Hotel", color=CITY, edgecolor="white", linewidth=0.4)
+    b2 = ax.barh(y + h / 2, resort, h, label="Resort Hotel", color=RESORT, edgecolor="white", linewidth=0.4)
+    ax.set_yticks(y)
+    ax.set_yticklabels(labels)
+    ax.set_xlabel("|Tương quan| với hủy  (Pearson r hoặc Cramér's V)")
+    ax.set_title("Tín hiệu hủy: cùng dấu, khác trọng số khi tách hotel")
+    ax.set_xlim(0, 0.32)
+    ax.invert_yaxis()
+    ax.legend(loc="lower right")
+    for bars in (b1, b2):
+        for bar in bars:
+            w = bar.get_width()
+            ax.text(w + 0.004, bar.get_y() + bar.get_height() / 2, f"{w:.2f}",
+                    va="center", ha="left", fontsize=7.5, color="#444")
+    ax.annotate("Mạnh hơn ở City", xy=(0.183, 1), xytext=(0.248, 0.55),
+                fontsize=8, color=CITY, arrowprops=dict(arrowstyle="-", color=CITY, lw=0.6))
+    ax.annotate("Mạnh hơn ở Resort", xy=(0.244, 4), xytext=(0.248, 4.85),
+                fontsize=8, color=RESORT, arrowprops=dict(arrowstyle="-", color=RESORT, lw=0.6))
+    fig.savefig(OUT / "fig_cancel_drivers_city_resort.png")
+    fig.savefig(OUT / "fig_cancel_drivers_city_resort.pdf")
+    plt.close(fig)
+
+
 def fig_asymmetric_pricing():
     hotels = ["City Hotel\nPeak", "Resort Hotel\nPeak"]
     delta = [2.3, -2.1]
@@ -97,6 +137,8 @@ def fig_asymmetric_pricing():
 
 if __name__ == "__main__":
     fig_cancel_lead()
+    fig_cancel_drivers_city_resort()
     fig_asymmetric_pricing()
     print("Wrote", OUT / "fig_cancel_lead.png")
+    print("Wrote", OUT / "fig_cancel_drivers_city_resort.png")
     print("Wrote", OUT / "fig_asymmetric_pricing.png")

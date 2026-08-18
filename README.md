@@ -230,6 +230,18 @@ Chạy ngắn: import v5 → `dbo.hotel_booking_db` → `01` + `02` + `03`. Chi 
 
 *Hình 1. Hủy vượt trung bình portfolio (28,1%) ngay khi lead time > 30 ngày — ngưỡng phân luồng CRM / cọc / buffer.*
 
+### Biến dẫn đến hủy (đã tách City và Resort)
+
+- City hủy **30,7%** vs Resort **24,1%** (+6,6 pp). City gánh **67%** số hủy dù chỉ 61% volume — ranking gộp bị kéo về City.
+- **Cùng dấu, sai trọng số.** Deposit + special requests mạnh ở City (V **0,183** · r **−0,170**). Parking + segment + ADR/tháng mạnh ở Resort (r parking **−0,244** · V segment **0,239**).
+- Lead time monotonic cả hai, nhưng đuôi khác: 180+ ngày City **47%** vs Resort **35%**. Last-minute 0–30 ngày: Resort **12,5%** (an toàn hơn) vs City **19,8%**.
+- **Online TA** là hotspot hệ thống cả hai (~36% / 34%). **Groups** chỉ nóng City (**39%** vs **22%**) — không copy policy đoàn giữa hai property.
+- Partial correlation: residual deposit City **0,142** vs Resort **0,085**. Lever cọc ưu tiên City; fence lead và scoring parking ưu tiên Resort.
+
+![Tín hiệu hủy đổi trọng số khi tách City và Resort](docs/figures/fig_cancel_drivers_city_resort.png)
+
+*Hình 2. Bản gộp đúng dấu nhưng sai trọng số: một feature set / một cancel policy cho cả hai hotel sẽ over-weight cọc ở Resort và under-weight parking–mùa ở City.*
+
 ### Nguyên nhân làm giảm RevPAR
 
 - **Một mức tăng giá cho cả hai property là sai.** City Peak +10% ADR → RevPAR **+2,3%** (ε ≈ −0,70). Resort Peak +10% ADR → RevPAR **−2,1%** (ε ≈ −1,10): mất volume nhiều hơn phần thu thêm.
@@ -240,7 +252,7 @@ Chạy ngắn: import v5 → `dbo.hotel_booking_db` → `01` + `02` + `03`. Chi 
 
 ![What-if +10% ADR: City Peak tăng RevPAR, Resort Peak giảm](docs/figures/fig_asymmetric_pricing.png)
 
-*Hình 2. Cùng một shock +10% ADR: City Peak được, Resort Peak mất RevPAR — đây là insight đắt giá nhất của playbook.*
+*Hình 3. Cùng một shock +10% ADR: City Peak được, Resort Peak mất RevPAR — đây là insight đắt giá nhất của playbook.*
 
 ### Nút thắt quy trình đặt phòng hiện tại
 
