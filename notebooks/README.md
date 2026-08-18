@@ -41,9 +41,9 @@ File phân tích (không phải raw). Notebook `01` biến raw 119.390 × 32 →
 | Giai đoạn | Câu hỏi | Quyết định cần ra | Kỹ thuật chính | Notebook | Báo cáo |
 |-----------|---------|-------------------|----------------|----------|---------|
 | **0** | Dữ liệu dùng được chưa? `n` đến từ đâu? | Neo mọi báo cáo sau trên **v5**; giữ cả booking hủy | Dedup theo key nghiệp vụ, missing, KPI row/tháng | `01` | — |
-| **1** | Hủy tập trung ở đâu? ADR biến động thế nào? | High-risk → buffer; ADR chỉ tin trên stay thành công | Binning, dual-axis, heatmap, ECDF | `02`, `03` | `02`, `03`, `03_summary` |
-| **2** | Tín hiệu hủy là nhân quả hay rò rỉ? | Loại leakage trước khi train model | Pearson / Spearman, Cramér's V, partial correlation | `04` | `04` |
-| **2** | Lead time / deposit / segment có khác biệt thật không? | Không siết deposit hàng loạt nếu residual bất thường | Mann–Whitney U, χ², logistic OR | `05`, `05b` | `05` |
+| **1** | Hủy tập trung ở đâu? ADR biến động thế nào? | High-risk → buffer; ADR chỉ tin trên stay thành công | Binning, dual-axis, heatmap, ECDF | `02`, `03`, **`02b`**, **`03b`** | `02`, `03`, `02b`, `03b`, `03_summary`, `03b_summary` |
+| **2** | Tín hiệu hủy là nhân quả hay rò rỉ? | Loại leakage trước khi train model | Pearson / Spearman, Cramér's V, partial correlation | `04`, **`04b`** | `04`, `04b` |
+| **2** | Lead time / deposit / segment có khác biệt thật không? | Không siết deposit hàng loạt nếu residual bất thường | Mann–Whitney U, χ², logistic OR | `05`, `05b`, **`05c`** | `05`, `05c` |
 | **4** | BRD còn lỗ hổng nào? | Ưu tiên interaction 3 chiều, mismatch phòng, mô phỏng deposit | Stratify, revenue-loss proxy, what-if | `12` | `12` |
 | **5** | City và Resort khác nhau thế nào về ADR? | Không dùng một ladder giá cho cả hai | Mann–Whitney, heatmap month×DOW, slope chart | `17`, **`17b`** | `17`, `17b` |
 | **5** | Demand / ADR / RevPAR 6 tháng tới đi đâu? | Stance RAISE / HOLD / CUT **tách hotel** | ADF+KPSS, SARIMAX, Holt–Winters, holdout vs Seasonal Naive | `18*`, **`20*`** | `18*`, `20*`, `21` |
@@ -61,9 +61,11 @@ In đậm = bản **canonical** (tách City / Resort) dùng cho playbook. Bản 
 ```text
 01  Làm sạch → v2…v5
         ↓
-02–03  EDA hủy · ADR
+02–03  EDA hủy · ADR (gộp)
+02b–03b  EDA hủy · ADR **tách City / Resort**
         ↓
-04–05  Tương quan · kiểm định (loại leakage)
+04  Tương quan (gộp) · **04b** tương quan **tách City / Resort**
+05  Kiểm định (gộp) · **05c** kiểm định **tách hotel**
         ↓
    [models/]  P(hủy) → luồng booking theo rủi ro
         ↓
@@ -102,11 +104,13 @@ adr            = AVG(adr) WHERE is_canceled = 0 AND adr > 0
 revpar         = adr × occupancy_rate
 ```
 
-### 1 — EDA (`02`, `03`, `05b`)
+### 1 — EDA (`02`, `03`, `02b`, `03b`, `05b`)
 
 - **Hủy (`02`):** bin `lead_time`; tỷ lệ theo `deposit_type` / `market_segment` / `distribution_channel`; grouped + stacked bar; histogram + KDE trục Y kép; box + violin; heatmap segment × kênh.
+- **Hủy tách hotel (`02b`):** cùng chiều phân tích, overlay / facet City vs Resort + gap lead bin.
 - **ADR (`03`):** chỉ stay thành công (`is_canceled = 0`, `adr > 0`); box/line theo tháng; heatmap month × year + YoY; weekday; room type / room-match; customer type × hotel.
-- **Tổng hợp hình (`05b`):** heatmap, box, time series dual-axis (cancel vs ADR) — cùng logic, phục vụ báo cáo.
+- **ADR tách hotel (`03b`):** cùng chiều, overlay mùa / DOW / room / customer + gap tháng.
+- **Tổng hợp hình (`05b`):** heatmap, box, time series dual-axis (cancel vs ADR) — cùng logic, phục vụ báo cáo (bản gộp).
 
 ### 2 — Tương quan & giả thuyết (`04`, `05`)
 
@@ -120,6 +124,7 @@ revpar         = adr × occupancy_rate
 | `deposit_type` (H2) | χ² + post-hoc z-test cặp | Cramér's V | Non Refund cancel cao → audit, không kết luận “đặt cọc đang chặn hủy” |
 | `market_segment` (H3) | χ² + standardized residual | Cramér's V | Groups / Online TA khác cơ chế |
 | 3 biến đồng thời (H4) | Logistic | Odds ratio + 95% CI, pseudo-R² | OR theo +30 ngày lead time cho dễ diễn giải |
+| H1–H4 **tách hotel** (`05c`) | Cùng test trên từng property | So sánh r / V / OR | Lead & segment mạnh hơn Resort; deposit mạnh hơn City |
 
 **Leakage không đưa vào model:** `reservation_status`, `reservation_status_date`, `revenue`, `Occupancy_Rate`, `RevPAR`, `assigned_room_type` (thường gán gần check-in).
 
@@ -200,10 +205,14 @@ Feature: calendar, lag t−1 / t−12, mix kênh–segment, context forecast 20\
 |------|---------|
 | `01_data_cleaning.ipynb` | raw → v5 |
 | `02_eda_stage1_cancellation.ipynb` | EDA hủy |
+| `02b_eda_stage1_cancellation_city_resort.ipynb` | EDA hủy **tách City / Resort** |
 | `03_eda_stage2_adr.ipynb` | EDA ADR |
-| `04_correlation_analysis.ipynb` | Pearson / Spearman / Cramér / partial |
+| `03b_eda_stage2_adr_city_resort.ipynb` | EDA ADR **tách City / Resort** |
+| `04_correlation_analysis.ipynb` | Pearson / Spearman / Cramér / partial (gộp) |
+| `04b_correlation_analysis_city_resort.ipynb` | Cùng quy trình **tách City / Resort** |
 | `05_hypothesis_testing.ipynb` | H1–H4 |
-| `05b_hypothesis_visualization.ipynb` | Hình tổng hợp cho báo cáo |
+| `05b_hypothesis_visualization.ipynb` | Hình tổng hợp cho báo cáo (gộp) |
+| `05c_hypothesis_testing_city_resort.ipynb` | H1–H4 **tách City / Resort** |
 | `12_brd_gap_analysis.ipynb` | 4 gap BRD |
 | `17_adr_strategy_analysis.ipynb` | ADR strategy (gộp) |
 | `17b_adr_strategy_analysis_city_resort.ipynb` | ADR strategy **tách hotel** |

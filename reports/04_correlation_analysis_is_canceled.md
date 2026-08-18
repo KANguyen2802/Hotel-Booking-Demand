@@ -3,7 +3,8 @@
 > **Nguồn dữ liệu:** `hotel_bookings_v5.csv` (tái tạo từ v4 + `day_of_week`)  
 > **Phạm vi:** 82.811 booking | Tỷ lệ hủy tổng thể: **28,12%** (23.284 booking bị hủy)  
 > **Notebook tham chiếu:** `04_correlation_analysis.ipynb`  
-> **Bổ sung EDA:** [02 02 EDA Stage 1 — Cancellation](02_eda_stage1_cancellation_analysis.md)
+> **Bổ sung EDA:** [02 02 EDA Stage 1 — Cancellation](02_eda_stage1_cancellation_analysis.md)  
+> **Bản tách City / Resort:** [`04b_correlation_analysis_city_resort.md`](04b_correlation_analysis_city_resort.md)
 
 ---
 

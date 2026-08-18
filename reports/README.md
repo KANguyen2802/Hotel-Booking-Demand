@@ -6,8 +6,8 @@ Nguồn số: `hotel_bookings_v5.csv` · **82.811** booking · hủy **28,12%** 
 **Recommend-only.** Không có báo cáo `01` (cleaning nằm ở notebook).
 
 ```text
-02–03  EDA hủy · ADR
-   → 04–05  Tương quan · giả thuyết
+02–03  EDA hủy · ADR (gộp) · `02b` `03b` tách hotel
+   → 04–05  Tương quan · giả thuyết · `04b` `05c` tách hotel
       → 06–09 · 11 · 13–14  Model hủy · P(hủy)
          → 10 · 12 · 15–16 · 26  BRD · chính sách · buffer
             → 17–21  ADR strategy · forecast (gộp rồi tách hotel)
@@ -18,28 +18,39 @@ Nguồn số: `hotel_bookings_v5.csv` · **82.811** booking · hủy **28,12%** 
 
 ---
 
-## 1 — EDA · `02` `03` `03_summary`
+## 1 — EDA · `02` `03` `02b` `03b` `03_summary` `03b_summary`
 
 | File | Việc |
 |------|------|
-| [`02`](02_eda_stage1_cancellation_analysis.md) | Hủy theo lead, cọc, segment, kênh |
-| [`03`](03_eda_stage2_adr_analysis.md) | ADR theo tháng, thứ, phòng, loại khách |
-| [`03_summary`](03_summary_eda_key_findings.md) | Gộp hai stage thành ma trận rủi ro × giá trị |
+| [`02`](02_eda_stage1_cancellation_analysis.md) | Hủy theo lead, cọc, segment, kênh (gộp) |
+| [`02b`](02b_eda_stage1_cancellation_city_resort.md) | Hủy **tách City / Resort** |
+| [`03`](03_eda_stage2_adr_analysis.md) | ADR theo tháng, thứ, phòng, loại khách (gộp) |
+| [`03b`](03b_eda_stage2_adr_city_resort.md) | ADR **tách City / Resort** |
+| [`03_summary`](03_summary_eda_key_findings.md) | Gộp hai stage thành ma trận rủi ro × giá trị (portfolio) |
+| [`03b_summary`](03b_summary_eda_key_findings.md) | Cùng ma trận nhưng **tách City / Resort** |
 
-**Kết quả:** Hủy **28,12%**. Lead 0–30 ngày hủy **17%** → >180 ngày **42%** (bước nhảy lớn sau 30 ngày). **98,7%** No Deposit. Online TA **35,5%** hủy (50.391 booking); TA/TO **31,5%** vs Direct **15,1%**. Cùng kênh TA/TO, Online vs Offline chênh ~21 pp — **segment quan trọng hơn channel**. ADR stay mean **€105,92**; City **€112** vs Resort **€97**; Transient **81,9%** volume, ADR cao nhất. August mean ADR **€151** vs January **€70**.
+**Kết quả (gộp):** Hủy **28,12%**. Lead 0–30 ngày hủy **17%** → >180 ngày **42%** (bước nhảy lớn sau 30 ngày). **98,7%** No Deposit. Online TA **35,5%** hủy (50.391 booking); TA/TO **31,5%** vs Direct **15,1%**. Cùng kênh TA/TO, Online vs Offline chênh ~21 pp — **segment quan trọng hơn channel**. ADR stay mean **€105,92**; City **€112** vs Resort **€97**; Transient **81,9%** volume, ADR cao nhất. August mean ADR **€151** vs January **€70**.
 
-Hotspot: **Online TA × TA/TO** — vừa volume lớn vừa hủy cao.
+**Kết quả (`02b` / `03b` — tách):** City hủy **30,7%** vs Resort **24,1%** (+6,6 pp). City gánh 67% số hủy dù 61% volume. Online TA hotspot **cả hai** (36% / 34%); Groups chỉ nóng ở City (39% vs 22%). Lead >180: City **47%** vs Resort **35%**. ADR: City đỉnh **May**; Resort đỉnh **August** (185 €) và weekend +7% (City ~+1%). Không dùng một cancel policy / một rate calendar.
+
+Hotspot gộp: **Online TA × TA/TO**. Hotspot tách: thêm **Groups @ City** và **lead >180 @ City**.
 
 ---
 
-## 2 — Tín hiệu có thật không · `04` `05`
+## 2 — Tín hiệu có thật không · `04` `04b` `05` `05c`
 
 | File | Việc |
 |------|------|
-| [`04`](04_correlation_analysis_is_canceled.md) | Pearson / Spearman / Cramér’s V; loại leakage |
-| [`05`](05_hypothesis_testing_is_canceled.md) | H1–H4 (Mann–Whitney, χ², logistic) |
+| [`04`](04_correlation_analysis_is_canceled.md) | Pearson / Spearman / Cramér’s V; loại leakage (gộp) |
+| [`04b`](04b_correlation_analysis_city_resort.md) | Cùng quy trình **tách City / Resort** |
+| [`05`](05_hypothesis_testing_is_canceled.md) | H1–H4 (Mann–Whitney, χ², logistic) — gộp |
+| [`05c`](05c_hypothesis_testing_city_resort.md) | H1–H4 **tách City / Resort** |
 
-**Kết quả:** Sau khi loại leakage (`reservation_status`, `revenue`, Occupancy, RevPAR…), tín hiệu mạnh nhất: `market_segment` (V = **0,219**), `lead_time` (r = **0,196**), parking (r = **−0,189**), `deposit_type` (V = **0,161**). H1–H4 **đều bác bỏ H₀** (α = 0,05): lead, cọc, segment gắn với hủy; logistic đa biến pseudo-R² **0,094**. Non Refund hủy rất cao trên mẫu nhỏ → **audit**, không kết luận “đặt cọc đang chặn hủy”.
+**Kết quả (gộp):** Sau khi loại leakage (`reservation_status`, `revenue`, Occupancy, RevPAR…), tín hiệu mạnh nhất: `market_segment` (V = **0,219**), `lead_time` (r = **0,196**), parking (r = **−0,189**), `deposit_type` (V = **0,161**). H1–H4 **đều bác bỏ H₀** (α = 0,05): lead, cọc, segment gắn với hủy; logistic đa biến pseudo-R² **0,094**. Non Refund hủy rất cao trên mẫu nhỏ → **audit**, không kết luận “đặt cọc đang chặn hủy”.
+
+**Kết quả (`04b`):** Cùng dấu với 04, **sai trọng số**. Deposit + special requests mạnh ở City (V **0,183** · r **−0,170**); parking + segment + ADR/tháng mạnh ở Resort (r parking **−0,244** · V segment **0,239**). Partial: lead vẫn độc lập với cọc cả hai; residual deposit City **0,142** vs Resort **0,085**. Leakage y nguyên (`reservation_status` V = 1). Không một feature set cho cả hai hotel.
+
+**Kết quả (`05c`):** H1–H4 bác bỏ H₀ **ở cả hai hotel**. Lead mạnh hơn Resort (\|r\| **0,330** vs 0,283); deposit mạnh hơn City (V **0,183** vs 0,102); Online TA OR vs Direct ~**2,7–2,8** cả hai. Groups raw 39% ở City **không còn ý nghĩa** sau khi kiểm soát lead/cọc (OR 1,09). Portfolio 05 đúng dấu, **sai trọng số** nếu không tách hotel.
 
 ---
 
