@@ -1,0 +1,27 @@
+market_key,market_segment,distribution_channel
+1,Aviation,Corporate
+2,Aviation,TA/TO
+3,Complementary,Corporate
+4,Complementary,Direct
+5,Complementary,TA/TO
+6,Corporate,Corporate
+7,Corporate,Direct
+8,Corporate,TA/TO
+9,Direct,Corporate
+10,Direct,Direct
+11,Direct,GDS
+12,Direct,TA/TO
+13,Direct,Undefined
+14,Groups,Corporate
+15,Groups,Direct
+16,Groups,TA/TO
+17,Offline TA/TO,Corporate
+18,Offline TA/TO,Direct
+19,Offline TA/TO,GDS
+20,Offline TA/TO,TA/TO
+21,Online TA,Corporate
+22,Online TA,Direct
+23,Online TA,GDS
+24,Online TA,TA/TO
+25,Online TA,Undefined
+26,Undefined,Undefined

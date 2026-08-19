@@ -1,0 +1,7 @@
+=== Star schema (CSV) ===
+CSV: revpar_monthly.csv
+CSV: hotel_bookings_normalized.csv
+DIM CSVs: dim_hotel, dim_date, dim_country, dim_market, dim_customer, dim_room, dim_meal, dim_deposit, dim_status, dim_agent
+
+Note: Runtime dashboards read CSV via pandas. Rebuild with:
+  python scripts/build_star_schema_v5.py
