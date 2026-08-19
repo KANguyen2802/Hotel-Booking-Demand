@@ -381,7 +381,7 @@ Mọi chỉ số tuân theo định nghĩa chung toàn dự án (notebook 01 / b
 | **Portfolio Occupancy / RevPAR** (dải KPI) | `weightedMean(·, trọng số = total_bookings)` — trọng số theo booking, không phải mean thô của các row tháng |
 | **RevPAR ngày** (scatter) | `mean(adr theo ngày) × mean(occupancy_rate theo ngày)`; độ sáng điểm mã hóa RevPAR |
 | **RevPAR theo hạng phòng** | `revenue / room_nights` theo hotel × năm × hạng phòng (fallback về mean RevPAR khi nights = 0), tính cho cả hai phía reserved và assigned |
-| **KPI vs PY** | CY (năm lớn nhất trong data) vs PY (CY−1) trên **cùng tập tháng-trong-năm** từ slider/brush. Tỷ lệ/ADR/RevPAR = %; Bookings/Revenue = Δ tuyệt đối (không mũi tên) |
+| **KPI vs PY** | CY = **năm đang chọn** (max nếu chọn nhiều năm) vs PY (CY−1) trên **cùng tập tháng-trong-năm** từ slider/brush. Tỷ lệ/ADR/RevPAR = %; Bookings/Revenue = Δ tuyệt đối (không mũi tên) |
 | **KPI YoY** | Tháng cuối trong series đã filter vs cùng tháng lịch năm trước (`pctDelta`). Khác vs PY. MoM không vẽ trên thẻ |
 | **KPI sparkline** | Đường tháng CY phủ lên vùng tháng PY, căn theo tháng-trong-năm; legend PY (vùng) / CY (đường). Màu nét theo tone vs PY (đảo trên metric thất thoát) |
 | **Dải xếp hạng KPI** | ADR: Excellent ≥ €120 · Good ≥ €105 · Fair ≥ €90 · Weak ≥ €75 (PT/Europe/Lisbon); Occupancy: Excellent ≥ 80% · Good ≥ 72% · Fair ≥ 65% · Weak ≥ 55% (STR); RevPAR: Excellent ≥ €90 · Good ≥ €75 · Fair ≥ €60 · Weak ≥ €45 (PT/Lisbon). Pill = icon + nhãn, không dùng màu đơn độc |

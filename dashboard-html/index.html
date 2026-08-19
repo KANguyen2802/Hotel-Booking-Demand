@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow, noarchive" />
   <title>Hotel Booking Demand · Local Dashboard</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=20260801s" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.4.4/build/index.umd.min.js"></script>
 </head>
@@ -44,6 +44,37 @@
         <div class="chip-row" id="yearChips"></div>
 
         <div class="field filter-field">
+          <span class="filter-label">Year-month range</span>
+          <div class="month-range">
+            <div class="month-range-track" id="monthRangeTrack">
+              <div class="month-range-window" id="monthRangeWindow">
+                <span
+                  class="month-range-handle month-range-handle-l"
+                  id="monthRangeHandleL"
+                  role="slider"
+                  tabindex="0"
+                  aria-label="Từ tháng"
+                  aria-valuemin="0"
+                  aria-valuemax="0"
+                  aria-valuenow="0"
+                ></span>
+                <span
+                  class="month-range-handle month-range-handle-r"
+                  id="monthRangeHandleR"
+                  role="slider"
+                  tabindex="0"
+                  aria-label="Đến tháng"
+                  aria-valuemin="0"
+                  aria-valuemax="0"
+                  aria-valuenow="0"
+                ></span>
+              </div>
+            </div>
+            <div class="month-range-label" id="monthRangeLabel" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="field filter-field">
           <label class="filter-label" for="filterSegment">Market segment</label>
           <select id="filterSegment" aria-label="Market segment">
             <option value="">All segments</option>
@@ -75,7 +106,7 @@
       <div class="topbar">
         <div>
           <h2 class="page-title" id="pageTitle">Overview</h2>
-          <p class="page-subtitle" id="pageSubtitle">CEO snapshot — bookings, revenue, RevPAR và sức khỏe hủy phòng từ star schema đã chuẩn hóa.</p>
+          <p class="page-subtitle" id="pageSubtitle">Trả lời trong 30 giây: tăng trưởng đến từ đâu, doanh thu đang phụ thuộc bao nhiêu vào một kênh/thị trường — để biết hôm nay cần đào sâu ở đâu.</p>
         </div>
         <div class="topbar-actions">
           <button type="button" class="btn-icon" id="btnTheme" aria-label="Toggle light/dark mode" title="Light / Dark">
@@ -102,10 +133,11 @@
                 <button type="button" class="btn btn-ghost" data-reset-range="overviewTrend">Reset window</button>
               </div>
             </div>
+            <p class="chart-caption">Revenue và bookings lệch nhau mới là tín hiệu: revenue tăng khi bookings đi ngang nghĩa là giá đang gánh tăng trưởng; bookings tăng mà revenue phẳng là đang bán rẻ.</p>
             <div class="range-chart">
               <div class="range-overview" id="rangeTrack-overviewTrend">
                 <canvas id="chartOverviewTrendMini"></canvas>
-                <div class="range-window" id="rangeWindow-overviewTrend" role="slider" aria-label="Time range window">
+                <div class="range-window" id="rangeWindow-overviewTrend" role="slider" aria-label="Time range window" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
                   <span class="range-handle range-handle-l" aria-hidden="true"></span>
                   <span class="range-handle range-handle-r" aria-hidden="true"></span>
                 </div>
@@ -114,27 +146,72 @@
                 <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
                 <span class="range-label" id="rangeLabel-overviewTrend"></span>
               </div>
-              <div class="chart-wrap tall"><canvas id="chartOverviewTrend"></canvas></div>
+              <div class="chart-stack">
+                <ul
+                  class="chart-legend chart-legend--above"
+                  id="overviewTrendLegend"
+                  aria-label="Revenue and bookings legend"
+                ></ul>
+                <div class="chart-wrap tall"><canvas id="chartOverviewTrend"></canvas></div>
+              </div>
             </div>
           </article>
           <article class="panel">
             <div class="panel-head">
-              <h3 class="panel-title">Reservation status</h3>
+              <h3 class="panel-title">Revenue share by channel</h3>
             </div>
-            <div class="chart-wrap"><canvas id="chartStatus"></canvas></div>
+            <p class="chart-caption">Kênh nào chiếm quá nửa doanh thu là rủi ro phụ thuộc: mọi thay đổi hoa hồng hay điều kiện hủy của kênh đó tác động trực tiếp lên P&amp;L. Dùng để quyết định ngân sách đẩy Direct.</p>
+            <div class="chart-stack">
+              <div class="chart-wrap"><canvas id="chartChannelRevenue"></canvas></div>
+              <ul
+                class="chart-legend chart-legend--below-left"
+                id="channelRevenueLegend"
+                aria-label="Channel revenue legend"
+              ></ul>
+            </div>
           </article>
         </div>
+        <article class="panel">
+          <div class="panel-head">
+            <h3 class="panel-title">Customer type — small multiples</h3>
+            <div
+              class="seg-control"
+              id="customerTypeMetric"
+              role="group"
+              aria-label="Chỉ số theo customer type"
+            >
+              <button type="button" class="seg-btn" data-ct-metric="revenue" aria-pressed="true">Revenue</button>
+              <button type="button" class="seg-btn" data-ct-metric="room_nights" aria-pressed="false">Occupancy / room-nights</button>
+            </div>
+          </div>
+          <p class="chart-caption" id="customerTypeCaption">Doanh thu theo tháng cho 3 customer type chính (Transient, Transient-Party, Contract).</p>
+          <div class="small-multiples" id="customerTypeMultiples">
+            <div class="small-multi">
+              <h4 class="small-multi-title">Transient</h4>
+              <div class="chart-wrap short"><canvas id="chartCustomerType0"></canvas></div>
+            </div>
+            <div class="small-multi">
+              <h4 class="small-multi-title">Transient-Party</h4>
+              <div class="chart-wrap short"><canvas id="chartCustomerType1"></canvas></div>
+            </div>
+            <div class="small-multi">
+              <h4 class="small-multi-title">Contract</h4>
+              <div class="chart-wrap short"><canvas id="chartCustomerType2"></canvas></div>
+            </div>
+          </div>
+        </article>
         <div class="grid-2 equal">
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">Market segment mix</h3></div>
+            <p class="chart-caption">Click một segment để lọc toàn dashboard: nếu segment lớn nhất cũng nằm ở đầu bảng cancel (trang Cancellation), tăng trưởng hiện tại đang dựa trên nhu cầu không chắc chắn.</p>
             <div class="chart-wrap"><canvas id="chartSegment"></canvas></div>
           </article>
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">Top countries</h3></div>
+            <p class="chart-caption">Tập trung địa lý quyết định rủi ro nguồn cầu. Một thị trường vượt trội cho phép làm marketing tập trung, nhưng cũng khiến kết quả phụ thuộc một nền kinh tế.</p>
             <div class="chart-wrap"><canvas id="chartCountries"></canvas></div>
           </article>
         </div>
-        <p class="footnote">Nguồn: <code>vw_revpar_monthly</code> · <code>vw_booking_normalized</code></p>
       </section>
 
       <!-- RevPAR -->
@@ -148,10 +225,11 @@
                 <button type="button" class="btn btn-ghost" data-reset-range="revparTrend">Reset window</button>
               </div>
             </div>
+            <p class="chart-caption">RevPAR là thước đo duy nhất phản ánh cả giá và lấp phòng. Kéo cửa sổ về mùa cao điểm để kiểm tra: đỉnh năm nay có cao hơn cùng kỳ năm trước hay chỉ lặp lại mùa vụ.</p>
             <div class="range-chart">
               <div class="range-overview" id="rangeTrack-revparTrend">
                 <canvas id="chartRevparTrendMini"></canvas>
-                <div class="range-window" id="rangeWindow-revparTrend" role="slider" aria-label="Time range window">
+                <div class="range-window" id="rangeWindow-revparTrend" role="slider" aria-label="Time range window" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
                   <span class="range-handle range-handle-l" aria-hidden="true"></span>
                   <span class="range-handle range-handle-r" aria-hidden="true"></span>
                 </div>
@@ -160,29 +238,98 @@
                 <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
                 <span class="range-label" id="rangeLabel-revparTrend"></span>
               </div>
-              <div class="chart-wrap tall"><canvas id="chartRevparTrend"></canvas></div>
+              <div class="chart-stack">
+                <ul
+                  class="chart-legend chart-legend--above"
+                  id="revparTrendLegend"
+                  aria-label="RevPAR by hotel legend"
+                ></ul>
+                <div class="chart-wrap tall"><canvas id="chartRevparTrend"></canvas></div>
+              </div>
             </div>
           </article>
           <article class="panel">
-            <div class="panel-head"><h3 class="panel-title">ADR × Occupancy</h3></div>
-            <div class="chart-wrap tall"><canvas id="chartAdrOcc"></canvas></div>
+            <div class="panel-head"><h3 class="panel-title">RevPAR decomposition</h3></div>
+            <p class="chart-caption" id="revparBridgeCaption">Waterfall MoM: kỳ trước → ΔADR → ΔOccupancy → kỳ này.</p>
+            <div class="chart-wrap tall"><canvas id="chartRevparBridge"></canvas></div>
+            <div class="sr-only" id="revparBridgeStats" aria-live="polite"></div>
+          </article>
+        </div>
+        <div class="grid-2 equal">
+          <article class="panel">
+            <div class="panel-head">
+              <h3 class="panel-title">ADR × Occupancy (daily)</h3>
+              <div class="panel-actions">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-toggle"
+                  id="btnAdrOccBoxSelect"
+                  aria-pressed="false"
+                >
+                  Chọn vùng tóm tắt
+                </button>
+              </div>
+            </div>
+            <p class="chart-caption">Mỗi điểm là một ngày, màu sáng = RevPAR cao. Vùng tập trung điểm sáng chính là dải giá tối ưu — nếu điểm sáng nằm ở ADR cao mà occupancy vẫn tốt, còn dư địa tăng giá. Bật "Chọn vùng" rồi kéo một khung trên biểu đồ để tóm tắt nhóm ngày đó.</p>
+            <div class="chart-wrap tall">
+              <canvas id="chartAdrOccScatter"></canvas>
+              <div class="box-select-layer" id="adrOccBoxHit">
+                <div class="box-select-rect" id="adrOccBoxRect" hidden></div>
+              </div>
+              <div class="box-select-card" id="adrOccBoxCard" hidden>
+                <div class="box-select-card-head">
+                  <span class="box-select-card-title">Vùng đã chọn</span>
+                  <button type="button" class="box-select-card-close" id="adrOccBoxClear" aria-label="Xóa lựa chọn">✕</button>
+                </div>
+                <div class="box-select-card-value" id="adrOccBoxCount">0</div>
+                <div class="box-select-card-sub" id="adrOccBoxShare"></div>
+                <div class="box-select-groups" id="adrOccBoxStats"></div>
+                <div class="box-select-breakdown" id="adrOccBoxYears" aria-label="Phân bố theo năm"></div>
+              </div>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">RevPAR by room type</h3></div>
+            <p class="chart-caption">Cột assigned thấp hơn reserved ở một hạng phòng nghĩa là đang upgrade miễn phí và cho đi doanh thu. Chênh lệch lớn → xem lại quy tắc phân phòng và tồn kho hạng đó.</p>
+            <div class="chart-stack">
+              <ul
+                class="chart-legend chart-legend--above"
+                id="roomTypeRevparLegend"
+                aria-label="Room type RevPAR legend"
+              ></ul>
+              <div class="chart-wrap tall"><canvas id="chartRoomTypeRevpar"></canvas></div>
+            </div>
           </article>
         </div>
         <div class="stack">
           <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">ADR × Occupancy (monthly trend)</h3></div>
+            <p class="chart-caption">Hai đường đi cùng chiều là cầu thực tăng, được phép tăng giá. Đường ADR lên trong khi occupancy xuống là dấu hiệu đã vượt ngưỡng chịu giá của khách.</p>
+            <div class="chart-stack">
+              <ul
+                class="chart-legend chart-legend--above"
+                id="adrOccLegend"
+                aria-label="ADR and occupancy legend"
+              ></ul>
+              <div class="chart-wrap"><canvas id="chartAdrOcc"></canvas></div>
+            </div>
+          </article>
+          <article class="panel">
             <div class="panel-head"><h3 class="panel-title">Seasonality heatmap</h3></div>
+            <p class="chart-caption">Ô đậm là tháng nên khoá giá sớm và hạn chế chiết khấu; ô nhạt lặp lại qua các năm là mùa thấp cần chương trình cầu bổ sung, không phải mùa để giảm giá phản ứng.</p>
             <div id="revparHeatmap" class="heatmap heatmap-full" aria-label="RevPAR seasonality heatmap"></div>
           </article>
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">Latest month RevPAR by hotel</h3></div>
+            <p class="chart-caption">So sánh hiệu quả giữa các property ở cùng thời điểm: khách sạn thấp hơn đáng kể là nơi cần can thiệp pricing hoặc phân bổ lại nguồn cầu trước tiên.</p>
             <div class="chart-wrap"><canvas id="chartRevparLatest"></canvas></div>
           </article>
         </div>
         <article class="panel">
           <div class="panel-head"><h3 class="panel-title">Monthly panel</h3></div>
+          <p class="chart-caption">Bảng để kiểm chứng con số trước khi ra quyết định: đối chiếu ADR, occupancy và RevPAR của từng tháng thay vì dựa vào cảm nhận từ biểu đồ.</p>
           <div class="table-wrap" id="revparTable"></div>
         </article>
-        <p class="footnote">RevPAR = ADR × Occupancy · panel từ <code>vw_revpar_monthly</code></p>
       </section>
 
       <!-- Cancellation -->
@@ -191,7 +338,15 @@
         <div class="grid-2 wide-right">
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">Status mix</h3></div>
-            <div class="chart-wrap"><canvas id="chartCancelStatus"></canvas></div>
+            <p class="chart-caption">Canceled chiếm bao nhiêu phần booking? Tỷ trọng này là mức thất thoát nền — nếu &gt; 25%, ưu tiên siết deposit/guarantee trước khi mở thêm kênh bán.</p>
+            <div class="chart-stack">
+              <div class="chart-wrap"><canvas id="chartCancelStatus"></canvas></div>
+              <ul
+                class="chart-legend chart-legend--below-left"
+                id="cancelStatusLegend"
+                aria-label="Booking status legend"
+              ></ul>
+            </div>
           </article>
           <article class="panel">
             <div class="panel-head">
@@ -200,10 +355,11 @@
                 <button type="button" class="btn btn-ghost" data-reset-range="cancelTrend">Reset window</button>
               </div>
             </div>
+            <p class="chart-caption">Đọc hướng đi, không đọc một tháng: cancel tăng liên tục 3 tháng là rủi ro cấu trúc (chính sách/kênh), tăng một tháng là mùa vụ. No-show tách riêng vì fix bằng reconfirm, không bằng giá.</p>
             <div class="range-chart">
               <div class="range-overview" id="rangeTrack-cancelTrend">
                 <canvas id="chartCancelTrendMini"></canvas>
-                <div class="range-window" id="rangeWindow-cancelTrend" role="slider" aria-label="Time range window">
+                <div class="range-window" id="rangeWindow-cancelTrend" role="slider" aria-label="Time range window" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
                   <span class="range-handle range-handle-l" aria-hidden="true"></span>
                   <span class="range-handle range-handle-r" aria-hidden="true"></span>
                 </div>
@@ -212,8 +368,28 @@
                 <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
                 <span class="range-label" id="rangeLabel-cancelTrend"></span>
               </div>
-              <div class="chart-wrap tall"><canvas id="chartCancelTrend"></canvas></div>
+              <div class="chart-stack">
+                <ul
+                  class="chart-legend chart-legend--above"
+                  id="cancelTrendLegend"
+                  aria-label="Cancel and no-show legend"
+                ></ul>
+                <div class="chart-wrap tall"><canvas id="chartCancelTrend"></canvas></div>
+              </div>
             </div>
+          </article>
+        </div>
+        <div class="grid-2 equal">
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">ADR — Canceled vs Not canceled</h3></div>
+            <p class="chart-caption" id="adrCancelCaption">So median và độ rộng hộp: nếu nhóm hủy có ADR cao hơn, tiền đang rơi ở phân khúc giá cao — nên thu cọc/phí hủy cho booking ADR cao thay vì giảm giá toàn dải.</p>
+            <div class="chart-wrap"><canvas id="chartAdrCancelBox"></canvas></div>
+            <div class="sr-only" id="adrCancelStats" aria-live="polite"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3 class="panel-title">Booking funnel</h3></div>
+            <p class="chart-caption">Khoảng hụt giữa hai cột đầu là lượng phòng mất do hủy — dùng chính con số này để định mức overbooking buffer, thay vì ước lượng cảm tính.</p>
+            <div class="chart-wrap"><canvas id="chartStatusFunnel"></canvas></div>
           </article>
         </div>
         <div class="grid-2 equal">
@@ -237,20 +413,22 @@
           </article>
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">Cancel rate by deposit</h3></div>
+            <p class="chart-caption">Khoảng cách giữa No Deposit và các mức có cọc chính là hiệu lực kỳ vọng của chính sách cọc — cách nhau càng xa, siết cọc càng đáng đánh đổi với rủi ro mất booking.</p>
             <div class="chart-wrap"><canvas id="chartCancelDeposit"></canvas></div>
           </article>
         </div>
         <div class="grid-2 equal">
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">By distribution channel</h3></div>
+            <p class="chart-caption">Kênh có cancel cao nhất là nơi cần đàm phán lại điều kiện hủy hoặc dịch chuyển ngân sách sang Direct — đọc kèm tỷ trọng doanh thu ở Overview trước khi cắt kênh.</p>
             <div class="chart-wrap"><canvas id="chartCancelChannel"></canvas></div>
           </article>
           <article class="panel">
             <div class="panel-head"><h3 class="panel-title">By market segment</h3></div>
+            <p class="chart-caption">Segment ở đầu bảng là nơi nên áp guarantee chặt hơn; segment ở cuối bảng là nhóm đáng tăng phân bổ tồn phòng vì booking giữ được.</p>
             <div class="chart-wrap"><canvas id="chartCancelSegment"></canvas></div>
           </article>
         </div>
-        <p class="footnote">Nguồn: <code>vw_booking_normalized</code> · status Canceled / Check-Out / No-Show</p>
       </section>
 
       <!-- Simulator -->
@@ -264,15 +442,15 @@
           </div>
           <div class="sim-levers-grid">
             <div class="slider-block">
-              <div class="slider-head"><span>ADR change (%)</span><strong id="valAdr">+5%</strong></div>
+              <div class="slider-head"><label for="levAdr">ADR change (%)</label><strong id="valAdr">+5%</strong></div>
               <input type="range" id="levAdr" min="-30" max="30" value="5" step="1" />
             </div>
             <div class="slider-block">
-              <div class="slider-head"><span>Occupancy change (pp)</span><strong id="valOcc">-2 pp</strong></div>
+              <div class="slider-head"><label for="levOcc">Occupancy change (pp)</label><strong id="valOcc">-2 pp</strong></div>
               <input type="range" id="levOcc" min="-20" max="20" value="-2" step="1" />
             </div>
             <div class="slider-block">
-              <div class="slider-head"><span>Cancel rate change (pp)</span><strong id="valCancel">0 pp</strong></div>
+              <div class="slider-head"><label for="levCancel">Cancel rate change (pp)</label><strong id="valCancel">0 pp</strong></div>
               <input type="range" id="levCancel" min="-15" max="15" value="0" step="1" />
             </div>
           </div>
@@ -295,7 +473,7 @@
             <div class="range-chart">
               <div class="range-overview" id="rangeTrack-simTrend">
                 <canvas id="chartSimTrendMini"></canvas>
-                <div class="range-window" id="rangeWindow-simTrend" role="slider" aria-label="Time range window">
+                <div class="range-window" id="rangeWindow-simTrend" role="slider" aria-label="Time range window" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
                   <span class="range-handle range-handle-l" aria-hidden="true"></span>
                   <span class="range-handle range-handle-r" aria-hidden="true"></span>
                 </div>
@@ -304,7 +482,14 @@
                 <span class="range-hint">Kéo cửa sổ để focus khoảng thời gian</span>
                 <span class="range-label" id="rangeLabel-simTrend"></span>
               </div>
-              <div class="chart-wrap tall"><canvas id="chartSimTrend"></canvas></div>
+              <div class="chart-stack">
+                <ul
+                  class="chart-legend chart-legend--above"
+                  id="simTrendLegend"
+                  aria-label="Baseline vs scenario legend"
+                ></ul>
+                <div class="chart-wrap tall"><canvas id="chartSimTrend"></canvas></div>
+              </div>
             </div>
           </article>
           <article class="panel">
@@ -320,7 +505,7 @@
           <div class="chart-wrap short"><canvas id="chartSimSens"></canvas></div>
         </article>
 
-        <article class="panel" style="margin-top:0.85rem">
+        <article class="panel">
           <div class="panel-head">
             <h3 class="panel-title">Scenario table</h3>
             <div class="panel-actions">
@@ -333,10 +518,10 @@
     </main>
   </div>
 
-  <script src="js/theme.js?v=20260731a"></script>
-  <script src="js/data.js?v=20260731a"></script>
-  <script src="js/charts.js?v=20260731a"></script>
-  <script src="js/rangeBrush.js?v=20260731a"></script>
-  <script src="js/app.js?v=20260731a"></script>
+  <script src="js/theme.js?v=20260801s"></script>
+  <script src="js/data.js?v=20260801s"></script>
+  <script src="js/charts.js?v=20260801s"></script>
+  <script src="js/rangeBrush.js?v=20260801s"></script>
+  <script src="js/app.js?v=20260801s"></script>
 </body>
 </html>

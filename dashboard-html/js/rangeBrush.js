@@ -21,17 +21,28 @@
   function syncWindow(key) {
     const s = state.get(key);
     const win = document.getElementById(`rangeWindow-${key}`);
-    if (!s || !win || s.n <= 1) {
-      if (win) {
-        win.style.left = "0%";
-        win.style.width = "100%";
-      }
-      return;
+    if (!win) return;
+    const n = s?.n || 0;
+    const max = Math.max(0, n - 1);
+    const start = s ? s.start : 0;
+    const end = s ? s.end : max;
+
+    if (!s || n <= 1) {
+      win.style.left = "0%";
+      win.style.width = "100%";
+    } else {
+      const left = (s.start / (s.n - 1)) * 100;
+      const right = (s.end / (s.n - 1)) * 100;
+      win.style.left = `${left}%`;
+      win.style.width = `${Math.max(right - left, 1.5)}%`;
     }
-    const left = (s.start / (s.n - 1)) * 100;
-    const right = (s.end / (s.n - 1)) * 100;
-    win.style.left = `${left}%`;
-    win.style.width = `${Math.max(right - left, 1.5)}%`;
+
+    win.setAttribute("aria-valuemin", "0");
+    win.setAttribute("aria-valuemax", String(max));
+    win.setAttribute("aria-valuenow", String(start));
+    if (s?.labels?.length) {
+      win.setAttribute("aria-valuetext", `${s.labels[start]} → ${s.labels[end]}`);
+    }
   }
 
   function updateLabel(key) {

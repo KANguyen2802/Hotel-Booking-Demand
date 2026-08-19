@@ -11,13 +11,34 @@
     cancelChannel: [],
     cancelSegment: [],
     bookingCube: [],
+    customerTypeMonthly: [],
+    dailyAdrOcc: [],
+    roomTypeRevpar: [],
+    adrCancelBox: { rows: [], stats: [] },
     ready: false,
   };
 
+  // Bust browser cache when daily_adr_occ (segments, etc.) is regenerated.
+  const DATA_VERSION = "20260801s";
+
   async function loadJson(path) {
-    const res = await fetch(path);
+    const sep = path.includes("?") ? "&" : "?";
+    const res = await fetch(`${path}${sep}v=${DATA_VERSION}`);
     if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
     return res.json();
+  }
+
+  function normalizeSegments(raw) {
+    let segs = raw;
+    if (typeof segs === "string") {
+      try {
+        segs = JSON.parse(segs);
+      } catch (_) {
+        return null;
+      }
+    }
+    if (!segs || typeof segs !== "object" || Array.isArray(segs)) return null;
+    return segs;
   }
 
   async function loadAll() {
@@ -33,6 +54,10 @@
       cancelChannel,
       cancelSegment,
       bookingCube,
+      customerTypeMonthly,
+      dailyAdrOcc,
+      roomTypeRevpar,
+      adrCancelBox,
     ] = await Promise.all([
       loadJson("data/meta.json"),
       loadJson("data/revpar_monthly.json"),
@@ -45,6 +70,10 @@
       loadJson("data/cancel_channel.json"),
       loadJson("data/cancel_segment.json"),
       loadJson("data/booking_cube.json"),
+      loadJson("data/customer_type_monthly.json"),
+      loadJson("data/daily_adr_occ.json"),
+      loadJson("data/room_type_revpar.json"),
+      loadJson("data/adr_cancel_box.json"),
     ]);
     STORE.meta = meta;
     STORE.revpar = revpar;
@@ -57,14 +86,45 @@
     STORE.cancelChannel = cancelChannel;
     STORE.cancelSegment = cancelSegment;
     STORE.bookingCube = bookingCube;
+    STORE.customerTypeMonthly = customerTypeMonthly;
+    STORE.dailyAdrOcc = dailyAdrOcc;
+    STORE.roomTypeRevpar = roomTypeRevpar;
+    STORE.adrCancelBox = adrCancelBox || { rows: [], stats: [] };
     STORE.ready = true;
     return STORE;
   }
 
-  function filterRevpar({ hotels, years }) {
+  /** Inclusive "YYYY-MM" range check; null bound = unbounded on that side. */
+  function inMonthRange(ym, monthFrom, monthTo) {
+    if (monthFrom && ym < monthFrom) return false;
+    if (monthTo && ym > monthTo) return false;
+    return true;
+  }
+
+  /** All "YYYY-MM" strings from `min` to `max`, inclusive. Used to build the sidebar slicer domain. */
+  function monthRange(min, max) {
+    if (!min || !max) return [];
+    const out = [];
+    let [y, m] = min.split("-").map(Number);
+    const [yMax, mMax] = max.split("-").map(Number);
+    while (y < yMax || (y === yMax && m <= mMax)) {
+      out.push(`${y}-${String(m).padStart(2, "0")}`);
+      m += 1;
+      if (m > 12) {
+        m = 1;
+        y += 1;
+      }
+    }
+    return out;
+  }
+
+  function filterRevpar({ hotels, years, monthFrom, monthTo }) {
     const yearSet = new Set((years || []).map(Number));
     return STORE.revpar.filter(
-      (r) => hotels.includes(r.hotel) && (!yearSet.size || yearSet.has(Number(r.year)))
+      (r) =>
+        hotels.includes(r.hotel) &&
+        (!yearSet.size || yearSet.has(Number(r.year))) &&
+        inMonthRange(r.year_month, monthFrom, monthTo)
     );
   }
 
@@ -263,7 +323,7 @@
   }
 
   /** Filter booking cube by sidebar + brush selections. */
-  function filterCube({ hotels, years, segment, channel, deposit_type }, brush = {}) {
+  function filterCube({ hotels, years, monthFrom, monthTo, segment, channel, deposit_type }, brush = {}) {
     const yearSet = new Set((years || []).map(Number));
     const hotelList = brush.hotel ? [brush.hotel] : hotels;
     const seg = brush.segment || segment || null;
@@ -272,6 +332,7 @@
     return STORE.bookingCube.filter((r) => {
       if (!hotelList.includes(r.hotel)) return false;
       if (yearSet.size && !yearSet.has(Number(r.year))) return false;
+      if (!inMonthRange(r.year_month, monthFrom, monthTo)) return false;
       if (seg && r.segment !== seg) return false;
       if (ch && r.channel !== ch) return false;
       if (dep && r.deposit_type !== dep) return false;
@@ -287,9 +348,9 @@
   }
 
   /** RevPAR panel filter — supports hotel / year_month / month_number brush. */
-  function filterRevparBrushed({ hotels, years }, brush = {}) {
+  function filterRevparBrushed({ hotels, years, monthFrom, monthTo }, brush = {}) {
     const hotelList = brush.hotel ? [brush.hotel] : hotels;
-    let rows = filterRevpar({ hotels: hotelList, years });
+    let rows = filterRevpar({ hotels: hotelList, years, monthFrom, monthTo });
     if (brush.year_month) {
       rows = rows.filter((r) => r.year_month === brush.year_month);
     }
@@ -373,20 +434,34 @@
     const map = new Map();
     rows.forEach((r) => {
       if (!map.has(r.year_month)) {
-        map.set(r.year_month, { year_month: r.year_month, bookings: 0, canceled: 0, noshow: 0 });
+        map.set(r.year_month, {
+          year_month: r.year_month,
+          bookings: 0,
+          canceled: 0,
+          noshow: 0,
+          revenue: 0,
+        });
       }
       const g = map.get(r.year_month);
       g.bookings += r.bookings;
       g.canceled += r.canceled;
       g.noshow += r.noshow;
+      g.revenue += r.revenue || 0;
     });
     return [...map.values()]
-      .map((g) => ({
-        year_month: g.year_month,
-        bookings: g.bookings,
-        cancel_rate: g.canceled / Math.max(g.bookings, 1),
-        noshow_rate: g.noshow / Math.max(g.bookings, 1),
-      }))
+      .map((g) => {
+        const cancel_rate = g.canceled / Math.max(g.bookings, 1);
+        return {
+          year_month: g.year_month,
+          bookings: g.bookings,
+          canceled: g.canceled,
+          noshow: g.noshow,
+          revenue: g.revenue,
+          cancel_rate,
+          noshow_rate: g.noshow / Math.max(g.bookings, 1),
+          lost_est: g.revenue * (cancel_rate / Math.max(1 - cancel_rate, 0.01)) * 0.35,
+        };
+      })
       .sort((a, b) => a.year_month.localeCompare(b.year_month));
   }
 
@@ -420,6 +495,239 @@
    * Cancel-rate samples (%) per lead_bin for boxplot / violin.
    * One sample = cancel rate of (hotel × year_month) cell with enough bookings.
    */
+  function cubeChannelRevenue(rows) {
+    const map = new Map();
+    (rows || []).forEach((r) => {
+      const ch = r.channel || "Unknown";
+      if (!map.has(ch)) map.set(ch, { channel: ch, revenue: 0, bookings: 0 });
+      const g = map.get(ch);
+      g.revenue += r.revenue || 0;
+      g.bookings += r.bookings || 0;
+    });
+    return [...map.values()].sort((a, b) => b.revenue - a.revenue);
+  }
+
+  function filterCustomerType({ hotels, years, monthFrom, monthTo }, brush = {}) {
+    const yearSet = new Set((years || []).map(Number));
+    const hotelList = brush.hotel ? [brush.hotel] : hotels;
+    return STORE.customerTypeMonthly.filter((r) => {
+      if (!hotelList.includes(r.hotel)) return false;
+      if (yearSet.size && !yearSet.has(Number(r.year))) return false;
+      if (!inMonthRange(r.year_month, monthFrom, monthTo)) return false;
+      if (brush.year_month && r.year_month !== brush.year_month) return false;
+      return true;
+    });
+  }
+
+  function customerTypeSeries(rows, metric = "revenue") {
+    const types = (STORE.meta && STORE.meta.customer_types) || [
+      "Transient",
+      "Transient-Party",
+      "Contract",
+    ];
+    const months = [...new Set(rows.map((r) => r.year_month))].sort();
+    return types.map((ct) => {
+      const data = months.map((m) => {
+        const hits = rows.filter((r) => r.customer_type === ct && r.year_month === m);
+        if (!hits.length) return 0;
+        if (metric === "room_nights") return hits.reduce((s, r) => s + (r.room_nights || 0), 0);
+        return hits.reduce((s, r) => s + (r.revenue || 0), 0);
+      });
+      return { customer_type: ct, labels: months, data };
+    });
+  }
+
+  function filterDailyAdrOcc({ hotels, years, monthFrom, monthTo }, brush = {}) {
+    const yearSet = new Set((years || []).map(Number));
+    const hotelList = brush.hotel ? [brush.hotel] : hotels;
+    return STORE.dailyAdrOcc.filter((r) => {
+      if (!hotelList.includes(r.hotel)) return false;
+      if (yearSet.size && !yearSet.has(Number(r.year))) return false;
+      if (!inMonthRange(r.year_month, monthFrom, monthTo)) return false;
+      if (brush.year_month && r.year_month !== brush.year_month) return false;
+      return true;
+    });
+  }
+
+  function dailyScatterPoints(rows) {
+    // Aggregate across hotels for same day when multiple hotels selected.
+    // Scatter axes: weighted ADR / Occupancy (như lúc thêm biểu đồ).
+    // RevPAR màu điểm = ADR × Occupancy.
+    const map = new Map();
+    (rows || []).forEach((r) => {
+      const k = r.arrival_date;
+      if (!map.has(k)) {
+        map.set(k, {
+          date: k,
+          year: Number(r.year) || Number(String(k).slice(0, 4)) || null,
+          year_month: r.year_month || String(k).slice(0, 7),
+          w: 0,
+          adr: 0,
+          occ: 0,
+          revenue: 0,
+          bookings: 0,
+          canceled: 0,
+          room_nights: 0,
+          available_room_nights: 0,
+          segments: {},
+        });
+      }
+      const g = map.get(k);
+      const w = Number(r.bookings) || 1;
+      g.w += w;
+      g.adr += (Number(r.adr) || 0) * w;
+      g.occ += (Number(r.occupancy_rate) || 0) * w;
+      g.revenue += Number(r.revenue) || 0;
+      g.bookings += Number(r.bookings) || 0;
+      g.canceled += Number(r.canceled) || 0;
+      g.room_nights += Number(r.room_nights) || 0;
+      g.available_room_nights += Number(r.available_room_nights) || 0;
+      const segs = normalizeSegments(r.segments);
+      if (segs) {
+        Object.keys(segs).forEach((name) => {
+          g.segments[name] = (g.segments[name] || 0) + (Number(segs[name]) || 0);
+        });
+      }
+    });
+    return [...map.values()]
+      .filter((g) => g.w > 0)
+      .map((g) => {
+        const adr = g.adr / g.w;
+        const occ = g.occ / g.w;
+        const revpar = adr * occ;
+        const cancelRate = g.bookings > 0 ? g.canceled / g.bookings : 0;
+        return {
+          x: adr,
+          y: occ * 100,
+          z: revpar,
+          label: g.date,
+          year: g.year,
+          year_month: g.year_month,
+          revenue: g.revenue,
+          bookings: g.bookings,
+          canceled: g.canceled,
+          cancel_rate: cancelRate,
+          room_nights: g.room_nights,
+          available_room_nights: g.available_room_nights,
+          segments: { ...g.segments },
+        };
+      });
+  }
+
+  function filterRoomType({ hotels, years }) {
+    const yearSet = new Set((years || []).map(Number));
+    return STORE.roomTypeRevpar.filter(
+      (r) => hotels.includes(r.hotel) && (!yearSet.size || yearSet.has(Number(r.year)))
+    );
+  }
+
+  function roomTypeGrouped(rows, { limit = 8 } = {}) {
+    const map = new Map();
+    (rows || []).forEach((r) => {
+      const rt = r.room_type || "?";
+      if (!map.has(rt)) {
+        map.set(rt, {
+          room_type: rt,
+          reserved_revpar_w: 0,
+          reserved_w: 0,
+          assigned_revpar_w: 0,
+          assigned_w: 0,
+          bookings: 0,
+        });
+      }
+      const g = map.get(rt);
+      const w = r.bookings || 0;
+      g.bookings += w;
+      if (r.side === "reserved") {
+        g.reserved_revpar_w += (r.revpar || 0) * w;
+        g.reserved_w += w;
+      } else {
+        g.assigned_revpar_w += (r.revpar || 0) * w;
+        g.assigned_w += w;
+      }
+    });
+    return [...map.values()]
+      .sort((a, b) => b.bookings - a.bookings)
+      .slice(0, limit)
+      .map((g) => ({
+        room_type: g.room_type,
+        reserved: g.reserved_w ? g.reserved_revpar_w / g.reserved_w : 0,
+        assigned: g.assigned_w ? g.assigned_revpar_w / g.assigned_w : 0,
+      }));
+  }
+
+  /** RevPAR MoM bridge: prev → ΔADR → ΔOcc → curr */
+  function revparDecomposition(monthlyTrendsRows) {
+    const rows = monthlyTrendsRows || [];
+    if (rows.length < 2) return null;
+    const prev = rows[rows.length - 2];
+    const curr = rows[rows.length - 1];
+    const adr0 = prev.adr || 0;
+    const adr1 = curr.adr || 0;
+    const occ0 = prev.occupancy_rate || 0;
+    const occ1 = curr.occupancy_rate || 0;
+    const rp0 = prev.revpar != null ? prev.revpar : adr0 * occ0;
+    const rp1 = curr.revpar != null ? curr.revpar : adr1 * occ1;
+    const dAdr = occ0 * (adr1 - adr0);
+    const dOcc = adr1 * (occ1 - occ0);
+    return {
+      prev_month: prev.year_month,
+      curr_month: curr.year_month,
+      prev_revpar: rp0,
+      curr_revpar: rp1,
+      delta_adr: dAdr,
+      delta_occ: dOcc,
+      residual: rp1 - (rp0 + dAdr + dOcc),
+    };
+  }
+
+  function filterAdrCancelBox({ hotels, years }) {
+    const yearSet = new Set((years || []).map(Number));
+    const rows = (STORE.adrCancelBox.rows || []).filter(
+      (r) => hotels.includes(r.hotel) && (!yearSet.size || yearSet.has(Number(r.year)))
+    );
+    const stats = (STORE.adrCancelBox.stats || []).filter(
+      (r) => hotels.includes(r.hotel) && (!yearSet.size || yearSet.has(Number(r.year)))
+    );
+    const order = ["Not canceled", "Canceled"];
+    const samples = order.map((label) => {
+      const parts = rows.filter((r) => r.label === label).flatMap((r) => r.samples || []);
+      return parts;
+    });
+    const summary = order.map((label) => {
+      const parts = stats.filter((r) => r.label === label);
+      const n = parts.reduce((s, r) => s + (r.n || 0), 0);
+      const mean =
+        n > 0 ? parts.reduce((s, r) => s + (r.mean || 0) * (r.n || 0), 0) / n : null;
+      return { label, n, mean };
+    });
+    return { labels: order, samples, summary };
+  }
+
+  function statusFunnel(rows) {
+    const map = new Map();
+    (rows || []).forEach((r) => {
+      const st = r.status || "Unknown";
+      map.set(st, (map.get(st) || 0) + (r.bookings || 0));
+    });
+    const total = [...map.values()].reduce((s, v) => s + v, 0);
+    const canceled = map.get("Canceled") || 0;
+    const noshow = map.get("No-Show") || 0;
+    const checkout = map.get("Check-Out") || 0;
+    return {
+      labels: ["Bookings", "After cancel leak", "Check-Out"],
+      values: [total, total - canceled, checkout],
+      detail: {
+        total,
+        canceled,
+        noshow,
+        checkout,
+        cancel_pct: total ? canceled / total : 0,
+        checkout_pct: total ? checkout / total : 0,
+      },
+    };
+  }
+
   function cubeLeadCancelRateSamples(rows, { minBookings = 15 } = {}) {
     const cell = new Map();
     (rows || []).forEach((r) => {
@@ -582,6 +890,8 @@
     filterRevpar,
     filterAgg,
     filterByMonthRange,
+    inMonthRange,
+    monthRange,
     filterCube,
     cubeDistinct,
     filterRevparBrushed,
@@ -599,6 +909,16 @@
     cubeByKey,
     cubeLeadBins,
     cubeLeadCancelRateSamples,
+    cubeChannelRevenue,
+    filterCustomerType,
+    customerTypeSeries,
+    filterDailyAdrOcc,
+    dailyScatterPoints,
+    filterRoomType,
+    roomTypeGrouped,
+    revparDecomposition,
+    filterAdrCancelBox,
+    statusFunnel,
     cubeCountries,
     cubeSegments,
     cubeMonthlyRevenue,
