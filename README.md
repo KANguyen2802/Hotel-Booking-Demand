@@ -340,10 +340,16 @@ Tài liệu quyết định: [29 Executive Summary](reports/29_executive_summary
 Hotel-Booking-Demand/
 ├── README.md
 ├── requirements.txt
-├── data/                          # gitignored — đặt hotel_bookings.csv rồi chạy notebook 01
-│   ├── hotel_bookings.csv         # raw 119.390 × 32
-│   ├── hotel_bookings_v5.csv      # file phân tích 82.811 × 36
-│   └── star schema/               # dim_* + fact CSV cho dashboard / Power BI
+├── data/                          # v5 + star schema trên GitHub; raw CSV vẫn gitignored
+│   ├── hotel_bookings.csv         # raw 119.390 × 32 — local, tải Kaggle nếu reproduce notebook 01
+│   ├── hotel_bookings_v5.csv      # file phân tích 82.811 × 36 — có trên repo
+│   └── star schema/               # dim + fact CSV — có trên repo
+│       ├── hotel_bookings_normalized.csv   # 1 dòng = 1 booking
+│       ├── revpar_monthly.csv              # 1 dòng = 1 hotel × tháng
+│       ├── dim_*.csv                       # hotel, date, country, market, …
+│       └── build_summary.txt
+├── scripts/
+│   └── build_star_schema_v5.py    # rebuild CSV star-schema từ v5 (có trên repo)
 ├── notebooks/                     # 01 cleaning → 27 validate (Python / statsmodels / sklearn)
 ├── models/                        # LightGBM / RF cancellation v1 → v2.2 + artifacts
 ├── sql/                           # 01 schema · 02 populate · 03 business questions (T-SQL)
@@ -355,6 +361,8 @@ Hotel-Booking-Demand/
 └── docs/                          # Guide học dự án + figures README + references.bib
     └── figures/
 ```
+
+Clone là đủ để chạy dashboard, SQL và notebook từ v5 trở đi. `hotel_bookings.csv` (raw) và các CSV/script tiện ích khác vẫn gitignored.
 
 Đọc theo vai trò: GM → `reports/29` + `31`. RM → `28` + `34`. FO/CRM → `26` + booking flow trong `28`. Finance → ROI trong `29` / `33`.
 
@@ -377,11 +385,21 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-**Dữ liệu** (thư mục `data/` không nằm trên GitHub):
+**Dữ liệu** — clone đã có file phân tích:
+
+| File trên repo | Dùng cho |
+|----------------|----------|
+| `data/hotel_bookings_v5.csv` | Notebook từ 02 trở đi, import SQL Server |
+| `data/star schema/*.csv` | Dashboard HTML, Power BI |
+| `scripts/build_star_schema_v5.py` | Rebuild star-schema CSV từ v5 |
+
+Không cần tải Kaggle nếu chỉ chạy dashboard, SQL, hoặc notebook từ v5.
+
+**Tuỳ chọn — reproduce từ raw** (file gốc không nằm trên GitHub):
 
 1. Tải [hotel-booking-demand](https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand/data) → lưu `data/hotel_bookings.csv`.
 2. Chạy làm sạch: mở `notebooks/01_data_cleaning.ipynb` (raw → v5).
-3. (Tuỳ chọn) rebuild star-schema CSV:
+3. Rebuild star-schema CSV:
 
 ```bash
 python scripts/build_star_schema_v5.py
@@ -399,11 +417,11 @@ Refresh JSON từ star-schema: `python dashboard-html/_export_data.py`.
 
 **SQL Server**
 
-1. Import `hotel_bookings_v5.csv` → `dbo.hotel_booking_db`.
+1. Import `data/hotel_bookings_v5.csv` → `dbo.hotel_booking_db`.
 2. Chạy `sql/01_create_star_schema.sql` → `02_populate_star_schema.sql` → `03_business_questions.sql`.
 3. Prototype một bảng: `SQLQuery1.sql` / `SQLQuery2.sql`.
 
-**Power BI:** làm theo [`dashboard-powerbi/POWERBI_SETUP_GUIDE.md`](dashboard-powerbi/POWERBI_SETUP_GUIDE.md) (import CSV, quan hệ, measure DAX khớp HTML).
+**Power BI:** import CSV trong `data/star schema/` theo [`dashboard-powerbi/POWERBI_SETUP_GUIDE.md`](dashboard-powerbi/POWERBI_SETUP_GUIDE.md) (quan hệ + measure DAX khớp HTML).
 
 **Notebooks theo thứ tự:** xem [`notebooks/README.md`](notebooks/README.md). Model hủy: [`models/README.md`](models/README.md).
 
