@@ -434,6 +434,8 @@ class node_cancellation_model,node_threshold_policy,node_fp_policy,node_playbook
 class node_sql_star_schema,node_sql_questions,node_powerbi_model,node_powerbi_report,node_dashboard_export,node_html_dashboard,node_scqa_report toneRose
 ```
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/KANguyen2802/Hotel-Booking-Demand)
+
 ```text
 Hotel-Booking-Demand/
 ├── README.md
