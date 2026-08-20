@@ -7,6 +7,7 @@
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-T--SQL-CC2927?logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
 [![Power BI](https://img.shields.io/badge/Power%20BI-DAX-F2C811?logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
 [![License](https://img.shields.io/badge/Data%20license-CC%20BY%204.0-lightgrey)](https://creativecommons.org/licenses/by/4.0/)
+[![GitDiagram](https://img.shields.io/badge/GitDiagram-Architecture-7c3aed)](https://gitdiagram.com/KANguyen2802/Hotel-Booking-Demand)
 
 Dự án phân tích nhu cầu đặt phòng của **City Hotel** và **Resort Hotel** (Bồ Đào Nha, 07/2015–08/2017) để trả lời một câu hỏi điều hành:
 
@@ -335,6 +336,103 @@ Tài liệu quyết định: [29 Executive Summary](reports/29_executive_summary
 ---
 
 ## 8. Repository Structure
+
+Luồng dữ liệu từ CSV đã làm sạch → notebook / model hủy → SQL, Power BI và dashboard HTML. Sơ đồ tương tác (click từng node): [GitDiagram](https://gitdiagram.com/KANguyen2802/Hotel-Booking-Demand).
+
+```mermaid
+flowchart TD
+
+subgraph group_data["Data foundation"]
+  node_curated_bookings[("Curated booking data<br/>CSV dataset")]
+  node_star_builder["Star-schema builder<br/>Python transformation"]
+  node_normalized_bookings[("Normalized bookings<br/>CSV dimension/fact source")]
+  node_monthly_revpar[("Monthly proxy RevPAR<br/>CSV metric dataset<br/>[revpar_monthly.csv]")]
+end
+
+subgraph group_research["Analytical workflow"]
+  node_cleaning_kpis["Cleaning and KPI derivation<br/>research notebook"]
+  node_cancellation_adr_eda["Cancellation and ADR EDA<br/>research notebooks"]
+  node_forecasting["Demand and revenue forecasting<br/>forecasting notebook"]
+  node_city_resort_elasticity["City/Resort elasticity<br/>segmented pricing notebook"]
+  node_pricing_optimization["Pricing optimization<br/>optimization notebook"]
+  node_simulation_validation["Scenario validation<br/>simulation notebook"]
+end
+
+subgraph group_risk["Cancellation-risk policy"]
+  node_cancellation_model["Cancellation model<br/>calibrated risk model"]
+  node_threshold_policy["Risk-tier threshold policy<br/>policy artifact"]
+  node_fp_policy["False-positive reduction policy<br/>policy artifact"]
+  node_playbook["Dynamic pricing playbook<br/>recommendation artifact"]
+  node_implementation_guide["Implementation guide<br/>delivery guidance"]
+end
+
+subgraph group_serving["BI and presentation"]
+  node_sql_star_schema[("SQL Server star schema<br/>T-SQL schema and load")]
+  node_sql_questions["SQL business questions<br/>T-SQL analysis"]
+  node_powerbi_model["Power BI semantic model<br/>PBIP/TMDL model<br/>[model.tmdl]"]
+  node_powerbi_report["Power BI report<br/>PBIP report project"]
+  node_dashboard_export["Dashboard data export<br/>Python export<br/>[_export_data.py]"]
+  node_html_dashboard["Executive dashboard<br/>static Chart.js app<br/>[index.html]"]
+  node_scqa_report["SCQA narrative report<br/>static report"]
+end
+
+node_curated_bookings -->|"input"| node_star_builder
+node_star_builder -->|"writes"| node_normalized_bookings
+node_star_builder -->|"writes"| node_monthly_revpar
+node_curated_bookings -->|"analyzed by"| node_cleaning_kpis
+node_cleaning_kpis -->|"feeds"| node_cancellation_adr_eda
+node_cancellation_adr_eda -->|"informs"| node_forecasting
+node_forecasting -->|"demand inputs"| node_city_resort_elasticity
+node_city_resort_elasticity -->|"elasticity inputs"| node_pricing_optimization
+node_pricing_optimization -->|"validates scenarios"| node_simulation_validation
+node_curated_bookings -->|"training data"| node_cancellation_model
+node_cancellation_model -->|"calibrates tiers"| node_threshold_policy
+node_cancellation_model -->|"controls false positives"| node_fp_policy
+node_threshold_policy -->|"buffer and friction guidance"| node_playbook
+node_fp_policy -->|"refines policy"| node_playbook
+node_simulation_validation -->|"validated pricing guidance"| node_playbook
+node_playbook -->|"operationalizes"| node_implementation_guide
+node_normalized_bookings -->|"imports"| node_sql_star_schema
+node_sql_star_schema -->|"queries"| node_sql_questions
+node_normalized_bookings -->|"local CSV refresh"| node_powerbi_model
+node_monthly_revpar -->|"local CSV refresh"| node_powerbi_model
+node_powerbi_model -->|"renders"| node_powerbi_report
+node_normalized_bookings -->|"exports from"| node_dashboard_export
+node_monthly_revpar -->|"exports from"| node_dashboard_export
+node_dashboard_export -->|"refreshes data"| node_html_dashboard
+
+click node_curated_bookings "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/data/hotel_bookings_v5.csv"
+click node_star_builder "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/scripts/build_star_schema_v5.py"
+click node_normalized_bookings "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/data/star%20schema/hotel_bookings_normalized.csv"
+click node_monthly_revpar "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/data/star%20schema/revpar_monthly.csv"
+click node_cleaning_kpis "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/notebooks/01_data_cleaning.ipynb"
+click node_cancellation_adr_eda "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/notebooks/02_eda_stage1_cancellation.ipynb"
+click node_forecasting "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/notebooks/18_demand_forecasting_dynamic_pricing.ipynb"
+click node_city_resort_elasticity "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/notebooks/22_dynamic_pricing_elasticity_city_resort.ipynb"
+click node_pricing_optimization "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/notebooks/23_dynamic_pricing_optimization_city_resort.ipynb"
+click node_simulation_validation "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/notebooks/27_validate_simulation.ipynb"
+click node_cancellation_model "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/models/Cancellation%20Predict%20Model%20v2/09_cancellation_model_v2_2.ipynb"
+click node_threshold_policy "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/models/Cancellation%20Predict%20Model%20v2/artifacts/threshold_policy_v2_2.json"
+click node_fp_policy "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/models/Cancellation%20Predict%20Model%20v2/artifacts/fp_reduction_policy_v2_1.json"
+click node_playbook "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/reports/28_finalize_dynamic_pricing_playbook.md"
+click node_sql_star_schema "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/sql/02_populate_star_schema.sql"
+click node_sql_questions "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/sql/03_business_questions.sql"
+click node_powerbi_model "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/dashboard-powerbi/Power%20BI/Hotel%20Booking%20Demand%20v2.SemanticModel/definition/model.tmdl"
+click node_powerbi_report "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/dashboard-powerbi/Power%20BI/Hotel%20Booking%20Demand%20v2.pbip"
+click node_dashboard_export "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/dashboard-html/_export_data.py"
+click node_html_dashboard "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/dashboard-html/index.html"
+click node_scqa_report "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/reports/html/scqa_data_storytelling.html"
+click node_implementation_guide "https://github.com/KANguyen2802/Hotel-Booking-Demand/blob/main/reports/34_implementation_guide.md"
+
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+class node_curated_bookings,node_star_builder,node_normalized_bookings,node_monthly_revpar toneBlue
+class node_cleaning_kpis,node_cancellation_adr_eda,node_forecasting,node_city_resort_elasticity,node_pricing_optimization,node_simulation_validation toneAmber
+class node_cancellation_model,node_threshold_policy,node_fp_policy,node_playbook,node_implementation_guide toneMint
+class node_sql_star_schema,node_sql_questions,node_powerbi_model,node_powerbi_report,node_dashboard_export,node_html_dashboard,node_scqa_report toneRose
+```
 
 ```text
 Hotel-Booking-Demand/
