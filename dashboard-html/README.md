@@ -70,4 +70,4 @@ Không dùng “password giả” trong JavaScript — không an toàn.
 
 | Bản | Thư mục |
 |-----|---------|
-| Power BI | `dashboard-powerbi/` (đang thực hiện) |
+| Power BI | [`../dashboard-powerbi/`](../dashboard-powerbi/) — mở `Power BI/Hotel Booking Demand v2.pbip` |

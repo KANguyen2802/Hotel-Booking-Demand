@@ -77,7 +77,7 @@ Hai kênh cùng công thức KPI (ADR / Occupancy / RevPAR / cancel), khác côn
 | Kênh | Thư mục | Trạng thái | Cách mở |
 |------|---------|------------|---------|
 | **HTML / Chart.js** | [`dashboard-html/`](dashboard-html/) | Live trên Vercel | [Dashboard](https://hotel-booking-demand-dashboard.vercel.app) · local: `python -m http.server 8765` |
-| **Power BI** | [`dashboard-powerbi/`](dashboard-powerbi/) | Đang dựng — star-schema + DAX khớp HTML | [POWERBI_SETUP_GUIDE.md](dashboard-powerbi/POWERBI_SETUP_GUIDE.md) |
+| **Power BI** | [`dashboard-powerbi/`](dashboard-powerbi/) | Hoàn thành — PBIP + TMDL, DAX khớp HTML | Mở [`Hotel Booking Demand v2.pbip`](dashboard-powerbi/Power%20BI/Hotel%20Booking%20Demand%20v2.pbip) · [README](dashboard-powerbi/README.md) · [POWERBI_SETUP_GUIDE.md](dashboard-powerbi/POWERBI_SETUP_GUIDE.md) |
 | **Báo cáo SCQA** | [`reports/html/`](reports/html/) | Live | [SCQA](https://hotel-booking-demand-scqa.vercel.app) |
 
 Bốn view quyết định (cùng IA trên HTML và Power BI):
@@ -354,7 +354,7 @@ Hotel-Booking-Demand/
 ├── models/                        # LightGBM / RF cancellation v1 → v2.2 + artifacts
 ├── sql/                           # 01 schema · 02 populate · 03 business questions (T-SQL)
 ├── dashboard-html/                # SPA tĩnh Chart.js + JSON aggregate (Vercel)
-├── dashboard-powerbi/             # Hướng dẫn DAX / model (in progress)
+├── dashboard-powerbi/             # PBIP v2 (4 trang) + POWERBI_SETUP_GUIDE.md
 ├── reports/                       # 02–35 markdown + html/ SCQA
 │   └── html/
 ├── design-system/hotel-booking-demand/
@@ -370,7 +370,7 @@ Clone là đủ để chạy dashboard, SQL và notebook từ v5 trở đi. `hot
 
 ## 9. Installation & Usage
 
-**Yêu cầu:** Python 3.10+, Git. SQL Server / SSMS nếu chạy star-schema. Power BI Desktop nếu dựng bản DAX.
+**Yêu cầu:** Python 3.10+, Git. SQL Server / SSMS nếu chạy star-schema. Power BI Desktop (PBIP/TMDL) nếu mở dashboard DAX.
 
 ```bash
 git clone https://github.com/KANguyen2802/Hotel-Booking-Demand.git
@@ -421,7 +421,7 @@ Refresh JSON từ star-schema: `python dashboard-html/_export_data.py`.
 2. Chạy `sql/01_create_star_schema.sql` → `02_populate_star_schema.sql` → `03_business_questions.sql`.
 3. Prototype một bảng: `SQLQuery1.sql` / `SQLQuery2.sql`.
 
-**Power BI:** import CSV trong `data/star schema/` theo [`dashboard-powerbi/POWERBI_SETUP_GUIDE.md`](dashboard-powerbi/POWERBI_SETUP_GUIDE.md) (quan hệ + measure DAX khớp HTML).
+**Power BI:** mở [`dashboard-powerbi/Power BI/Hotel Booking Demand v2.pbip`](dashboard-powerbi/Power%20BI/Hotel%20Booking%20Demand%20v2.pbip). Sửa đường dẫn CSV trong Data source settings rồi Refresh. Chi tiết: [`dashboard-powerbi/README.md`](dashboard-powerbi/README.md). Dựng lại từ đầu: [`POWERBI_SETUP_GUIDE.md`](dashboard-powerbi/POWERBI_SETUP_GUIDE.md).
 
 **Notebooks theo thứ tự:** xem [`notebooks/README.md`](notebooks/README.md). Model hủy: [`models/README.md`](models/README.md).
 
