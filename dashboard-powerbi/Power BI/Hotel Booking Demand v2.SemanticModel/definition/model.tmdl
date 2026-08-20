@@ -1,0 +1,42 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-HK
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["Fact_Booking","Dim_Agent","Dim_Country","Dim_Deposit","Dim_Hotel","Dim_Status","Dim_Segment","Dim_Channel","Fact_Revpar_Monthly"]
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table Fact_Booking
+ref table Dim_Agent
+ref table Dim_Country
+ref table Dim_Deposit
+ref table Dim_Hotel
+ref table Dim_Status
+ref table Dim_Date
+ref table Dim_Segment
+ref table Dim_Channel
+ref table Fact_Revpar_Monthly
+ref table Dim_RoomType
+ref table Dim_CustomerType
+ref table 'Funnel Stage'
+ref table 'ADR Change %'
+ref table 'Occupancy Change (pp)'
+ref table 'Cancel Rate Change (pp)'
+ref table 'Elasticity Toggle'
+ref table Fact_Daily_AdrOcc
+ref table _Measures
+ref table 'Customer Type Metric'
+ref table 'CT Small Multiples'
+ref table 'Bridge Step'
+ref table Fact_Adr_Boxplot
+ref table Fact_Adr_LeadTime_Boxplot
+ref table 'Sensitivity Scenario'
+
+ref cultureInfo en-US
+

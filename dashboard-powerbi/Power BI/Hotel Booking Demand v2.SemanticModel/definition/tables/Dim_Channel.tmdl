@@ -1,0 +1,28 @@
+table Dim_Channel
+	lineageTag: a64acec1-592e-490d-8741-bdae284cfd80
+
+	column distribution_channel
+		dataType: string
+		lineageTag: 81e47e65-013c-4956-a9c4-2a37be40a85a
+		summarizeBy: none
+		sourceColumn: distribution_channel
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Channel = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\ADMIN\Desktop\DA\Project\Hotel Booking Demand\Python\data\star schema\hotel_bookings_normalized.csv"),[Delimiter=",", Columns=41, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"booking_key", Int64.Type}, {"hotel", type text}, {"arrival_date", type date}, {"arrival_date_year", Int64.Type}, {"arrival_date_month", type text}, {"arrival_month_number", Int64.Type}, {"year_month", type date}, {"arrival_date_week_number", Int64.Type}, {"arrival_date_day_of_month", Int64.Type}, {"day_of_week", type text}, {"country", type text}, {"market_segment", type text}, {"distribution_channel", type text}, {"customer_type", type text}, {"is_repeated_guest", Int64.Type}, {"reserved_room_type", type text}, {"assigned_room_type", type text}, {"meal", type text}, {"deposit_type", type text}, {"reservation_status", type text}, {"agent", Int64.Type}, {"is_canceled", Int64.Type}, {"lead_time", Int64.Type}, {"stays_in_weekend_nights", Int64.Type}, {"stays_in_week_nights", Int64.Type}, {"total_nights", Int64.Type}, {"adults", Int64.Type}, {"children", Int64.Type}, {"babies", Int64.Type}, {"previous_cancellations", Int64.Type}, {"previous_bookings_not_canceled", Int64.Type}, {"booking_changes", Int64.Type}, {"days_in_waiting_list", Int64.Type}, {"required_car_parking_spaces", Int64.Type}, {"total_of_special_requests", Int64.Type}, {"adr", type number}, {"revenue", type number}, {"reservation_status_date", type text}, {"occupancy_rate", type number}, {"group_adr", type number}, {"revpar", type number}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"reservation_status_date", "meal"}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Removed Columns",{"distribution_channel"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

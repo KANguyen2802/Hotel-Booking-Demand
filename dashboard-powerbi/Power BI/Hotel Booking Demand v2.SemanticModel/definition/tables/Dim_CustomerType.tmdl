@@ -1,0 +1,28 @@
+/// Customer type dimension from Fact_Booking
+table Dim_CustomerType
+	lineageTag: c93678a6-1126-44ef-9fd5-e913afb457dc
+
+	column customer_type
+		lineageTag: ceb93169-a5bd-49cf-9c0c-e5274c2c0900
+		isNameInferred
+		sourceColumn: [customer_type]
+
+	/// Thứ tự small multiples giống HTML: Transient, Transient-Party, Contract
+	column 'CT Sort' =
+			SWITCH(
+			    Dim_CustomerType[customer_type],
+			    "Transient", 1,
+			    "Transient-Party", 2,
+			    "Contract", 3,
+			    99
+			)
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2b4017e9-801c-43f3-873c-c8fa5fdcee40
+		summarizeBy: none
+
+	partition Dim_CustomerType = calculated
+		mode: import
+		source = DISTINCT(SELECTCOLUMNS(Fact_Booking, "customer_type", Fact_Booking[customer_type]))
+

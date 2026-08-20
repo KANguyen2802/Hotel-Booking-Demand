@@ -1,0 +1,28 @@
+/// Disconnected funnel stages for Cancellation page
+table 'Funnel Stage'
+	lineageTag: eb839128-f68d-42d4-b81f-e30a5901cdf0
+
+	column Stage
+		lineageTag: 32c8f288-24ca-43f1-a844-ce4532ed918e
+		isNameInferred
+		sourceColumn: [Stage]
+		sortByColumn: Order
+
+	column Order
+		lineageTag: 9e89359c-3425-4cee-b6fc-27d269bff163
+		isNameInferred
+		sourceColumn: [Order]
+
+	partition 'Funnel Stage' = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Stage", STRING,
+				    "Order", INTEGER,
+				    {
+				        {"Bookings", 1},
+				        {"After cancel leak", 2},
+				        {"Check-Out", 3}
+				    }
+				)
+

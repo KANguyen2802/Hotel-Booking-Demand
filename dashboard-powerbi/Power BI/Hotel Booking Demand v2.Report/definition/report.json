@@ -1,0 +1,127 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY26SU05",
+      "reportVersionAtImport": {
+        "visual": "2.9.0",
+        "report": "3.3.0",
+        "page": "2.3.1"
+      },
+      "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "Hotel7381430390693794.json",
+      "reportVersionAtImport": {
+        "visual": "2.11.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "RegisteredResources"
+    }
+  },
+  "objects": {
+    "section": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Top'"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "publicCustomVisuals": [
+    "BasedOnTimelineSlicer",
+    "BoxandWhiskerByMAQ1823AD39DT234AB532063E128AX"
+  ],
+  "resourcePackages": [
+    {
+      "name": "SharedResources",
+      "type": "SharedResources",
+      "items": [
+        {
+          "name": "CY26SU05",
+          "path": "BaseThemes/CY26SU05.json",
+          "type": "BaseTheme"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "calendar5693163866071376.png",
+          "path": "calendar5693163866071376.png",
+          "type": "Image"
+        },
+        {
+          "name": "hotel021662435759496224.png",
+          "path": "hotel021662435759496224.png",
+          "type": "Image"
+        },
+        {
+          "name": "Hotel7381430390693794.json",
+          "path": "Hotel7381430390693794.json",
+          "type": "CustomTheme"
+        },
+        {
+          "name": "image-mesh-gradient09636783101435098.png",
+          "path": "image-mesh-gradient09636783101435098.png",
+          "type": "Image"
+        },
+        {
+          "name": "image-mesh-gradient11042188471837222.png",
+          "path": "image-mesh-gradient11042188471837222.png",
+          "type": "Image"
+        },
+        {
+          "name": "image-mesh-gradient5282200327911271.png",
+          "path": "image-mesh-gradient5282200327911271.png",
+          "type": "Image"
+        },
+        {
+          "name": "image-mesh-gradient5477417901447349.png",
+          "path": "image-mesh-gradient5477417901447349.png",
+          "type": "Image"
+        },
+        {
+          "name": "revenue15790524434126618.png",
+          "path": "revenue15790524434126618.png",
+          "type": "Image"
+        },
+        {
+          "name": "revenue2312554842498323.png",
+          "path": "revenue2312554842498323.png",
+          "type": "Image"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "useEnhancedTooltips": true,
+    "useDefaultAggregateDisplayName": true
+  }
+}

@@ -1,0 +1,43 @@
+table 'Customer Type Metric'
+	lineageTag: afac502f-94f6-4a5f-a4a2-e4b18ac9f448
+
+	column 'Customer Type Metric Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a0bc8de4-057d-4a66-87c1-a795ba71787a
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+	column 'Customer Type Metric Fields'
+		dataType: string
+		isHidden
+		lineageTag: 6fa21359-943d-4389-bf84-d25229f1417c
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Customer Type Metric Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+	column 'Customer Type Metric'
+		dataType: string
+		lineageTag: 226e2aee-acd1-460f-b8f5-101a8cc36ae3
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Customer Type Metric Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Customer Type Metric Fields'
+
+	partition 'Customer Type Metric' = calculated
+		mode: import
+		source =
+				{
+				    ("Revenue", NAMEOF('_Measures'[Revenue (Booking)]), 0),
+				    ("Occupancy / room-nights", NAMEOF('_Measures'[Room Nights]), 1)
+				}
+

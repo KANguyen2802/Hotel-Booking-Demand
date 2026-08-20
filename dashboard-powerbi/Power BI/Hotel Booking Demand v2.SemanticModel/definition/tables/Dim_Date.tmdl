@@ -1,0 +1,91 @@
+table Dim_Date
+	lineageTag: 5116c131-17eb-4815-b930-e18a6e3511c0
+	dataCategory: Time
+
+	column Date
+		isUnique
+		isKey
+		formatString: General Date
+		lineageTag: dc855316-8ad7-4bec-87e2-9970a5616d55
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		formatString: 0
+		lineageTag: 09b7e928-494c-4daf-adb8-9b7798880729
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumber
+		formatString: 0
+		lineageTag: 3841d345-4116-4fdd-98e0-8a2b80fc47eb
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		lineageTag: 9655dcae-4fb4-477f-816c-9f344be5e2c0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MonthName]
+		sortByColumn: MonthNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonth
+		lineageTag: 6ff31542-7cfa-449e-8375-333e7058330e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [YearMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		lineageTag: 65b0ecce-e5d4-4954-a296-744f5d68a9c1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Season
+		lineageTag: 57321590-c04a-4168-b0c2-cea6bf603c94
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Season]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Date = calculated
+		mode: import
+		source =
+				
+				VAR MinDate = DATE(2015, 7, 1)
+				VAR MaxDate = DATE(2017, 8, 31)
+				RETURN
+				ADDCOLUMNS(
+				    CALENDAR(MinDate, MaxDate),
+				    "Year", YEAR([Date]),
+				    "MonthNumber", MONTH([Date]),
+				    "MonthName", FORMAT([Date], "mmm"),
+				    "YearMonth", FORMAT([Date], "YYYY-MM"),
+				    "Quarter", "Q" & QUARTER([Date]),
+				    "Season",
+				        SWITCH(
+				            TRUE(),
+				            MONTH([Date]) IN {7, 8}, "Peak",
+				            MONTH([Date]) IN {4, 5, 6, 9, 10}, "Shoulder",
+				            "Low"
+				        )
+				)
+
+	annotation PBI_Id = d3a4253054174b4a9ccea4547ca120fd
+

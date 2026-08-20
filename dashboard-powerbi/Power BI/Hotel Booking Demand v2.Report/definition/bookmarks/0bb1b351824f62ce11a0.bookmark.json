@@ -1,0 +1,571 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "c1",
+  "name": "0bb1b351824f62ce11a0",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "9a1785e1438e0e1230ae",
+    "sections": {
+      "9a1785e1438e0e1230ae": {
+        "visualContainers": {
+          "3c09e5a06b96ecc406cb": {
+            "singleVisual": {
+              "visualType": "shape",
+              "objects": {}
+            }
+          },
+          "798225dc3762d1396c0d": {
+            "singleVisual": {
+              "visualType": "shape",
+              "objects": {}
+            }
+          },
+          "cd502ce4019b62ee6d43": {
+            "singleVisual": {
+              "visualType": "pageNavigator",
+              "objects": {}
+            }
+          },
+          "5df59ec6226d575da702": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "60ff46abbbcad6d59ee9",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Dim_Date"
+                        }
+                      },
+                      "Property": "YearMonth"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "40067f0532690d72e89a",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Cancel Rate"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "e033ad14a95b38ffe432",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "No-Show Rate"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "596564a291144dba37f0",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Bookings"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "135bf4f4a6ed4816c64c",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Check-Out Bookings"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "0fc582c4913720ec58ef",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Segment Cancel Rate (min 50)"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "lineChart",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 1,
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Dim_Date"
+                        }
+                      },
+                      "Property": "YearMonth"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Dim_Date"
+                        }
+                      },
+                      "Property": "YearMonth"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "9af1f04b5c34782f402b": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "41c6d737cccee86c4489",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Cancel Rate"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "b3f738ea59660024b326",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Dim_Status"
+                        }
+                      },
+                      "Property": "reservation_status"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "8ed54c0cb66bfb666899",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Bookings"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "donutChart",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Bookings"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Dim_Status"
+                        }
+                      },
+                      "Property": "reservation_status"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "2e7ebfc71c9f2fde11d2": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "c4443d2ae41ce5ef72c2",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Adr_Boxplot"
+                        }
+                      },
+                      "Property": "Cancel Label"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "e0eb6baa33b287fe3e3c",
+                  "type": "Advanced",
+                  "expression": {
+                    "Aggregation": {
+                      "Expression": {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "Fact_Adr_Boxplot"
+                            }
+                          },
+                          "Property": "adr"
+                        }
+                      },
+                      "Function": 1
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "132802d0500e840286dc",
+                  "type": "Advanced",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Adr_Boxplot"
+                        }
+                      },
+                      "Property": "SampleIndex"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "BoxandWhiskerByMAQ1823AD39DT234AB532063E128AX",
+              "objects": {},
+              "activeProjections": {
+                "categoryGroup": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Adr_Boxplot"
+                        }
+                      },
+                      "Property": "Cancel Label"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "4220495ef7f4173cf988": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "e8bf24b74495ce90d4e0",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Funnel Stage"
+                        }
+                      },
+                      "Property": "Stage"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "24655ec02a32758128d4",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Funnel Value"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "funnel",
+              "objects": {},
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Funnel Stage"
+                        }
+                      },
+                      "Property": "Stage"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "4a0d585d41fb71740c53": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "c8ae8a8628faa5ce42c5",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Booking"
+                        }
+                      },
+                      "Property": "Lead Time Bin"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "83161d413fd577faae6d",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Cancel Rate"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "9513dfe54ac8bbbf22f0",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Bookings"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "f384ea52e051fac0be6d",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Revenue (Booking)"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "columnChart",
+              "objects": {},
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Booking"
+                        }
+                      },
+                      "Property": "Lead Time Bin"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "3670ae8344e3cac0ac9b": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "07aeecbe916605412a68",
+                  "type": "Advanced",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Adr_LeadTime_Boxplot"
+                        }
+                      },
+                      "Property": "SampleIndex"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "89da55032a1b4360aae9",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Adr_LeadTime_Boxplot"
+                        }
+                      },
+                      "Property": "Lead Time Bin"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "1a4ecd6486051cbee35a",
+                  "type": "Advanced",
+                  "expression": {
+                    "Aggregation": {
+                      "Expression": {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "Fact_Adr_LeadTime_Boxplot"
+                            }
+                          },
+                          "Property": "adr"
+                        }
+                      },
+                      "Function": 1
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "BoxandWhiskerByMAQ1823AD39DT234AB532063E128AX",
+              "objects": {},
+              "activeProjections": {
+                "categoryGroup": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact_Adr_LeadTime_Boxplot"
+                        }
+                      },
+                      "Property": "Lead Time Bin"
+                    }
+                  }
+                ]
+              },
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "7ca2bbef2abd73de02b5": {
+            "singleVisual": {
+              "visualType": "shape",
+              "objects": {}
+            }
+          },
+          "6fd3a08ef983bc5b0caf": {
+            "singleVisual": {
+              "visualType": "shape",
+              "objects": {},
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

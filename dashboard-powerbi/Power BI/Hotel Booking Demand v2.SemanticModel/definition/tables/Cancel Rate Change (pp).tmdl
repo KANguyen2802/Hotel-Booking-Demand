@@ -1,0 +1,13 @@
+/// What-if parameter: cancel rate change in percentage points
+table 'Cancel Rate Change (pp)'
+	lineageTag: bdae5948-f510-4e52-bbc6-fe41211ac524
+
+	column 'Cancel Rate Change (pp)'
+		lineageTag: 3467766e-0f8b-4fbf-8c21-73e7001f2fc2
+		isNameInferred
+		sourceColumn: [Cancel Rate Change (pp)]
+
+	partition 'Cancel Rate Change (pp)' = calculated
+		mode: import
+		source = SELECTCOLUMNS(GENERATESERIES(-15, 15, 1), "Cancel Rate Change (pp)", [Value])
+

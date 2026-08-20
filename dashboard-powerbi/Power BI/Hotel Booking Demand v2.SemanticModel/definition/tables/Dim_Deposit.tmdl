@@ -1,0 +1,34 @@
+table Dim_Deposit
+	lineageTag: 6a7edf1e-f8e3-432c-a118-ff782787e309
+
+	column deposit_key
+		dataType: int64
+		formatString: 0
+		lineageTag: cc8d29eb-fbd2-4144-bed0-c0d8a919337d
+		summarizeBy: none
+		sourceColumn: deposit_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column deposit_type
+		dataType: string
+		lineageTag: ca1d37d4-719c-44ac-83a0-29974701908d
+		summarizeBy: none
+		sourceColumn: deposit_type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Deposit = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\ADMIN\Desktop\DA\Project\Hotel Booking Demand\Python\data\star schema\dim_deposit.csv"),[Delimiter=",", Columns=2, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"deposit_key", Int64.Type}, {"deposit_type", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

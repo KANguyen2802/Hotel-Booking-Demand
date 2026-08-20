@@ -1,0 +1,32 @@
+/// Disconnected 4 bars for Simulator sensitivity: Baseline / ADR only / Occ only / Combined (HTML chartSimSens).
+table 'Sensitivity Scenario'
+	lineageTag: 511df5de-6a7e-4ad1-ba8b-72bf192e6a3a
+
+	column Scenario
+		lineageTag: 9d262c40-66f5-46c9-90db-33a723f9758a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Scenario]
+		sortByColumn: Order
+
+	column Order
+		formatString: 0
+		lineageTag: 2d75dd53-6c0d-49ab-9c90-d442821e614a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Order]
+
+	partition 'Sensitivity Scenario' = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Scenario", STRING,
+				    "Order", INTEGER,
+				    {
+				        {"Baseline", 1},
+				        {"ADR only", 2},
+				        {"Occ only", 3},
+				        {"Combined", 4}
+				    }
+				)
+

@@ -1,0 +1,13 @@
+/// Soft ADR to Occupancy elasticity toggle
+table 'Elasticity Toggle'
+	lineageTag: c0fc2790-c008-463d-b75e-4fc4cd9aac65
+
+	column Toggle
+		lineageTag: 598fe4b9-59d3-4857-b0e2-99e600fe9028
+		isNameInferred
+		sourceColumn: [Toggle]
+
+	partition 'Elasticity Toggle' = calculated
+		mode: import
+		source = DATATABLE("Toggle", STRING, {{"Off"}, {"On"}})
+

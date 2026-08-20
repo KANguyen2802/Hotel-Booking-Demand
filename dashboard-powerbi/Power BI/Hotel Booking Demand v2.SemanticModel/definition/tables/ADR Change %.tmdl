@@ -1,0 +1,13 @@
+/// What-if parameter: ADR change percent
+table 'ADR Change %'
+	lineageTag: dc51fcfc-8f25-4bb0-8823-4586b3e46861
+
+	column 'ADR Change %'
+		lineageTag: 10e03716-95ce-4684-b0f5-52996696782d
+		isNameInferred
+		sourceColumn: [ADR Change %]
+
+	partition 'ADR Change %' = calculated
+		mode: import
+		source = SELECTCOLUMNS(GENERATESERIES(-30, 30, 1), "ADR Change %", [Value])
+

@@ -1,0 +1,19 @@
+/// Role-playing room type dimension (reserved/assigned)
+table Dim_RoomType
+	lineageTag: c4f3949a-505d-4c56-9472-a8c42d4acafb
+
+	column room_type
+		lineageTag: 91a69ee6-3869-4aed-9c15-925adfb499d3
+		isNameInferred
+		sourceColumn: [room_type]
+
+	partition Dim_RoomType = calculated
+		mode: import
+		source =
+				DISTINCT(
+				    UNION(
+				        SELECTCOLUMNS(Fact_Booking, "room_type", Fact_Booking[reserved_room_type]),
+				        SELECTCOLUMNS(Fact_Booking, "room_type", Fact_Booking[assigned_room_type])
+				    )
+				)
+

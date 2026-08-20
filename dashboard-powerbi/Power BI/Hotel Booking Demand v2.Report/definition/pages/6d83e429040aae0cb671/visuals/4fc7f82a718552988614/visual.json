@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "4fc7f82a718552988614",
+  "position": {
+    "x": 435,
+    "y": 187.5,
+    "z": 3000,
+    "height": 52.5,
+    "width": 845,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "What happens if we change the price?",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontFamily": "Verdana",
+                      "fontStyle": "italic",
+                      "fontSize": "20pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

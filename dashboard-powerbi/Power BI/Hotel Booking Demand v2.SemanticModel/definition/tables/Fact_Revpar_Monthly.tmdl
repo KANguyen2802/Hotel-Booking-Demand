@@ -1,0 +1,148 @@
+table Fact_Revpar_Monthly
+	lineageTag: f409d277-5dd2-46d7-a2cf-5b770fcf61e2
+
+	column hotel
+		dataType: string
+		lineageTag: b20f37c6-50ee-4698-86dd-8472a8fc0510
+		summarizeBy: none
+		sourceColumn: hotel
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 75bcd77e-d11a-4279-8a03-e2a19fede6b9
+		summarizeBy: none
+		sourceColumn: year_month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: 51e1098e-552f-4710-b101-537e62916f6b
+		summarizeBy: sum
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_number
+		dataType: int64
+		formatString: 0
+		lineageTag: 64b2a703-4456-4b4b-83b1-82ccfdc29f75
+		summarizeBy: sum
+		sourceColumn: month_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_bookings
+		dataType: int64
+		formatString: 0
+		lineageTag: eb14da6c-d1fa-4ae4-b174-8f8ef628f50b
+		summarizeBy: sum
+		sourceColumn: total_bookings
+
+		annotation SummarizationSetBy = Automatic
+
+	column successful_bookings
+		dataType: int64
+		formatString: 0
+		lineageTag: 5ae73780-cb4e-435c-8c72-c1f6ee755671
+		summarizeBy: sum
+		sourceColumn: successful_bookings
+
+		annotation SummarizationSetBy = Automatic
+
+	column canceled_bookings
+		dataType: int64
+		formatString: 0
+		lineageTag: 87b07990-ce23-4a88-918e-5e0e1ff560aa
+		summarizeBy: sum
+		sourceColumn: canceled_bookings
+
+		annotation SummarizationSetBy = Automatic
+
+	column occupancy_rate
+		dataType: double
+		lineageTag: 3a894afa-d400-4f63-a9ce-aa21eab86431
+		summarizeBy: sum
+		sourceColumn: occupancy_rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column adr
+		dataType: double
+		lineageTag: 0865085c-2da1-412c-a4c1-aef3d0c185e0
+		summarizeBy: sum
+		sourceColumn: adr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column revpar
+		dataType: double
+		lineageTag: adbab3ed-8179-4b86-a540-89d7c5867fb9
+		summarizeBy: sum
+		sourceColumn: revpar
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column total_revenue
+		dataType: double
+		lineageTag: ff40dc74-4cbe-4dbb-b68a-19454a883b1a
+		summarizeBy: sum
+		sourceColumn: total_revenue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column avg_lead_time
+		dataType: double
+		lineageTag: 39a4a4d5-5e89-4bae-9d14-cbcc31238b88
+		summarizeBy: sum
+		sourceColumn: avg_lead_time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column avg_total_nights
+		dataType: double
+		lineageTag: 82e8ae4e-8d8d-4d10-87f2-a4ac0639ea1f
+		summarizeBy: sum
+		sourceColumn: avg_total_nights
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// First day of month for Dim_Date relationship
+	column MonthStartDate = DATE(Fact_Revpar_Monthly[year], Fact_Revpar_Monthly[month_number], 1)
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: a91a759c-8534-4c9e-ae8d-d5a010da769c
+		summarizeBy: none
+
+	partition Fact_Revpar_Monthly = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\ADMIN\Desktop\DA\Project\Hotel Booking Demand\Python\data\star schema\revpar_monthly.csv"),[Delimiter=",", Columns=13, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"hotel", type text}, {"year_month", type date}, {"year", Int64.Type}, {"month_number", Int64.Type}, {"total_bookings", Int64.Type}, {"successful_bookings", Int64.Type}, {"canceled_bookings", Int64.Type}, {"occupancy_rate", type number}, {"adr", type number}, {"revpar", type number}, {"total_revenue", type number}, {"avg_lead_time", type number}, {"avg_total_nights", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

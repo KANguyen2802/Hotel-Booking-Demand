@@ -1,0 +1,1798 @@
+/// Home table for all DAX measures (organized by display folders)
+table _Measures
+	lineageTag: efaf392e-7950-4940-b1d4-1ba2948b2160
+
+	measure 'Total Bookings' = SUM(Fact_Revpar_Monthly[total_bookings])
+		formatString: #,##0
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: 5c7f6691-c059-4895-959a-4a5d4e6e9c19
+
+	measure 'Successful Bookings' = SUM(Fact_Revpar_Monthly[successful_bookings])
+		formatString: #,##0
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: c50c99ee-50e8-4e6d-90c6-2de77a78fae6
+
+	measure 'Canceled Bookings (Monthly)' = SUM(Fact_Revpar_Monthly[canceled_bookings])
+		formatString: #,##0
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: 453d2082-e785-436e-a818-b82c64fb5083
+
+	measure 'Total Revenue' = SUM(Fact_Revpar_Monthly[total_revenue])
+		formatString: #,##0.00
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: fc0d67f8-851d-4a42-ac54-2c0ee55a7a99
+
+	measure 'Cancel Rate (Monthly)' = DIVIDE([Canceled Bookings (Monthly)], [Total Bookings])
+		formatString: 0.00%
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: b428b49a-7cd9-4290-a69e-250f9ca6f099
+
+	/// Guide ADR — renamed because column [adr] exists (name clash)
+	measure 'ADR (wtd)' =
+			DIVIDE(
+			    SUMX(Fact_Revpar_Monthly, Fact_Revpar_Monthly[adr] * Fact_Revpar_Monthly[successful_bookings]),
+			    SUM(Fact_Revpar_Monthly[successful_bookings])
+			)
+		formatString: #,##0.00
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: 7413efb4-b567-47fa-b559-b7ba5dc6a5f7
+
+	/// Guide Occupancy Rate — renamed because column [occupancy_rate] exists
+	measure 'Occupancy Rate (wtd)' =
+			DIVIDE(
+			    SUMX(Fact_Revpar_Monthly, Fact_Revpar_Monthly[occupancy_rate] * Fact_Revpar_Monthly[total_bookings]),
+			    SUM(Fact_Revpar_Monthly[total_bookings])
+			)
+		formatString: 0.00%
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: 259619d8-0a01-4171-b22b-9fb607278fb1
+
+	/// Guide RevPAR — renamed because column [revpar] exists
+	measure 'RevPAR (wtd)' =
+			DIVIDE(
+			    SUMX(Fact_Revpar_Monthly, Fact_Revpar_Monthly[revpar] * Fact_Revpar_Monthly[total_bookings]),
+			    SUM(Fact_Revpar_Monthly[total_bookings])
+			)
+		formatString: #,##0.00
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: d7647df6-cd7a-45ba-bec6-ea55e609fd59
+
+	measure 'Latest Month (YearMonth)' = CALCULATE(MAX(Fact_Revpar_Monthly[year_month]), ALLSELECTED(Fact_Revpar_Monthly))
+		formatString: yyyy-mm
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: b994d06c-cf15-489f-a5da-7c82fa3f34b5
+
+	measure 'RevPAR (Latest Month)' =
+			VAR LatestYM = [Latest Month (YearMonth)]
+			RETURN
+			CALCULATE(
+			    [RevPAR (wtd)],
+			    TREATAS({LatestYM}, Fact_Revpar_Monthly[year_month])
+			)
+		formatString: #,##0.00
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: 4b92178f-7958-46b6-9b95-734c3d0ea75f
+
+	measure 'RevPAR PM' =
+			VAR LastMonth = [Latest Fact Month Start]
+			RETURN
+			CALCULATE(
+			    [RevPAR (wtd)],
+			    DATESBETWEEN(
+			        Dim_Date[Date],
+			        EDATE(LastMonth, -1),
+			        EOMONTH(LastMonth, -1)
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 02 Time Intelligence
+		lineageTag: a661347f-22bf-44d2-a242-c4e51f282ad5
+
+	measure 'RevPAR PY' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR PyMonth = EDATE(LastMonth, -12)
+			RETURN
+			CALCULATE(
+			    [RevPAR (wtd)],
+			    DATESBETWEEN(Dim_Date[Date], PyMonth, EOMONTH(PyMonth, 0))
+			)
+		formatString: #,##0.00
+		displayFolder: 02 Time Intelligence
+		lineageTag: 00bd2d6a-3f3f-44ac-b62f-5633c752173a
+
+	measure 'RevPAR MoM %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentVal =
+			    CALCULATE(
+			        [RevPAR (wtd)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			DIVIDE(CurrentVal - [RevPAR PM], [RevPAR PM])
+		formatString: 0.00%
+		displayFolder: 02 Time Intelligence
+		lineageTag: 0c8738d8-0c32-464f-80e7-030d565e5519
+
+	measure 'RevPAR YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentVal =
+			    CALCULATE(
+			        [RevPAR (wtd)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			DIVIDE(CurrentVal - [RevPAR PY], [RevPAR PY])
+		formatString: 0.00%
+		displayFolder: 02 Time Intelligence
+		lineageTag: 3d0ed14c-ebcd-49ec-8934-1f8eb8b46bb8
+
+	measure 'Total Revenue PM' =
+			VAR LastMonth = [Latest Fact Month Start]
+			RETURN
+			CALCULATE(
+			    [Total Revenue],
+			    DATESBETWEEN(
+			        Dim_Date[Date],
+			        EDATE(LastMonth, -1),
+			        EOMONTH(LastMonth, -1)
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 02 Time Intelligence
+		lineageTag: a0f63690-27c8-4379-9755-3b9d8bf977f2
+
+	measure 'Total Revenue MoM %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentVal =
+			    CALCULATE(
+			        [Total Revenue],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			DIVIDE(CurrentVal - [Total Revenue PM], [Total Revenue PM])
+		formatString: 0.00%
+		displayFolder: 02 Time Intelligence
+		lineageTag: 288a8d5c-0a5b-4f5a-b598-b374eed0cc8f
+
+	measure 'Cancel Rate PM' =
+			VAR LastMonth = [Latest Fact Month Start]
+			RETURN
+			CALCULATE(
+			    [Cancel Rate (Monthly)],
+			    DATESBETWEEN(
+			        Dim_Date[Date],
+			        EDATE(LastMonth, -1),
+			        EOMONTH(LastMonth, -1)
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 02 Time Intelligence
+		lineageTag: 92d07d9f-3df6-43c9-ac51-d2011bb1ddab
+
+	/// Guide: Cancel Rate Δ pp (MoM)
+	measure 'Cancel Rate Delta pp (MoM)' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentVal =
+			    CALCULATE(
+			        [Cancel Rate (Monthly)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			(CurrentVal - [Cancel Rate PM]) * 100
+		formatString: 0.00
+		displayFolder: 02 Time Intelligence
+		lineageTag: 95708b99-c35c-4dbe-a455-1c9051d05f21
+
+	measure 'ADR PM' =
+			VAR LastMonth = [Latest Fact Month Start]
+			RETURN
+			CALCULATE(
+			    [ADR (wtd)],
+			    DATESBETWEEN(
+			        Dim_Date[Date],
+			        EDATE(LastMonth, -1),
+			        EOMONTH(LastMonth, -1)
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 03 Decomposition
+		lineageTag: fb5bf78f-5f68-4296-b7a0-9530dfecb075
+
+	measure 'Occupancy PM' =
+			VAR LastMonth = [Latest Fact Month Start]
+			RETURN
+			CALCULATE(
+			    [Occupancy Rate (wtd)],
+			    DATESBETWEEN(
+			        Dim_Date[Date],
+			        EDATE(LastMonth, -1),
+			        EOMONTH(LastMonth, -1)
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 03 Decomposition
+		lineageTag: d9255080-cd84-4efa-9f94-406d9c1f5cc0
+
+	/// Guide: Δ RevPAR from ADR (MoM)
+	measure 'Delta RevPAR from ADR (MoM)' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentADR =
+			    CALCULATE(
+			        [ADR (wtd)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			[Occupancy PM] * (CurrentADR - [ADR PM])
+		formatString: #,##0.00
+		displayFolder: 03 Decomposition
+		lineageTag: 9138134c-6d6e-4bd7-8511-b0975de15c70
+
+	/// Guide: Δ RevPAR from Occupancy (MoM)
+	measure 'Delta RevPAR from Occupancy (MoM)' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentADR =
+			    CALCULATE(
+			        [ADR (wtd)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			VAR CurrentOcc =
+			    CALCULATE(
+			        [Occupancy Rate (wtd)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			CurrentADR * (CurrentOcc - [Occupancy PM])
+		formatString: #,##0.00
+		displayFolder: 03 Decomposition
+		lineageTag: 461209ba-8f89-490d-af17-9bc9bd204fa5
+
+	measure 'Residual (MoM)' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentRevPAR =
+			    CALCULATE(
+			        [RevPAR (wtd)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			CurrentRevPAR - ([RevPAR PM] + [Delta RevPAR from ADR (MoM)] + [Delta RevPAR from Occupancy (MoM)])
+		formatString: #,##0.00
+		displayFolder: 03 Decomposition
+		lineageTag: 3fdef439-6cf0-42d3-8191-feb7afb35eab
+
+	/// Guide: ADR Delta Mult
+	measure 'ADR Delta Mult' = 1 + [ADR Change % Value] / 100
+		formatString: 0.0000
+		displayFolder: 06 Simulator
+		lineageTag: 1cea0397-7b37-4708-9c66-bc92af1f6c90
+
+	measure 'Occ Delta pp' = [Occupancy Change (pp) Value] / 100
+		formatString: 0.00%
+		displayFolder: 06 Simulator
+		lineageTag: 3b5355c4-329e-42b4-b71e-5c8c44cad265
+
+	measure 'Cancel Delta pp' = [Cancel Rate Change (pp) Value] / 100
+		formatString: 0.00%
+		displayFolder: 06 Simulator
+		lineageTag: b6bebe31-2474-433b-ae42-da4826e0ebb0
+
+	measure 'Elasticity On' = SELECTEDVALUE('Elasticity Toggle'[Toggle], "Off") = "On"
+		displayFolder: 06 Simulator
+		lineageTag: 367f07aa-2b5b-4612-92a2-a9f3b1038f34
+
+	measure 'Elasticity Adj' = IF([Elasticity On], ([ADR Delta Mult] - 1) * -0.25, 0)
+		formatString: 0.0000
+		displayFolder: 06 Simulator
+		lineageTag: 5d6ed1f9-d754-41f2-a5dc-485bf272e4c2
+
+	measure 'RevPAR (Baseline)' =
+			DIVIDE(
+			    SUMX(Fact_Revpar_Monthly, Fact_Revpar_Monthly[adr] * Fact_Revpar_Monthly[occupancy_rate] * Fact_Revpar_Monthly[total_bookings]),
+			    SUM(Fact_Revpar_Monthly[total_bookings])
+			)
+		formatString: #,##0.00
+		displayFolder: 06 Simulator
+		lineageTag: 3aac068e-1822-46c0-8a58-b93cbcca4914
+
+	measure 'RevPAR (Scenario)' =
+			VAR AdrMult = [ADR Delta Mult]
+			VAR OccPp = [Occ Delta pp] + [Elasticity Adj]
+			VAR CxPp = [Cancel Delta pp]
+			RETURN
+			DIVIDE(
+			    SUMX(
+			        Fact_Revpar_Monthly,
+			        VAR AdrSim = Fact_Revpar_Monthly[adr] * AdrMult
+			        VAR OccStep1 = MIN(0.99, MAX(0.05, Fact_Revpar_Monthly[occupancy_rate] + OccPp))
+			        VAR OccSim = MIN(0.99, MAX(0.05, OccStep1 - CxPp * 0.5))
+			        RETURN AdrSim * OccSim * Fact_Revpar_Monthly[total_bookings]
+			    ),
+			    SUM(Fact_Revpar_Monthly[total_bookings])
+			)
+		formatString: #,##0.00
+		displayFolder: 06 Simulator
+		lineageTag: e96b5a80-c236-485b-bae0-c2a769445524
+
+	measure 'Revenue (Scenario)' =
+			VAR AdrMult = [ADR Delta Mult]
+			VAR OccPp = [Occ Delta pp] + [Elasticity Adj]
+			VAR CxPp = [Cancel Delta pp]
+			RETURN
+			SUMX(
+			    Fact_Revpar_Monthly,
+			    VAR RevparBase = Fact_Revpar_Monthly[adr] * Fact_Revpar_Monthly[occupancy_rate]
+			    VAR AdrSim = Fact_Revpar_Monthly[adr] * AdrMult
+			    VAR OccStep1 = MIN(0.99, MAX(0.05, Fact_Revpar_Monthly[occupancy_rate] + OccPp))
+			    VAR OccSim = MIN(0.99, MAX(0.05, OccStep1 - CxPp * 0.5))
+			    VAR RevparSim = AdrSim * OccSim
+			    VAR Ratio = DIVIDE(RevparSim, RevparBase, 1)
+			    RETURN Fact_Revpar_Monthly[total_revenue] * Ratio
+			)
+		formatString: #,##0.00
+		displayFolder: 06 Simulator
+		lineageTag: 4ed0c157-ecf6-48ac-b44c-5ca08fd8beb0
+
+	measure 'Delta RevPAR % (Scenario)' = DIVIDE([RevPAR (Scenario)] - [RevPAR (Baseline)], [RevPAR (Baseline)])
+		formatString: 0.00%
+		displayFolder: 06 Simulator
+		lineageTag: 77ea81c0-93a6-44c1-b4f3-53f6e4c33991
+
+	measure 'Delta Revenue % (Scenario)' = DIVIDE([Revenue (Scenario)] - [Total Revenue], [Total Revenue])
+		formatString: 0.00%
+		displayFolder: 06 Simulator
+		lineageTag: 3549e419-c408-45e6-8183-5019ef34d8fe
+
+	measure 'ADR (Scenario)' = [ADR (wtd)] * [ADR Delta Mult]
+		formatString: #,##0.00
+		displayFolder: 06 Simulator
+		lineageTag: 5c489ad5-6875-4671-a748-1c3eb5f1e7e4
+
+	measure 'Room Nights Sold' = CALCULATE(SUM(Fact_Booking[total_nights]), Fact_Booking[is_canceled] = 0)
+		formatString: #,##0
+		displayFolder: 04 Room Type
+		lineageTag: fa1b82ee-4438-44af-a690-c67c77f070ba
+
+	measure 'Revenue (Booking)' = SUM(Fact_Booking[revenue])
+		formatString: #,##0.00
+		displayFolder: 04 Room Type
+		lineageTag: 0c5f9feb-2a9e-4e32-9ab2-2bdbbc8c6781
+
+	measure 'RevPAR (Reserved Room)' = DIVIDE([Revenue (Booking)], [Room Nights Sold])
+		formatString: #,##0.00
+		displayFolder: 04 Room Type
+		lineageTag: 99d903f3-3b55-478b-b20f-c3238c63e267
+
+	measure 'RevPAR (Assigned Room)' =
+			CALCULATE(
+			    DIVIDE([Revenue (Booking)], [Room Nights Sold]),
+			    USERELATIONSHIP(Dim_RoomType[room_type], Fact_Booking[assigned_room_type])
+			)
+		formatString: #,##0.00
+		displayFolder: 04 Room Type
+		lineageTag: 8d023190-077b-4351-a9b3-c3a8b3fb545f
+
+	measure Bookings = COUNTROWS(Fact_Booking)
+		formatString: #,##0
+		displayFolder: 05 Cancellation
+		lineageTag: 67717163-09af-4c6d-92bf-c9da23cc8484
+
+	measure 'Canceled Bookings' = CALCULATE(COUNTROWS(Fact_Booking), Fact_Booking[is_canceled] = 1)
+		formatString: #,##0
+		displayFolder: 05 Cancellation
+		lineageTag: 66193c0f-c6b8-4dc3-9448-8a738a2e66e6
+
+	measure 'No-Show Bookings' = CALCULATE(COUNTROWS(Fact_Booking), Fact_Booking[reservation_status] = "No-Show")
+		formatString: #,##0
+		displayFolder: 05 Cancellation
+		lineageTag: 7e1420a9-a87d-4947-81d5-5c643359bacb
+
+	measure 'Check-Out Bookings' = CALCULATE(COUNTROWS(Fact_Booking), Fact_Booking[reservation_status] = "Check-Out")
+		formatString: #,##0
+		displayFolder: 05 Cancellation
+		lineageTag: 07398d74-bfba-41d1-b4c1-de894721346d
+
+	measure 'Cancel Rate' = DIVIDE([Canceled Bookings], [Bookings])
+		formatString: 0.00%
+		displayFolder: 05 Cancellation
+		lineageTag: c68dd16e-a978-45b5-be78-4525cb27d038
+
+	measure 'No-Show Rate' = DIVIDE([No-Show Bookings], [Bookings])
+		formatString: 0.00%
+		displayFolder: 05 Cancellation
+		lineageTag: 345a9a48-3abd-408f-be0c-72a309ab8ef3
+
+	/// Proxy estimate — not accounting
+	measure 'Lost Revenue (est.)' =
+			VAR CxRate = [Cancel Rate]
+			VAR Denom = MAX(1 - CxRate, 0.01)
+			RETURN [Revenue (Booking)] * DIVIDE(CxRate, Denom) * 0.35
+		formatString: #,##0.00
+		displayFolder: 05 Cancellation
+		lineageTag: 489e0bf8-a2f8-4fc5-8a04-44dd8ae37fc9
+
+	measure 'Segment Cancel Rate (min 50)' = IF([Bookings] >= 50, [Cancel Rate])
+		formatString: 0.00%
+		displayFolder: 05 Cancellation
+		lineageTag: 68791ab7-b5e5-4b3d-b52a-26be61a0212e
+
+	measure 'Funnel Value' =
+			SWITCH(
+			    SELECTEDVALUE('Funnel Stage'[Stage]),
+			    "Bookings", [Bookings],
+			    "After cancel leak", [Bookings] - [Canceled Bookings],
+			    "Check-Out", [Check-Out Bookings]
+			)
+		formatString: #,##0
+		displayFolder: 05 Cancellation
+		lineageTag: d173763f-db32-40e7-8685-63bbd54ae52f
+
+	/// Đọc lever khi slicer không có Single value: Greater than or equal to → MIN; Less than or equal to → MAX; full range → default 5.
+	measure 'ADR Change % Value' =
+			VAR Lo = MIN('ADR Change %'[ADR Change %])
+			VAR Hi = MAX('ADR Change %'[ADR Change %])
+			VAR AllMin = CALCULATE(MIN('ADR Change %'[ADR Change %]), ALL('ADR Change %'))
+			VAR AllMax = CALCULATE(MAX('ADR Change %'[ADR Change %]), ALL('ADR Change %'))
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISBLANK(Lo), 5,
+			    Lo = AllMin && Hi = AllMax, 5,
+			    Lo = Hi, Lo,
+			    Hi = AllMax, Lo,
+			    Lo = AllMin, Hi,
+			    5
+			)
+		formatString: 0
+		displayFolder: 06 Simulator
+		lineageTag: a6c1d37e-882c-4128-82c3-6ff8886c60bb
+
+	/// Lever Occupancy: slicer Greater than or equal to (một núm). Default -2 khi chưa lọc.
+	measure 'Occupancy Change (pp) Value' =
+			VAR Lo = MIN('Occupancy Change (pp)'[Occupancy Change (pp)])
+			VAR Hi = MAX('Occupancy Change (pp)'[Occupancy Change (pp)])
+			VAR AllMin = CALCULATE(MIN('Occupancy Change (pp)'[Occupancy Change (pp)]), ALL('Occupancy Change (pp)'))
+			VAR AllMax = CALCULATE(MAX('Occupancy Change (pp)'[Occupancy Change (pp)]), ALL('Occupancy Change (pp)'))
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISBLANK(Lo), -2,
+			    Lo = AllMin && Hi = AllMax, -2,
+			    Lo = Hi, Lo,
+			    Hi = AllMax, Lo,
+			    Lo = AllMin, Hi,
+			    -2
+			)
+		formatString: 0
+		displayFolder: 06 Simulator
+		lineageTag: 7a4915ef-54be-4c6f-adde-4c7a3aee8176
+
+	/// Lever Cancel: slicer Greater than or equal to (một núm). Default 0 khi chưa lọc.
+	measure 'Cancel Rate Change (pp) Value' =
+			VAR Lo = MIN('Cancel Rate Change (pp)'[Cancel Rate Change (pp)])
+			VAR Hi = MAX('Cancel Rate Change (pp)'[Cancel Rate Change (pp)])
+			VAR AllMin = CALCULATE(MIN('Cancel Rate Change (pp)'[Cancel Rate Change (pp)]), ALL('Cancel Rate Change (pp)'))
+			VAR AllMax = CALCULATE(MAX('Cancel Rate Change (pp)'[Cancel Rate Change (pp)]), ALL('Cancel Rate Change (pp)'))
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISBLANK(Lo), 0,
+			    Lo = AllMin && Hi = AllMax, 0,
+			    Lo = Hi, Lo,
+			    Hi = AllMax, Lo,
+			    Lo = AllMin, Hi,
+			    0
+			)
+		formatString: 0
+		displayFolder: 06 Simulator
+		lineageTag: 5e1b5d98-d83e-4b30-bfe1-2d6b524bd428
+
+	/// Tháng fact mới nhất trong context (ALLSELECTED). Dùng để Card MoM/YoY không lọc ngày vẫn so đúng tháng cuối.
+	measure 'Latest Fact Month Start' = MAX(Fact_Revpar_Monthly[MonthStartDate])
+		formatString: yyyy-mm-dd
+		isHidden
+		displayFolder: 02 Time Intelligence
+		lineageTag: 86710975-4be6-4145-9710-94da225dc7d3
+
+	/// Label MoM cho cột Revenue trên chart dual-axis: tam giác đặc ▲/▼ so với tháng trước (giống HTML pctDelta). Tháng đầu không có tháng trước → blank.
+	measure 'Revenue MoM Label' =
+			VAR MoM = [Total Revenue MoM %]
+			VAR Arrow =
+			    SWITCH(
+			        TRUE(),
+			        MoM > 0, UNICHAR(9650),
+			        MoM < 0, UNICHAR(9660),
+			        UNICHAR(9654)
+			    )
+			RETURN
+			IF(
+			    ISBLANK(MoM),
+			    BLANK(),
+			    Arrow & " " & FORMAT(ABS(MoM), "0.0%")
+			)
+		displayFolder: 02 Time Intelligence
+		lineageTag: 76f9542f-5628-4c94-8095-b533064689f7
+
+	/// 1 = tăng, -1 = giảm, 0 = đi ngang. Dùng cho màu chữ label (xanh/đỏ).
+	measure 'Revenue MoM Sign' =
+			VAR MoM = [Total Revenue MoM %]
+			RETURN
+			IF(ISBLANK(MoM), BLANK(), SIGN(MoM))
+		formatString: 0
+		displayFolder: 02 Time Intelligence
+		lineageTag: ac30bfd6-2464-492d-8454-5460b47c451a
+
+	/// Tổng đêm đặt (cả hủy) — khớp HTML customer_type_monthly.room_nights. Dùng cho toggle Occupancy / room-nights.
+	measure 'Room Nights' = SUM(Fact_Booking[total_nights])
+		formatString: #,##0
+		displayFolder: 01 Overview & RevPAR
+		lineageTag: 87fcea10-67a9-4b9f-b578-3c1cbe819316
+
+	/// Giá trị từng bước waterfall RevPAR MoM. Curr RevPAR neo tháng fact mới nhất (giống các measure 03 Decomposition) để chart đúng khi không có slicer ngày.
+	measure 'Bridge Value' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR CurrentRevPAR =
+			    CALCULATE(
+			        [RevPAR (wtd)],
+			        DATESBETWEEN(Dim_Date[Date], LastMonth, EOMONTH(LastMonth, 0))
+			    )
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE('Bridge Step'[Step]),
+			    "Prev RevPAR", [RevPAR PM],
+			    "Δ ADR", [Delta RevPAR from ADR (MoM)],
+			    "Δ Occupancy", [Delta RevPAR from Occupancy (MoM)],
+			    "Curr RevPAR", CurrentRevPAR
+			)
+		formatString: #,##0.00
+		displayFolder: 03 Decomposition
+		lineageTag: 0df74123-6061-44cd-8b59-3200aa127a29
+
+	/// Sensitivity 4 cột HTML: Baseline / adr_sim×occ / adr×occ_sim / Combined. Axis = Sensitivity Scenario[Scenario].
+	measure 'Sensitivity RevPAR' =
+			VAR AdrMult = [ADR Delta Mult]
+			VAR OccPp = [Occ Delta pp] + [Elasticity Adj]
+			VAR CxPp = [Cancel Delta pp]
+			VAR AdrOnly =
+			    DIVIDE(
+			        SUMX(
+			            Fact_Revpar_Monthly,
+			            Fact_Revpar_Monthly[adr] * AdrMult
+			                * Fact_Revpar_Monthly[occupancy_rate]
+			                * Fact_Revpar_Monthly[total_bookings]
+			        ),
+			        SUM(Fact_Revpar_Monthly[total_bookings])
+			    )
+			VAR OccOnly =
+			    DIVIDE(
+			        SUMX(
+			            Fact_Revpar_Monthly,
+			            VAR OccStep1 = MIN(0.99, MAX(0.05, Fact_Revpar_Monthly[occupancy_rate] + OccPp))
+			            VAR OccSim = MIN(0.99, MAX(0.05, OccStep1 - CxPp * 0.5))
+			            RETURN Fact_Revpar_Monthly[adr] * OccSim * Fact_Revpar_Monthly[total_bookings]
+			        ),
+			        SUM(Fact_Revpar_Monthly[total_bookings])
+			    )
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE('Sensitivity Scenario'[Scenario]),
+			    "Baseline", [RevPAR (Baseline)],
+			    "ADR only", AdrOnly,
+			    "Occ only", OccOnly,
+			    "Combined", [RevPAR (Scenario)]
+			)
+		formatString: #,##0.00
+		displayFolder: 06 Simulator
+		lineageTag: 4c060bf5-76ca-49fe-a7fd-b560175a8878
+
+	/// CY = năm đang chọn trên slicer Dim_Date[Year]. Một năm → năm đó; nhiều năm / không slicer → MAX năm trong lựa chọn. ALLSELECTED để sparkline (trục tháng) không làm lệch năm.
+	measure 'KPI CY Year' = MAXX ( ALLSELECTED ( Dim_Date[Year] ), Dim_Date[Year] )
+		formatString: 0
+		isHidden
+		displayFolder: 07 KPI Cards
+		lineageTag: bb0b6588-20f5-4c9f-bb61-d995ea7aa34f
+
+	/// PY = năm đang chọn (CY) − 1.
+	measure 'KPI PY Year' = [KPI CY Year] - 1
+		formatString: 0
+		isHidden
+		displayFolder: 07 KPI Cards
+		lineageTag: c5289ac0-1e6c-4766-89f6-156e0a4dbbf4
+
+	/// Bookings năm CY, cùng tháng-trong-năm với CY (splitCyPy).
+	measure 'Total Bookings (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Total Bookings],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: 6f666d58-eb28-405a-b3e1-236ffc333528
+
+	/// Bookings năm PY, chỉ các tháng có mặt ở CY.
+	measure 'Total Bookings (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Total Bookings],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: e5599401-6aea-468b-b917-bdc00af722e0
+
+	/// vs PY tuyệt đối (HTML vsPyAbs). Không dùng %.
+	measure 'Total Bookings vs PY' = [Total Bookings (CY)] - [Total Bookings (PY)]
+		formatString: +#,##0;-#,##0;0
+		displayFolder: 07 KPI Cards
+		lineageTag: 5cd51a68-a7dd-4a0d-94ce-66e51483cdd4
+
+	/// YoY: tháng fact cuối vs cùng tháng năm trước (HTML kpiTrendSpec).
+	measure 'Total Bookings YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [Total Bookings],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [Total Bookings],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 6dd1da43-9593-4b12-ba10-a1a674a63d6a
+
+	/// Revenue năm CY, cùng tháng-trong-năm.
+	measure 'Total Revenue (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Total Revenue],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 7263f00d-67ec-4836-8128-e921c3519a0b
+
+	/// Revenue năm PY, chỉ tháng có mặt ở CY.
+	measure 'Total Revenue (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Total Revenue],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: ce785692-9094-4c07-bce3-23d31f3d7e5b
+
+	/// vs PY tuyệt đối (HTML vsPyAbs). Không dùng %.
+	measure 'Total Revenue vs PY' = [Total Revenue (CY)] - [Total Revenue (PY)]
+		formatString: +#,##0.00;-#,##0.00;0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 6df50b2e-bd4b-45e7-b495-9cc0d314a030
+
+	/// YoY tháng cuối vs cùng tháng năm trước.
+	measure 'Total Revenue YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [Total Revenue],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [Total Revenue],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: d2d61fb5-23a3-4572-ae41-4863cb49d005
+
+	/// ADR weighted năm CY, cùng tháng-trong-năm.
+	measure 'ADR (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [ADR (wtd)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 0a16b89b-f65b-4df5-b941-08657b9921e9
+
+	/// ADR weighted năm PY, chỉ tháng có mặt ở CY.
+	measure 'ADR (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [ADR (wtd)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: f44859d8-d0fa-47ed-92eb-8ba09dc239b6
+
+	/// vs PY % — HTML pctDelta cho ADR.
+	measure 'ADR vs PY %' = DIVIDE ( [ADR (CY)] - [ADR (PY)], [ADR (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 064d5663-3f81-4411-8616-fa7a5ab793eb
+
+	/// YoY tháng cuối vs cùng tháng năm trước.
+	measure 'ADR YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [ADR (wtd)],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [ADR (wtd)],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 679108ba-def0-4ec7-a6cb-16bee235ac96
+
+	/// Pill STR/Lisbon: Excellent ≥120 · Good ≥105 · Fair ≥90 · Weak ≥75 · Poor.
+	measure 'ADR Rating' =
+			VAR V = [ADR (wtd)]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    ISBLANK ( V ), BLANK (),
+			    V >= 120, "Excellent",
+			    V >= 105, "Good",
+			    V >= 90, "Fair",
+			    V >= 75, "Weak",
+			    "Poor"
+			)
+		displayFolder: 07 KPI Cards
+		lineageTag: a9149c2f-763a-4fc7-83a5-4f63f729745e
+
+	/// Occupancy weighted năm CY.
+	measure 'Occupancy (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Occupancy Rate (wtd)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: a61e2f8e-86c8-4650-895f-3f5435804e44
+
+	/// Occupancy weighted năm PY.
+	measure 'Occupancy (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Occupancy Rate (wtd)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: dd081504-cb49-4ad5-9248-217c5ff4064a
+
+	/// vs PY % — HTML pctDelta cho Occupancy.
+	measure 'Occupancy vs PY %' = DIVIDE ( [Occupancy (CY)] - [Occupancy (PY)], [Occupancy (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 73970565-63b1-4e92-b258-6426efbfb122
+
+	/// YoY tháng cuối vs cùng tháng năm trước.
+	measure 'Occupancy YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [Occupancy Rate (wtd)],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [Occupancy Rate (wtd)],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 9425ab28-a170-4774-b83f-6b8aa321239d
+
+	/// Pill STR: Excellent ≥80% · Good ≥72% · Fair ≥65% · Weak ≥55% · Poor.
+	measure 'Occupancy Rating' =
+			VAR V = [Occupancy Rate (wtd)]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    ISBLANK ( V ), BLANK (),
+			    V >= 0.8, "Excellent",
+			    V >= 0.72, "Good",
+			    V >= 0.65, "Fair",
+			    V >= 0.55, "Weak",
+			    "Poor"
+			)
+		displayFolder: 07 KPI Cards
+		lineageTag: a85f3365-1ec5-44ff-a981-1f8315468493
+
+	/// RevPAR weighted năm CY.
+	measure 'RevPAR (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [RevPAR (wtd)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 592fab65-0f8a-4a57-a9e0-a47325fc01e1
+
+	/// RevPAR weighted năm PY.
+	measure 'RevPAR (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [RevPAR (wtd)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: d94ad023-9582-45be-a0f4-a093571f178b
+
+	/// vs PY % — HTML pctDelta cho RevPAR.
+	measure 'RevPAR vs PY %' = DIVIDE ( [RevPAR (CY)] - [RevPAR (PY)], [RevPAR (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 09c8e180-9a14-48b7-87d3-e73dd175a27f
+
+	/// YoY tháng cuối vs cùng tháng năm trước. Trùng ý [RevPAR YoY %] folder 02, format KPI.
+	measure 'RevPAR KPI YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [RevPAR (wtd)],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [RevPAR (wtd)],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 23b92021-23b7-49cb-b443-29e9a482064d
+
+	/// Pill PT/Lisbon: Excellent ≥90 · Good ≥75 · Fair ≥60 · Weak ≥45 · Poor.
+	measure 'RevPAR Rating' =
+			VAR V = [RevPAR (wtd)]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    ISBLANK ( V ), BLANK (),
+			    V >= 90, "Excellent",
+			    V >= 75, "Good",
+			    V >= 60, "Fair",
+			    V >= 45, "Weak",
+			    "Poor"
+			)
+		displayFolder: 07 KPI Cards
+		lineageTag: 7b5ca827-51a3-4269-9e31-1d7b3078c3a2
+
+	/// Cancel rate monthly năm CY (Overview KPI).
+	measure 'Cancel Rate M (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Cancel Rate (Monthly)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 689fa48a-c3ba-4464-84f1-bd028f870723
+
+	/// Cancel rate monthly năm PY.
+	measure 'Cancel Rate M (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Cancel Rate (Monthly)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 9e1b459a-22d2-4d29-a152-d434fc5f4923
+
+	/// vs PY % — invert màu trên visual (↑ là xấu).
+	measure 'Cancel Rate M vs PY %' = DIVIDE ( [Cancel Rate M (CY)] - [Cancel Rate M (PY)], [Cancel Rate M (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: df07e5e5-b6ab-4322-823b-8ead02826f18
+
+	/// YoY tháng cuối. Invert màu trên visual.
+	measure 'Cancel Rate M YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [Cancel Rate (Monthly)],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [Cancel Rate (Monthly)],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: a5f0aac1-b80e-4942-a339-5923ea42b365
+
+	/// Sparkline: ADR theo tháng của năm CY. Axis = MonthName.
+	measure 'ADR (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [ADR (wtd)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: a3a2496b-2829-49e9-9398-0212e56a6e18
+
+	/// Sparkline: ADR theo tháng của năm PY. Axis = MonthName.
+	measure 'ADR (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [ADR (wtd)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 598b728a-a164-4a86-a133-4cefe6dd26ba
+
+	/// Sparkline Occupancy CY.
+	measure 'Occupancy (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Occupancy Rate (wtd)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: c945704e-488d-4b89-bd6d-eedb76b15b1b
+
+	/// Sparkline Occupancy PY.
+	measure 'Occupancy (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Occupancy Rate (wtd)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 9530aec6-c7e3-48d6-8bbd-e9d5de9d4152
+
+	/// Sparkline RevPAR CY.
+	measure 'RevPAR (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [RevPAR (wtd)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 3846fce7-84f2-4b51-b4dd-ac12bf1ecada
+
+	/// Sparkline RevPAR PY.
+	measure 'RevPAR (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [RevPAR (wtd)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 47b2f4e0-d347-4e1d-844d-5c54afa51aab
+
+	/// Sparkline Bookings CY.
+	measure 'Total Bookings (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Total Bookings],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: 855ca621-fe54-467e-97ba-752c8365f740
+
+	/// Sparkline Bookings PY.
+	measure 'Total Bookings (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Total Bookings],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: fcae5c77-4fd1-4937-8383-db2fe3d57f24
+
+	/// Sparkline Revenue CY.
+	measure 'Total Revenue (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Total Revenue],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: aac32e6e-7c9a-49b1-b935-110b188a65f3
+
+	/// Sparkline Revenue PY.
+	measure 'Total Revenue (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Total Revenue],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 11e21e49-ff5d-415f-b90d-65f672bc9454
+
+	/// Sparkline Cancel rate monthly CY.
+	measure 'Cancel Rate M (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Cancel Rate (Monthly)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 9da071d0-b777-4019-a0d6-1547eb1d1733
+
+	/// Sparkline Cancel rate monthly PY.
+	measure 'Cancel Rate M (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Cancel Rate (Monthly)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 784abf9d-74ea-4050-8e2f-b20bafef4c5e
+
+	/// Cancel rate (Fact_Booking) năm CY — trang Cancellation.
+	measure 'Cancel Rate (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Cancel Rate],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 2f219072-a1bb-4945-ae58-d2f7c71f4929
+
+	/// Cancel rate (Fact_Booking) năm PY.
+	measure 'Cancel Rate (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Cancel Rate],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 6948b0bb-9071-4f64-b778-84879a6c43a3
+
+	/// vs PY % — invert màu (↑ xấu).
+	measure 'Cancel Rate vs PY %' = DIVIDE ( [Cancel Rate (CY)] - [Cancel Rate (PY)], [Cancel Rate (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 1db85ab0-c10f-4ac0-88ab-aa8c76131737
+
+	/// YoY tháng cuối — invert màu.
+	measure 'Cancel Rate YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [Cancel Rate],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [Cancel Rate],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 6bcb196b-4210-4b53-9369-dea2ffc02008
+
+	/// No-Show rate năm CY.
+	measure 'No-Show Rate (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [No-Show Rate],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: d781227d-b582-4f5a-a8fa-a3731ec95b09
+
+	/// No-Show rate năm PY.
+	measure 'No-Show Rate (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [No-Show Rate],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 727b5822-fd60-40c6-93b7-b5206adaeab4
+
+	/// vs PY % — invert màu.
+	measure 'No-Show Rate vs PY %' = DIVIDE ( [No-Show Rate (CY)] - [No-Show Rate (PY)], [No-Show Rate (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 2ca94382-550e-449b-b2d3-ea6423379da7
+
+	/// YoY tháng cuối — invert màu.
+	measure 'No-Show Rate YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [No-Show Rate],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [No-Show Rate],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 55d63d54-bccb-4e5c-9502-042dfdb50060
+
+	/// Canceled bookings năm CY.
+	measure 'Canceled Bookings (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Canceled Bookings],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: 1162dc49-c9ba-4bb8-b40e-579f44ba22a1
+
+	/// Canceled bookings năm PY.
+	measure 'Canceled Bookings (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Canceled Bookings],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: 03f2ecd2-4a19-4176-b0d3-b71ea6f47a63
+
+	/// vs PY % (HTML dùng pctDelta, không abs). Invert màu.
+	measure 'Canceled Bookings vs PY %' = DIVIDE ( [Canceled Bookings (CY)] - [Canceled Bookings (PY)], [Canceled Bookings (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: e4fed114-0c0f-40c1-89e5-0ca371202470
+
+	/// YoY tháng cuối — invert màu.
+	measure 'Canceled Bookings YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [Canceled Bookings],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [Canceled Bookings],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 075b2836-965c-47dc-a637-eca6170d0751
+
+	/// Lost revenue proxy năm CY.
+	measure 'Lost Revenue (CY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Lost Revenue (est.)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = CyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: 39b07409-25c7-4a26-a585-2361167f4214
+
+	/// Lost revenue proxy năm PY.
+	measure 'Lost Revenue (PY)' =
+			VAR CyYear = [KPI CY Year]
+			VAR PyYear = [KPI PY Year]
+			VAR SlicerMonths =
+			    CALCULATETABLE ( VALUES ( Dim_Date[MonthNumber] ), ALLSELECTED ( Dim_Date ) )
+			VAR MonthsInCY =
+			    CALCULATETABLE (
+			        VALUES ( Fact_Revpar_Monthly[month_number] ),
+			        REMOVEFILTERS ( Dim_Date ),
+			        Fact_Revpar_Monthly[year] = CyYear
+			    )
+			VAR Months = INTERSECT ( SlicerMonths, MonthsInCY )
+			RETURN
+			CALCULATE (
+			    [Lost Revenue (est.)],
+			    REMOVEFILTERS ( Dim_Date ),
+			    Dim_Date[Year] = PyYear,
+			    TREATAS ( Months, Dim_Date[MonthNumber] )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: fc6111ae-b3fa-468a-93dc-0bec9979b196
+
+	/// vs PY % (HTML pctDelta). Invert màu.
+	measure 'Lost Revenue vs PY %' = DIVIDE ( [Lost Revenue (CY)] - [Lost Revenue (PY)], [Lost Revenue (PY)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 5c6178ce-4a33-4e1c-bb90-b89298b4e8b2
+
+	/// YoY tháng cuối — invert màu.
+	measure 'Lost Revenue YoY %' =
+			VAR LastMonth = [Latest Fact Month Start]
+			VAR Curr =
+			    CALCULATE (
+			        [Lost Revenue (est.)],
+			        DATESBETWEEN ( Dim_Date[Date], LastMonth, EOMONTH ( LastMonth, 0 ) )
+			    )
+			VAR PyMonth = EDATE ( LastMonth, -12 )
+			VAR Prev =
+			    CALCULATE (
+			        [Lost Revenue (est.)],
+			        DATESBETWEEN ( Dim_Date[Date], PyMonth, EOMONTH ( PyMonth, 0 ) )
+			    )
+			RETURN
+			DIVIDE ( Curr - Prev, Prev )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 KPI Cards
+		lineageTag: 420e08b8-4e0e-49be-ae72-d6a2ef895d36
+
+	/// Ghi chú thẻ Cancel rate: số booking hủy.
+	measure 'Cancel Rate Note' = FORMAT ( [Canceled Bookings], "#,##0" ) & " canceled"
+		displayFolder: 07 KPI Cards
+		lineageTag: 795ee895-7b5b-409a-aca3-c96ed9d09073
+
+	/// Ghi chú thẻ No-Show rate.
+	measure 'No-Show Rate Note' = FORMAT ( [No-Show Bookings], "#,##0" ) & " no-shows"
+		displayFolder: 07 KPI Cards
+		lineageTag: ab1b53ad-5cbb-4388-b697-9f26c3fb724b
+
+	/// Ghi chú thẻ Canceled bookings: % of bookings.
+	measure 'Canceled Bookings Note' = FORMAT ( [Cancel Rate], "0.0%" ) & " of bookings"
+		displayFolder: 07 KPI Cards
+		lineageTag: f4b3d1d8-108b-43b7-8fc3-4239536cf60d
+
+	/// Ghi chú thẻ Lost revenue — HTML: proxy · not accounting.
+	measure 'Lost Revenue Note' = "proxy · not accounting"
+		displayFolder: 07 KPI Cards
+		lineageTag: b9e8d0cb-1263-4f95-be15-9ac37db2cbdd
+
+	/// Occupancy scenario — SUMX từng dòng rồi weighted, giống simulate().
+	measure 'Occupancy (Scenario)' =
+			VAR OccPp = [Occ Delta pp] + [Elasticity Adj]
+			VAR CxPp = [Cancel Delta pp]
+			RETURN
+			DIVIDE (
+			    SUMX (
+			        Fact_Revpar_Monthly,
+			        VAR OccStep1 =
+			            MIN ( 0.99, MAX ( 0.05, Fact_Revpar_Monthly[occupancy_rate] + OccPp ) )
+			        VAR OccSim =
+			            MIN ( 0.99, MAX ( 0.05, OccStep1 - CxPp * 0.5 ) )
+			        RETURN OccSim * Fact_Revpar_Monthly[total_bookings]
+			    ),
+			    SUM ( Fact_Revpar_Monthly[total_bookings] )
+			)
+		formatString: 0.00%
+		displayFolder: 06 Simulator
+		lineageTag: cbc1aa2b-406c-4ae8-a474-13d5958eeb1e
+
+	/// Thẻ Simulator ADR → Occ: giá trước → sau.
+	measure 'ADR Occ Transition' = FORMAT ( [ADR (wtd)], "€#,##0.00" ) & " → " & FORMAT ( [ADR (Scenario)], "€#,##0.00" )
+		displayFolder: 06 Simulator
+		lineageTag: 39fec127-b222-484f-af87-b7baec281601
+
+	/// Dòng phụ thẻ ADR → Occ: occupancy trước → sau.
+	measure 'Occ Transition Note' = FORMAT ( [Occupancy Rate (wtd)], "0.0%" ) & " → " & FORMAT ( [Occupancy (Scenario)], "0.0%" )
+		displayFolder: 06 Simulator
+		lineageTag: e4a05dcb-dd88-4185-ae64-53b46ca421c3
+
+	/// Sparkline Cancel Rate (booking) CY.
+	measure 'Cancel Rate (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Cancel Rate],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: efa9ed23-0a23-4197-bdac-e8484c99bd63
+
+	/// Sparkline Cancel Rate (booking) PY.
+	measure 'Cancel Rate (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Cancel Rate],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: e84acd4a-29c2-4c2e-966a-1d7e2606564c
+
+	/// Sparkline No-Show Rate CY.
+	measure 'No-Show Rate (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [No-Show Rate],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 258a3b39-31cc-4552-8e70-b3ad71ec3e09
+
+	/// Sparkline No-Show Rate PY.
+	measure 'No-Show Rate (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [No-Show Rate],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 07 KPI Cards
+		lineageTag: 47559749-7a10-421e-b4e8-d079d4075c7d
+
+	/// Sparkline Canceled bookings CY.
+	measure 'Canceled Bookings (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Canceled Bookings],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: 34496b57-6cd6-4a7e-8448-f4ef33d23180
+
+	/// Sparkline Canceled bookings PY.
+	measure 'Canceled Bookings (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Canceled Bookings],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0
+		displayFolder: 07 KPI Cards
+		lineageTag: 380dcfec-fb70-4d12-91b9-d8893d620989
+
+	/// Sparkline Lost revenue CY.
+	measure 'Lost Revenue (CY by month)' =
+			VAR CyYear = [KPI CY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Lost Revenue (est.)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = CyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: a2a397d0-8a7d-4745-a405-d370c5ad5826
+
+	/// Sparkline Lost revenue PY.
+	measure 'Lost Revenue (PY by month)' =
+			VAR PyYear = [KPI PY Year]
+			VAR Mo = SELECTEDVALUE ( Dim_Date[MonthNumber] )
+			RETURN
+			IF (
+			    NOT ISBLANK ( Mo ),
+			    CALCULATE (
+			        [Lost Revenue (est.)],
+			        REMOVEFILTERS ( Dim_Date ),
+			        Dim_Date[Year] = PyYear,
+			        Dim_Date[MonthNumber] = Mo
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: 07 KPI Cards
+		lineageTag: ca816563-fa12-438f-9792-92f20831cfde
+
+	column Placeholder
+		isHidden
+		lineageTag: 2463d93d-65fc-41b9-b167-9557c0bd81de
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Placeholder]
+
+	partition _Measures = calculated
+		mode: import
+		source = ROW("Placeholder", BLANK())
+

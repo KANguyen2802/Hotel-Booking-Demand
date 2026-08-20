@@ -1,0 +1,28 @@
+/// 3 customer type chính trên Overview small multiples (khớp HTML, loại Group)
+table 'CT Small Multiples'
+	lineageTag: d0bb9288-4ae5-4cd0-b32a-a9a579124a74
+
+	column customer_type
+		lineageTag: bcaa2d50-b7ab-4b51-92f1-8b65d6795481
+		isNameInferred
+		sourceColumn: [customer_type]
+		sortByColumn: 'CT Sort'
+
+	column 'CT Sort'
+		lineageTag: 4bd18502-eaa9-4a8e-b53c-8bb1e8b28dcf
+		isNameInferred
+		sourceColumn: [CT Sort]
+
+	partition 'CT Small Multiples' = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "customer_type", STRING,
+				    "CT Sort", INTEGER,
+				    {
+				        {"Transient", 1},
+				        {"Transient-Party", 2},
+				        {"Contract", 3}
+				    }
+				)
+

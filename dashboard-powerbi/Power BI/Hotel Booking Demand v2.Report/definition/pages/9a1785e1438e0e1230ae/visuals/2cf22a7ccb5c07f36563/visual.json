@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "2cf22a7ccb5c07f36563",
+  "position": {
+    "x": 435,
+    "y": 187.5,
+    "z": 25000,
+    "height": 52.5,
+    "width": 965,
+    "tabOrder": 25000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Where is revenue leaking before it even arrives?",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontFamily": "Verdana",
+                      "fontStyle": "italic",
+                      "fontSize": "20pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

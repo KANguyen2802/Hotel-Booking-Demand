@@ -1,0 +1,37 @@
+table Dim_Agent
+	lineageTag: a3d9ecd8-76a2-4392-8fa6-4f19ca86b281
+
+	column agent_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 93420e3b-11d0-47b5-8658-4556a0ea188b
+		summarizeBy: none
+		sourceColumn: agent_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column agent_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 738bc02e-eea0-4c6f-a594-2d256f3fb814
+		summarizeBy: none
+		sourceColumn: agent_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Agent = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\ADMIN\Desktop\DA\Project\Hotel Booking Demand\Python\data\star schema\dim_agent.csv"),[Delimiter=",", Columns=2, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"agent_key", Int64.Type}, {"agent_id", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

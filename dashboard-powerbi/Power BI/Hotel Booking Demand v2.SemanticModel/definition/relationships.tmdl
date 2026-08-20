@@ -1,0 +1,81 @@
+relationship AutoDetected_9ecb9791-0de1-43ae-ba54-8fa4b40734d3
+	fromColumn: Fact_Booking.deposit_type
+	toColumn: Dim_Deposit.deposit_type
+
+relationship AutoDetected_b7b7c067-184d-4062-86df-9ba42fc0cc3b
+	fromColumn: Fact_Booking.reservation_status
+	toColumn: Dim_Status.reservation_status
+
+relationship AutoDetected_3bc06ade-9e95-481a-b752-c322f4003dbb
+	fromColumn: Fact_Booking.hotel
+	toColumn: Dim_Hotel.hotel_name
+
+relationship AutoDetected_507c103b-c4af-41a5-8857-717b62c0369f
+	fromColumn: Fact_Booking.country
+	toColumn: Dim_Country.country_code
+
+relationship 2b4a4f9c-f2dd-339f-1a19-3ba66a6c31f3
+	fromColumn: Fact_Booking.agent
+	toColumn: Dim_Agent.agent_id
+
+relationship AutoDetected_87f5c57e-244a-436a-981f-2337accea712
+	fromColumn: Fact_Booking.market_segment
+	toColumn: Dim_Segment.market_segment
+
+relationship AutoDetected_f792e60c-d7e1-4b64-97b2-295d4b034975
+	fromColumn: Fact_Booking.distribution_channel
+	toColumn: Dim_Channel.distribution_channel
+
+relationship Fact_Revpar_Monthly_hotel_Dim_Hotel
+	fromColumn: Fact_Revpar_Monthly.hotel
+	toColumn: Dim_Hotel.hotel_name
+
+relationship Fact_Booking_reserved_room_type_Dim_RoomType
+	fromColumn: Fact_Booking.reserved_room_type
+	toColumn: Dim_RoomType.room_type
+
+relationship Fact_Booking_assigned_room_type_Dim_RoomType
+	isActive: false
+	fromColumn: Fact_Booking.assigned_room_type
+	toColumn: Dim_RoomType.room_type
+
+relationship Fact_Booking_customer_type_Dim_CustomerType
+	fromColumn: Fact_Booking.customer_type
+	toColumn: Dim_CustomerType.customer_type
+
+relationship Fact_Daily_AdrOcc_hotel_Dim_Hotel
+	fromColumn: Fact_Daily_AdrOcc.hotel
+	toColumn: Dim_Hotel.hotel_name
+
+relationship 6eee3f8f-5406-3b09-eeaa-e45a84d5f079
+	fromColumn: Fact_Booking.arrival_date
+	toColumn: Dim_Date.Date
+
+relationship Fact_Revpar_Monthly_MonthStartDate_Dim_Date
+	fromColumn: Fact_Revpar_Monthly.MonthStartDate
+	toColumn: Dim_Date.Date
+
+relationship Fact_Daily_AdrOcc_arrival_date_Dim_Date
+	fromColumn: Fact_Daily_AdrOcc.arrival_date
+	toColumn: Dim_Date.Date
+
+relationship Dim_CustomerType_CT_Small_Multiples
+	fromColumn: Dim_CustomerType.customer_type
+	toColumn: 'CT Small Multiples'.customer_type
+
+relationship Fact_Adr_Boxplot_hotel_Dim_Hotel
+	fromColumn: Fact_Adr_Boxplot.hotel
+	toColumn: Dim_Hotel.hotel_name
+
+relationship Fact_Adr_Boxplot_arrival_date_Dim_Date
+	fromColumn: Fact_Adr_Boxplot.arrival_date
+	toColumn: Dim_Date.Date
+
+relationship Fact_Adr_LeadTime_Boxplot_hotel_Dim_Hotel
+	fromColumn: Fact_Adr_LeadTime_Boxplot.hotel
+	toColumn: Dim_Hotel.hotel_name
+
+relationship Fact_Adr_LeadTime_Boxplot_arrival_date_Dim_Date
+	fromColumn: Fact_Adr_LeadTime_Boxplot.arrival_date
+	toColumn: Dim_Date.Date
+

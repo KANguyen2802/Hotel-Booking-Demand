@@ -1,0 +1,101 @@
+/// Stratified sample (~800 per lead-time bin) for ADR boxplot. Axis = SampleIndex, Axis category I = Lead Time Bin.
+table Fact_Adr_LeadTime_Boxplot
+	lineageTag: 690401a4-55dd-47c3-8aac-eab351e85594
+
+	column 'Lead Time Bin'
+		lineageTag: 6cfd58e6-99c1-444c-8d71-3cc048ec1964
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Lead Time Bin]
+		sortByColumn: 'Lead Time Bin Order'
+
+	column SampleIndex
+		lineageTag: 74122457-dbe2-4980-9b5a-41828ab7ab66
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [SampleIndex]
+
+	column booking_key
+		isHidden
+		lineageTag: 2e83493e-cbab-4198-85d2-337b275d0843
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [booking_key]
+
+	column adr
+		lineageTag: a2f31257-9c0e-4413-b463-26107b457d4d
+		summarizeBy: average
+		isNameInferred
+		sourceColumn: [adr]
+
+	column hotel
+		lineageTag: 8d5ad720-96ab-4bc8-bb8c-37d581536c0a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [hotel]
+
+	column arrival_date
+		lineageTag: 43b6019d-198b-48b3-8445-728fe07ccf75
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [arrival_date]
+
+	column 'Lead Time Bin Order'
+		isHidden
+		lineageTag: d1578b0f-a151-4e18-9589-cfc7602f86bb
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Lead Time Bin Order]
+
+	partition Fact_Adr_LeadTime_Boxplot = calculated
+		mode: import
+		source =
+				VAR SampleN = 800
+				VAR Bins =
+				    DISTINCT(
+				        SELECTCOLUMNS(Fact_Booking, "BinName", Fact_Booking[Lead Time Bin])
+				    )
+				VAR Sampled =
+				    GENERATE(
+				        Bins,
+				        VAR BinName = [BinName]
+				        VAR Raw =
+				            TOPN(
+				                SampleN,
+				                FILTER(Fact_Booking, Fact_Booking[Lead Time Bin] = BinName),
+				                MOD(Fact_Booking[booking_key] * 2654435761 + 12345, 2147483647),
+				                ASC
+				            )
+				        RETURN
+				        SELECTCOLUMNS(
+				            ADDCOLUMNS(
+				                Raw,
+				                "SampleIndex", RANKX(Raw, Fact_Booking[booking_key],, ASC, DENSE)
+				            ),
+				            "SampleIndex", [SampleIndex],
+				            "booking_key", Fact_Booking[booking_key],
+				            "adr", Fact_Booking[adr],
+				            "hotel", Fact_Booking[hotel],
+				            "arrival_date", Fact_Booking[arrival_date]
+				        )
+				    )
+				RETURN
+				SELECTCOLUMNS(
+				    Sampled,
+				    "Lead Time Bin", [BinName],
+				    "Lead Time Bin Order",
+				        SWITCH(
+				            [BinName],
+				            "0-7d", 0,
+				            "8-30d", 1,
+				            "31-90d", 2,
+				            "91-180d", 3,
+				            "180d+", 4
+				        ),
+				    "SampleIndex", [SampleIndex],
+				    "booking_key", [booking_key],
+				    "adr", [adr],
+				    "hotel", [hotel],
+				    "arrival_date", [arrival_date]
+				)
+

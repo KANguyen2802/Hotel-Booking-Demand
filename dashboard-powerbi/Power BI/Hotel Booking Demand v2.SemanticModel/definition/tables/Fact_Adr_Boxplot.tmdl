@@ -1,0 +1,89 @@
+/// Stratified sample (~800/group) for ADR boxplot. Power BI custom visuals cap ~1000 axis values; do not use Fact_Booking[booking_key] on the visual.
+table Fact_Adr_Boxplot
+	lineageTag: 18fc3985-b856-41a8-a766-c356e4a468b9
+
+	column 'Cancel Label'
+		lineageTag: e5bbe819-1cd1-454c-ac0a-19070c9380f8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Cancel Label]
+
+	/// Grain cho boxplot (1..800, lặp lại giữa 2 nhóm). Kéo vào Axis category I — không dùng booking_key.
+	column SampleIndex
+		lineageTag: 9f21e4f0-76e0-4ece-8257-147e2b0d316a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [SampleIndex]
+
+	column booking_key
+		isHidden
+		lineageTag: 7b44a558-f5c4-4b48-90a8-792772f4a546
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [booking_key]
+
+	column adr
+		lineageTag: 79ddabf7-ef4d-4c0c-8fff-49785fa1aec7
+		summarizeBy: average
+		isNameInferred
+		sourceColumn: [adr]
+
+	column hotel
+		lineageTag: 02d47b89-dbdf-41b6-800c-a5820b8c9e7f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [hotel]
+
+	column arrival_date
+		lineageTag: 82834210-5eee-475e-af67-7ea4eee390d8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [arrival_date]
+
+	partition Fact_Adr_Boxplot = calculated
+		mode: import
+		source =
+				VAR SampleN = 800
+				VAR CanceledRaw =
+				    TOPN(
+				        SampleN,
+				        FILTER(Fact_Booking, Fact_Booking[Cancel Label] = "Canceled"),
+				        MOD(Fact_Booking[booking_key] * 2654435761 + 12345, 2147483647),
+				        ASC
+				    )
+				VAR NotCanceledRaw =
+				    TOPN(
+				        SampleN,
+				        FILTER(Fact_Booking, Fact_Booking[Cancel Label] = "Not canceled"),
+				        MOD(Fact_Booking[booking_key] * 2654435761 + 12345, 2147483647),
+				        ASC
+				    )
+				VAR Canceled =
+				    SELECTCOLUMNS(
+				        ADDCOLUMNS(
+				            CanceledRaw,
+				            "SampleIndex", RANKX(CanceledRaw, Fact_Booking[booking_key],, ASC, DENSE)
+				        ),
+				        "Cancel Label", Fact_Booking[Cancel Label],
+				        "SampleIndex", [SampleIndex],
+				        "booking_key", Fact_Booking[booking_key],
+				        "adr", Fact_Booking[adr],
+				        "hotel", Fact_Booking[hotel],
+				        "arrival_date", Fact_Booking[arrival_date]
+				    )
+				VAR NotCanceled =
+				    SELECTCOLUMNS(
+				        ADDCOLUMNS(
+				            NotCanceledRaw,
+				            "SampleIndex", RANKX(NotCanceledRaw, Fact_Booking[booking_key],, ASC, DENSE)
+				        ),
+				        "Cancel Label", Fact_Booking[Cancel Label],
+				        "SampleIndex", [SampleIndex],
+				        "booking_key", Fact_Booking[booking_key],
+				        "adr", Fact_Booking[adr],
+				        "hotel", Fact_Booking[hotel],
+				        "arrival_date", Fact_Booking[arrival_date]
+				    )
+				RETURN
+				UNION(Canceled, NotCanceled)
+

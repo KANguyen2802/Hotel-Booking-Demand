@@ -1,0 +1,34 @@
+table Dim_Country
+	lineageTag: fa88d4fe-c27f-4589-942a-9d5f2b094acc
+
+	column country_key
+		dataType: int64
+		formatString: 0
+		lineageTag: cf6ad79d-98e3-4253-a4bf-41be850c6d09
+		summarizeBy: none
+		sourceColumn: country_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column country_code
+		dataType: string
+		lineageTag: a65812fa-a589-4ce9-a668-0da67b406411
+		summarizeBy: none
+		sourceColumn: country_code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Country = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\ADMIN\Desktop\DA\Project\Hotel Booking Demand\Python\data\star schema\dim_country.csv"),[Delimiter=",", Columns=2, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"country_key", Int64.Type}, {"country_code", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

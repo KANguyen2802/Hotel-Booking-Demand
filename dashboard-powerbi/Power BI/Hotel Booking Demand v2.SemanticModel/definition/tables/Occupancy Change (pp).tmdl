@@ -1,0 +1,13 @@
+/// What-if parameter: occupancy change in percentage points
+table 'Occupancy Change (pp)'
+	lineageTag: d9ae2f65-43ed-41dc-8e81-b22eafc50760
+
+	column 'Occupancy Change (pp)'
+		lineageTag: 73edee16-1931-4870-8aec-2c48d81af402
+		isNameInferred
+		sourceColumn: [Occupancy Change (pp)]
+
+	partition 'Occupancy Change (pp)' = calculated
+		mode: import
+		source = SELECTCOLUMNS(GENERATESERIES(-20, 20, 1), "Occupancy Change (pp)", [Value])
+

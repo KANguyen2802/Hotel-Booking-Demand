@@ -1,0 +1,32 @@
+/// Disconnected steps for RevPAR MoM waterfall: Prev RevPAR / Δ ADR / Δ Occupancy / Curr RevPAR
+table 'Bridge Step'
+	lineageTag: 2dd2e8e4-6ce4-46a7-8bb5-c1ee9a39105f
+
+	column Step
+		lineageTag: 5de29a20-ab5e-47a8-b867-41b8ec665d8b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Step]
+		sortByColumn: Order
+
+	column Order
+		formatString: 0
+		lineageTag: d3a2dc4f-d2e9-4d8b-b8c5-30dbd050c786
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Order]
+
+	partition 'Bridge Step' = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Step", STRING,
+				    "Order", INTEGER,
+				    {
+				        {"Prev RevPAR", 1},
+				        {"Δ ADR", 2},
+				        {"Δ Occupancy", 3},
+				        {"Curr RevPAR", 4}
+				    }
+				)
+

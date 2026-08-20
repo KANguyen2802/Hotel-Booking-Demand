@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Hotel Booking Demand v2"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "52c02de1-2ace-4b33-95fe-6268d270cfec"
+  }
+}

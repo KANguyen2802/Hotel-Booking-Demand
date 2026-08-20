@@ -1,0 +1,90 @@
+/// Daily grain hotel x arrival_date for ADR x Occupancy scatter (guide 4.7)
+table Fact_Daily_AdrOcc
+	lineageTag: 41bc86c7-f644-4383-8ef1-27a29a5fb509
+
+	column hotel
+		lineageTag: 61ddbfa2-056e-4cb3-878f-c4f2d00190c2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact_Booking[hotel]
+
+	column arrival_date
+		formatString: yyyy-mm-dd
+		lineageTag: ecf9138b-57d1-48c0-b64d-ca9571c1d9c1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact_Booking[arrival_date]
+
+	column 'Bookings (day)'
+		formatString: #,##0
+		lineageTag: 4a17941b-7e9b-43e8-9975-cc1086e57c71
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Bookings (day)]
+
+	column 'Canceled (day)'
+		formatString: #,##0
+		lineageTag: c269d7e1-d695-42ff-a902-4d680a165c42
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Canceled (day)]
+
+	column 'ADR (day)'
+		formatString: #,##0.00
+		lineageTag: cc0ddf19-04a6-4b12-a5c3-137e4405cc64
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [ADR (day)]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Occupancy Rate (day)'
+		formatString: 0.00%
+		lineageTag: 77dceb56-10eb-4af6-9687-c74b15229a27
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Occupancy Rate (day)]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Revenue (day)'
+		formatString: #,##0.00
+		lineageTag: 18ce8816-ac9f-4af4-945c-6b9090336e2b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Revenue (day)]
+
+	column 'Room Nights Sold (day)'
+		formatString: #,##0
+		lineageTag: 62d7991a-7bb2-490f-a0c6-f925eda85788
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Room Nights Sold (day)]
+
+	column 'RevPAR (day)'
+		formatString: #,##0.00
+		lineageTag: 9f809de6-bbb8-43b2-8e2b-c7cff9de5e3f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [RevPAR (day)]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fact_Daily_AdrOcc = calculated
+		mode: import
+		source =
+				ADDCOLUMNS(
+				    SUMMARIZECOLUMNS(
+				        Fact_Booking[hotel],
+				        Fact_Booking[arrival_date],
+				        "Bookings (day)", COUNTROWS(Fact_Booking),
+				        "Canceled (day)", CALCULATE(SUM(Fact_Booking[is_canceled])),
+				        "ADR (day)", AVERAGE(Fact_Booking[adr]),
+				        "Occupancy Rate (day)", AVERAGE(Fact_Booking[occupancy_rate]),
+				        "Revenue (day)", SUM(Fact_Booking[revenue]),
+				        "Room Nights Sold (day)",
+				            CALCULATE(SUM(Fact_Booking[total_nights]), Fact_Booking[is_canceled] = 0)
+				    ),
+				    "RevPAR (day)", [ADR (day)] * [Occupancy Rate (day)]
+				)
+

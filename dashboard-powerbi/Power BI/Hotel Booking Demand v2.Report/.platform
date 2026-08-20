@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Hotel Booking Demand v2"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "fac87807-d84f-4b16-938c-a754a2d10394"
+  }
+}
